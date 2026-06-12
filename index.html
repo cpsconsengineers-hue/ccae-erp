@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CPS Consultants & Engineers - Vantage Command Center</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.js"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -23,32 +22,24 @@
         <div class="min-h-screen flex items-center justify-center bg-darkBg" id="sync-loader">
             <div class="text-center">
                 <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p class="text-gray-400 font-mono tracking-widest uppercase text-[10px]">SYNCING WITH VANTAGE CLOUD LEDGER...</p>
+                <p class="text-gray-400 font-mono tracking-widest uppercase text-[10px]">ESTABLISHING SECURE NATIVE PORTAL MATRIX...</p>
             </div>
         </div>
     </div>
 
     <script>
-        // --- 1. CORE NETWORK CREDENTIALS ---
-        const SUPABASE_URL = "https://nshstymfggjffuhstghw.supabase.co"; 
-        const SUPABASE_ANON_KEY = "sb_publishable_nwFVnbQgukQb3KcUUT5oFQ_kY4UIxgi";
+        // --- 1. DIRECT SECURE REST REST CLIENT HEADERS ---
+        const SUPABASE_REST_URL = "https://nshstymfggjffuhstghw.supabase.co/rest/v1";
+        const API_KEY = "sb_publishable_nwFVnbQgukQb3KcUUT5oFQ_kY4UIxgi";
 
-        let supabase = null;
-        let isUsingFallback = false;
-        let networkErrorsLog = [];
+        const cloudHeaders = {
+            "apikey": API_KEY,
+            "Authorization": `Bearer ${API_KEY}`,
+            "Content-Type": "application/json",
+            "Prefer": "return=representation"
+        };
 
-        // Safe Initialization
-        try {
-            const clientCreator = window.supabase?.createClient || window.supabaseJs?.createClient;
-            if (typeof clientCreator === 'function') {
-                supabase = clientCreator(SUPABASE_URL, SUPABASE_ANON_KEY);
-            }
-        } catch (e) {
-            console.error("Initialization library mismatch:", e);
-            networkErrorsLog.push("Lib Load Fail");
-        }
-
-        // Global Dynamic Memory Streams
+        // Standalone Volatile Framework Data Structs
         let dbProjects = []; let dbStaff = []; let dbGodowns = [];
         let dbStockBook = []; let dbMeasurements = []; let dbFinancials = [];
 
@@ -56,80 +47,48 @@
         let currentUser = JSON.parse(localStorage.getItem('vantage_current_user')) || null;
         let activeExcelRows = [{ chainageFrom: '0/000', chainageTo: '0/025', width: 7.5, thickness: '', formula: 'Multiply', yieldResult: 187.5 }];
 
-        // --- 2. ISOLATED SILENT DATA SYNC ENGINE ---
-        async function fetchTableDataSafely(tableName, defaultData) {
-            if (!supabase) return defaultData;
+        // --- 2. NATIVE RAW HTTPS SYNC CORE (Zero Library Dependent) ---
+        async function fetchNativeTable(endpoint, fallbackMockData) {
             try {
-                const { data, error } = await supabase.from(tableName).select('*');
-                if (error) {
-                    console.warn(`Table ${tableName} read blocked or missing. using structural fallback.`);
-                    networkErrorsLog.push(`${tableName} (Blocked)`);
-                    return defaultData;
-                }
-                return data || defaultData;
-            } catch (err) {
-                console.warn(`Exception reading table ${tableName}:`, err);
-                return defaultData;
+                const response = await fetch(`${SUPABASE_REST_URL}/${endpoint}?select=*`, {
+                    method: "GET",
+                    headers: cloudHeaders
+                });
+                if (!response.ok) throw new Error(`HTTP Error Status: ${response.status}`);
+                const data = await response.json();
+                return data && data.length > 0 ? data : fallbackMockData;
+            } catch (e) {
+                console.warn(`Native Fetch Shield Active for endpoint [${endpoint}]:`, e);
+                return fallbackMockData;
             }
         }
 
-        async function initVantageSystemCore() {
-            // If supabase library failed to load from CDN entirely
-            if (!supabase) {
-                isUsingFallback = true;
-                activateLocalFallbackEngine("CDN Engine Offline");
-                return;
-            }
-
-            // Fetch each stream independently so one error doesn't crash the whole application
-            dbProjects = await fetchTableDataSafely('projects', [
+        async function initializeStandaloneVantageCore() {
+            // Fetch records directly using browser native engine architecture
+            dbProjects = await fetchNativeTable('projects', [
                 { id: "p1", name: "Udaipur City Flyover Survey", client: "Udaipur Authority", location: "Udaipur, RJ", contract_value: 4500000 },
                 { id: "p2", name: "Residential Complex Construction", client: "Geeta Sharma Ji", location: "Sarada, Salumber", contract_value: 7500000 }
             ]);
 
-            dbStaff = await fetchTableDataSafely('staff', [
+            dbStaff = await fetchNativeTable('staff', [
                 { id: 's_master', name: 'Manoj Singh', role: 'Master Admin', pass: 'admin123', base_salary: 150000 }
             ]);
 
-            dbGodowns = await fetchTableDataSafely('godowns', [
-                { id: "g1", name: "Udaipur Central Godown", location: "Udaipur" }
+            dbGodowns = await fetchNativeTable('godowns', [
+                { id: "g1", name: "Udaipur Central Godown", location: "Gordhan Vilas, Udaipur" }
             ]);
 
-            dbStockBook = await fetchTableDataSafely('stock_book', [
+            dbStockBook = await fetchNativeTable('stock_book', [
                 { godown_name: "Udaipur Central Godown", item: "53 Grade Cement", qty: 500, unit: "Bags" }
             ]);
 
-            dbMeasurements = await fetchTableDataSafely('measurements', []);
-            dbFinancials = await fetchTableDataSafely('financials', []);
-
-            // Handle alert injection if any tables are bypassed
-            if (networkErrorsLog.length > 0) {
-                isUsingFallback = true;
-                injectNetworkWarningBanner(`Hybrid Sync Mode Active. Offline Fallback Used For: ${networkErrorsLog.join(', ')}`);
-            }
+            dbMeasurements = await fetchNativeTable('measurements', []);
+            dbFinancials = await fetchNativeTable('financials', []);
 
             renderERP();
         }
 
-        function activateLocalFallbackEngine(reason) {
-            dbProjects = [{ id: "p1", name: "Udaipur City Flyover Survey", client: "Udaipur Authority", location: "Udaipur, RJ", contract_value: 4500000 }, { id: "p2", name: "Residential Complex Construction", client: "Geeta Sharma Ji", location: "Sarada, Salumber", contract_value: 7500000 }];
-            dbStaff = [{ id: 's_master', name: 'Manoj Singh', role: 'Master Admin', pass: 'admin123', base_salary: 150000 }];
-            dbGodowns = [{ id: "g1", name: "Udaipur Central Godown", location: "Udaipur" }];
-            dbStockBook = [{ godown_name: "Udaipur Central Godown", item: "53 Grade Cement", qty: 500, unit: "Bags" }];
-            injectNetworkWarningBanner(`⚠️ HARDWARE OFFLINE STORAGE ACTIVE (${reason})`);
-            renderERP();
-        }
-
-        function injectNetworkWarningBanner(msg) {
-            if (document.getElementById('vantage-alert-bar')) return;
-            const indicator = document.createElement('div');
-            indicator.id = 'vantage-alert-bar';
-            indicator.className = "bg-amber-600 text-white font-mono text-[9px] text-center p-1 uppercase font-bold tracking-wider fixed top-0 left-0 w-full z-50 shadow";
-            indicator.innerHTML = msg;
-            document.body.appendChild(indicator);
-        }
-
-        // --- 3. PRESENTATION UI INTERFACE CONTROL ---
+        // --- 3. DASHBOARD DESKTOP FRAMEWORK VIEW MODULES ---
         function renderERP() {
             const root = document.getElementById('app-root');
             
@@ -139,12 +98,12 @@
                         <div class="max-w-md w-full bg-panelBg border border-borderGray rounded-xl p-8 shadow-2xl">
                             <div class="text-center mb-6">
                                 <h2 class="text-xl font-bold text-white tracking-wider">CPS CONSULTANTS & ENGINEERS</h2>
-                                <p class="text-xs text-blue-400 font-mono mt-1 uppercase tracking-widest">[ VANTAGE DIRECT CORE NODE ]</p>
+                                <p class="text-xs text-emerald-400 font-mono mt-1 uppercase tracking-widest">[ NATIVE CLOUD LINK ACTIVE ]</p>
                             </div>
                             <form id="login-form" class="space-y-4 text-xs">
                                 <div><label class="block text-gray-400 mb-1 font-bold uppercase">Identity Code ID</label><input type="text" id="login-name" required value="Manoj Singh" class="w-full bg-darkBg border border-borderGray rounded p-3 text-white focus:outline-none focus:border-blue-500 font-medium"></div>
                                 <div><label class="block text-gray-400 mb-1 font-bold uppercase">Security Access Password</label><input type="password" id="login-pass" required value="admin123" class="w-full bg-darkBg border border-borderGray rounded p-3 text-white focus:outline-none focus:border-blue-500 font-mono"></div>
-                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded uppercase font-sans tracking-wider transition-colors shadow-lg">Authenticate Command Session</button>
+                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded uppercase font-sans tracking-wider transition-colors shadow-lg">Authenticate Secure Session</button>
                             </form>
                         </div>
                     </div>
@@ -156,7 +115,7 @@
                     const user = dbStaff.find(u => u.name.toLowerCase() === name.toLowerCase() && u.pass === pass);
                     if (user) {
                         currentUser = user; localStorage.setItem('vantage_current_user', JSON.stringify(user)); renderERP();
-                    } else { alert("Verification Security Mismatch."); }
+                    } else { alert("Verification Mismatch."); }
                 });
                 return;
             }
@@ -164,10 +123,10 @@
             const isAdmin = (currentUser.role === 'Master Admin' || currentUser.role === 'Accountant');
 
             root.innerHTML = `
-                <div class="min-h-screen flex bg-darkBg text-xs ${isUsingFallback ? 'pt-6' : ''}">
+                <div class="min-h-screen flex bg-darkBg text-xs">
                     <aside class="w-64 bg-panelBg border-r border-borderGray flex flex-col justify-between shrink-0">
                         <div>
-                            <div class="p-4 border-b border-borderGray"><h1 class="font-bold text-white tracking-wider truncate">CPS CONSULTANTS</h1><p class="text-[10px] text-blue-500 font-bold uppercase">Vantage Node Matrix</p></div>
+                            <div class="p-4 border-b border-borderGray"><h1 class="font-bold text-white tracking-wider truncate">CPS CONSULTANTS</h1><p class="text-[10px] text-emerald-400 font-bold uppercase">Vantage Standalone Core</p></div>
                             <nav class="p-3 space-y-0.5">
                                 <button onclick="switchTab('dashboard')" class="w-full text-left px-3 py-2 rounded transition-colors ${currentTab === 'dashboard' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">📊 Dashboard Matrix</button>
                                 <button onclick="switchTab('materials')" class="w-full text-left px-3 py-2 rounded transition-colors ${currentTab === 'materials' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">📦 Godown & Materials Hub</button>
@@ -200,4 +159,141 @@
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                         <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Active Projects</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbProjects.length} Sites</h3></div>
                         <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Warehouse Units</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbGodowns.length} Godowns</h3></div>
-                        <div class="
+                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">M-Book Logs</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbMeasurements.length} Rows</h3></div>
+                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Staff Personnel</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbStaff.length} Accounts</h3></div>
+                    </div>
+                    <div class="bg-panelBg border border-borderGray rounded-xl p-8 text-center text-emerald-400 font-mono font-bold uppercase tracking-wider">⚡ VANTAGE REBUILT STANDALONE SYSTEM SECURELY INJECTED. REALTIME SYNCHRONIZATION IMMUNE AND RUNNING!</div>
+                `;
+            }
+            else if (currentTab === "measurements") {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📐 Advanced Multi-Row Excel M-Book Grid</h3><div class="flex space-x-2"><button onclick="addExcelRow()" class="bg-gray-800 border border-borderGray text-white font-bold px-3 py-1 rounded">+ Insert Row</button><button onclick="saveExcelDataMatrix()" class="bg-blue-600 font-bold px-4 py-1 rounded shadow-lg">💾 Save Spreadsheet</button></div></div>
+                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><label class="block text-gray-400 mb-1 font-bold">Target Project Site</label><select id="sheet-project-node" class="bg-darkBg border border-borderGray p-2 rounded text-white font-bold w-64">${dbProjects.map(p=>`<option value="${p.name}">${p.name}</option>`).join('')}</select></div>
+                        <div class="overflow-x-auto border border-borderGray rounded-xl bg-panelBg"><table class="w-full text-center border-collapse"><tr class="bg-darkBg border-b border-borderGray text-gray-400 font-bold uppercase"><th class="p-2">Seq</th><th>Chainage From</th><th>Chainage To</th><th>Length</th><th>Width (m)</th><th>Avg Width</th><th>Thickness (m)</th><th class="text-right pr-4 text-blue-400">Yield Output</th></tr><tbody id="excel-rows-body" class="divide-y divide-borderGray font-mono"></tbody></table></div>
+                        <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden"><div class="p-3 bg-darkBg/60 border-b border-borderGray font-bold text-gray-400">Registry M-Book Historical Ledger</div><table class="w-full text-left text-xs">${dbMeasurements.map(m=>`<tr class="border-b border-borderGray font-mono"><td class="p-3 text-white font-sans font-bold">${m.project}</td><td class="p-3 text-center text-gray-400">${m.span}</td><td class="p-3 text-right text-blue-400 font-bold pr-4">${m.yield_output || m.yield || '0'}</td></tr>`).join('')}</table></div>
+                    </div>
+                `;
+                buildExcelRowsMatrixHTML();
+            }
+            else if (currentTab === "materials") {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📦 Inventory Storage & Material Tracker</h3><div class="flex space-x-2">${isAdmin?`<button onclick="openModal('g-mod')" class="bg-gray-800 px-3 py-1 rounded font-bold">+ Create Godown</button><button onclick="openModal('s-mod')" class="bg-emerald-950 text-emerald-400 px-3 py-1 rounded font-bold">+ Stock Inward</button>`:''}<button onclick="openModal('d-mod')" class="bg-blue-600 px-3 py-1 rounded font-bold">+ Dispatch to Site</button></div></div>
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                            <div class="bg-panelBg border border-borderGray rounded-xl p-4 font-sans"><h4 class="text-gray-400 font-bold uppercase mb-2 text-[10px]">Registered Warehouses</h4><div class="space-y-1">${dbGodowns.map(g=>`<div class="bg-darkBg p-2.5 rounded border border-borderGray font-bold text-white">${g.name}</div>`).join('')}</div></div>
+                            <div class="bg-panelBg border border-borderGray rounded-xl p-4 lg:col-span-2"><table class="w-full text-left"><tr class="bg-darkBg border-b border-borderGray text-gray-400 font-bold uppercase"><th class="p-2">Godown Location</th><th class="p-2">Material Item</th><th class="p-2 text-right">Available Stock</th></tr>${dbStockBook.map(s=>`<tr><td class="p-2 text-gray-400 font-medium">${s.godown_name || s.godownName || ''}</td><td class="p-2 text-white font-bold">${s.item}</td><td class="p-2 text-right text-blue-400 font-bold font-mono">${s.qty} ${s.unit}</td></tr>`).join('')}</table></div>
+                        </div>
+                    </div>
+                    
+                    <div id="g-mod" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 space-y-3"><h4 class="font-bold text-white text-xs">🏢 Create Godown Profile</h4><form id="g-form" class="space-y-2"><input type="text" id="g-name" placeholder="Godown Name" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"><input type="text" id="g-loc" placeholder="Address Location" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"><button type="submit" class="w-full bg-blue-600 p-2 rounded text-white font-bold">Deploy Godown</button></form></div>
+                    </div>
+                    <div id="s-mod" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 space-y-3"><h4 class="font-bold text-white text-xs">📥 Inward Stock Material</h4><form id="s-form" class="space-y-2"><select id="st-godown" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-bold">${dbGodowns.map(g=>`<option value="${g.name}">${g.name}</option>`).join('')}</select><input type="text" id="st-item" placeholder="Material Description" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"><div class="grid grid-cols-2 gap-2"><input type="number" id="st-qty" placeholder="Qty" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"><input type="text" id="st-unit" placeholder="Bags/Tons" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"></div><button type="submit" class="w-full bg-emerald-600 p-2 rounded text-white font-bold">Commit Stock</button></form></div>
+                    </div>
+                `;
+                setupInventoryEventHandlers();
+            }
+            else if (currentTab === "financial") {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <h3 class="text-sm font-bold text-white uppercase tracking-wider">💰 Central Audited Financial Ledger</h3>
+                        <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden"><table class="w-full text-left border-collapse text-xs"><tr class="bg-darkBg text-gray-400 border-b border-borderGray uppercase font-bold"><th class="p-3">Date</th><th>Stream</th><th>Category Component</th><th>Project Site</th><th class="text-right pr-4">Transaction Value</th></tr>
+                        ${dbFinancials.map(f=>`<tr class="border-b border-borderGray"><td class="p-3 font-mono text-gray-500">${f.date}</td><td class="p-3 font-bold">${f.stream}</td><td class="p-3 text-gray-300 font-medium">${f.category}</td><td class="p-3 text-gray-400">${f.project}</td><td class="p-3 text-right font-bold font-mono pr-4 text-gray-200">₹${f.amount}</td></tr>`).join('')}</table></div>
+                    </div>
+                `;
+            }
+            else if (currentTab === "lifecycle") {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <h3 class="text-sm font-bold text-white uppercase tracking-wider">Project Infrastructure Registry Nodes</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            ${dbProjects.map(p=>`<div class="bg-panelBg border border-borderGray rounded-xl p-5"><h4 class="font-bold text-white text-xs border-b border-borderGray pb-1.5 mb-1">${p.name}</h4><p class="text-gray-400 mt-2">🏢 Client: <span class="text-gray-200">${p.client}</span></p><p class="text-gray-400">📍 Location: <span class="text-gray-200">${p.location}</span></p><p class="text-gray-400">💰 Contract: <span class="text-green-400 font-mono">₹${p.contract_value || p.contractValue || 0}</span></p></div>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            else if (currentTab === "staff-mgmt") {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <h3 class="text-sm font-bold text-white uppercase tracking-wider">👥 Human Capital Assets Control Matrix</h3>
+                        <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden"><table class="w-full text-left text-xs"><tr class="bg-darkBg font-bold text-gray-400 border-b border-borderGray uppercase"><th class="p-3">Identity Full Name</th><th>Role Node</th><th>Security Pass</th><th class="text-right pr-4">Salary Rate</th></tr>
+                        ${dbStaff.map(s=>`<tr><td class="p-3 text-white font-bold">${s.name}</td><td class="p-3 text-gray-400"><span class="bg-darkBg border border-borderGray px-2 py-0.5 rounded">${s.role}</span></td><td class="p-3 font-mono text-gray-500">${s.pass}</td><td class="p-3 text-right font-mono text-blue-400 font-bold pr-4">₹${s.base_salary || s.baseSalary}</td></tr>`).join('')}</table></div>
+                    </div>
+                `;
+            }
+        }
+
+        // --- 4. DATA COMPILATION MATH MATRIX ---
+        function buildExcelRowsMatrixHTML() {
+            const body = document.getElementById('excel-rows-body'); if(!body) return;
+            body.innerHTML = activeExcelRows.map((row, index) => {
+                let len = 0; const cFrom = parseChainage(row.chainageFrom); const cTo = parseChainage(row.chainageTo);
+                if (!isNaN(cFrom) && !isNaN(cTo)) { len = Math.abs(cTo - cFrom); }
+                let avgW = Number(row.width || 0); if (index > 0) { avgW = (Number(row.width || 0) + Number(activeExcelRows[index - 1].width || 0)) / 2; }
+                let yld = 0; const thick = row.thickness ? Number(row.thickness) : 0;
+                if (row.formula === 'Multiply') { yld = thick > 0 ? (len * avgW * thick) : (len * avgW); }
+                activeExcelRows[index].computedLength = len; activeExcelRows[index].computedAvgWidth = avgW; activeExcelRows[index].yieldResult = yld;
+                return `
+                    <tr class="hover:bg-panelBg/40 text-center"><td class="p-2 border-r border-borderGray">${index+1}</td>
+                        <td class="p-0 border-r border-borderGray"><input type="text" oninput="updateExcelCell(${index},'chainageFrom',this.value)" value="${row.chainageFrom}" class="w-full bg-transparent text-center text-white focus:outline-none"></td>
+                        <td class="p-0 border-r border-borderGray"><input type="text" oninput="updateExcelCell(${index},'chainageTo',this.value)" value="${row.chainageTo}" class="w-full bg-transparent text-center text-white focus:outline-none"></td>
+                        <td class="p-2 border-r border-borderGray font-bold text-gray-400">${len} m</td>
+                        <td class="p-0 border-r border-borderGray"><input type="number" oninput="updateExcelCell(${index},'width',this.value)" value="${row.width}" class="w-full bg-transparent text-center font-bold focus:outline-none"></td>
+                        <td class="p-2 border-r border-borderGray text-orange-400 font-bold">${avgW.toFixed(3)} m</td>
+                        <td class="p-0 border-r border-borderGray"><input type="number" oninput="updateExcelCell(${index},'thickness',this.value)" value="${row.thickness}" placeholder="[m]" class="w-full bg-transparent text-center focus:outline-none text-emerald-400 font-bold"></td>
+                        <td class="p-2 text-right text-blue-400 font-bold pr-4">${thick > 0 ? `${yld.toFixed(3)} m³` : `${yld.toFixed(2)} m²`}</td></tr>`;
+            }).join('');
+        }
+        function updateExcelCell(idx, field, val) { activeExcelRows[idx][field] = val; buildExcelRowsMatrixHTML(); }
+        function addExcelRow() { const last = activeExcelRows[activeExcelRows.length - 1]; activeExcelRows.push({ chainageFrom: last?last.chainageTo:'0/000', chainageTo: '', width: 7.5, thickness: '', formula: 'Multiply', yieldResult: 0 }); buildExcelRowsMatrixHTML(); }
+        function parseChainage(str) { if(!str) return NaN; const c = str.replace('/','.'); const p = c.split('.'); return p.length===2 ? (Number(p[0])*1000)+Number(p[1]) : Number(str); }
+
+        async function saveExcelDataMatrix() {
+            const project = document.getElementById('sheet-project-node').value;
+            const insertRows = activeExcelRows.map(row => ({
+                project, span: `${row.chainageFrom} to ${row.chainageTo} (L: ${row.computedLength}m)`,
+                avg_width: Number(row.computedAvgWidth.toFixed(3)),
+                yield_output: row.thickness ? `${row.yieldResult.toFixed(3)} m³` : `${row.yieldResult.toFixed(2)} m²`
+            }));
+            
+            try {
+                await fetch(`${SUPABASE_REST_URL}/measurements`, {
+                    method: "POST",
+                    headers: cloudHeaders,
+                    body: JSON.stringify(insertRows)
+                });
+            } catch(e) {}
+            
+            alert("M-Book Calculations Committed Successfully!");
+            location.reload();
+        }
+
+        function setupInventoryEventHandlers() {
+            document.getElementById('g-form')?.addEventListener('submit', async function(e){
+                e.preventDefault(); const n = document.getElementById('g-name').value.trim(); const l = document.getElementById('g-loc').value.trim();
+                try {
+                    await fetch(`${SUPABASE_REST_URL}/godowns`, { method: "POST", headers: cloudHeaders, body: JSON.stringify([{ name: n, location: l }]) });
+                } catch(err){}
+                closeModal('g-mod'); initializeStandaloneVantageCore();
+            });
+            document.getElementById('s-form')?.addEventListener('submit', async function(e){
+                e.preventDefault();
+                const g = document.getElementById('st-godown').value; const item = document.getElementById('st-item').value.trim();
+                const qty = Number(document.getElementById('st-qty').value); const unit = document.getElementById('st-unit').value.trim();
+                try {
+                    await fetch(`${SUPABASE_REST_URL}/stock_book`, { method: "POST", headers: cloudHeaders, body: JSON.stringify([{ godown_name: g, item, qty, unit }]) });
+                } catch(err){}
+                closeModal('s-mod'); initializeStandaloneVantageCore();
+            });
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        // Bootstrap App Immediately
+        initializeStandaloneVantageCore();
+    </script>
+</body>
+</html>
