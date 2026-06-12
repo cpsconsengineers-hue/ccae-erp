@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vantage Command Center | CPS Consultants & Engineers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #f8fafc; }
+        .font-headline { font-family: 'Space Grotesk', sans-serif; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .sidebar-item.active { background-color: rgba(48, 138, 243, 0.1); color: #308AF3; border-color: rgba(48, 138, 243, 0.2); }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+        input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden">
+    <!-- Sidebar -->
+    <aside class="w-72 bg-[#0f172a] border-r border-[#1e293b] flex flex-col z-50 shrink-0">
+        <div class="h-20 flex items-center px-6 gap-4 border-b border-[#1e293b]">
+            <div class="h-10 w-10 bg-[#308AF3] rounded-xl flex items-center justify-center text-white shadow-lg text-lg">📊</div>
+            <div class="flex flex-col">
+                <span class="font-bold text-lg tracking-tighter uppercase font-headline leading-none">VANTAGE ERP</span>
+                <span class="text-[9px] text-[#64748b] font-bold uppercase tracking-widest mt-1">CPS Enterprise</span>
+            </div>
+        </div>
+        <div class="flex-1 overflow-y-auto p-4 space-y-1" id="sidebar-nav">
+            <!-- Navigation items injected by JS -->
+        </div>
+        <div class="p-4 border-t border-[#1e293b]">
+            <div class="flex items-center gap-4 bg-[#1e293b]/40 p-3 rounded-xl border border-[#334155]">
+                <div class="h-9 w-9 rounded-full bg-blue-600 flex items-center justify-center font-bold text-xs">MS</div>
+                <div class="flex flex-col overflow-hidden">
+                    <span class="text-[11px] font-bold truncate">Manoj Singh</span>
+                    <span class="text-[9px] text-[#308AF3] font-bold uppercase tracking-tighter">Director Admin</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="flex-1 flex flex-col min-w-0 bg-[#020617] relative">
+        <header class="h-20 border-b border-[#1e293b] flex items-center justify-between px-8 bg-[#0f172a]/20 backdrop-blur-md sticky top-0 z-40">
+            <div class="flex items-center gap-3">
+                <div class="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_#22c55e]"></div>
+                <h1 class="text-lg font-bold uppercase tracking-tight font-headline" id="active-tab-title">Dashboard</h1>
+            </div>
+            <div class="flex items-center gap-4 text-[10px] font-bold text-[#64748b] uppercase tracking-widest">
+                System Status: <span class="text-green-500">Global Sync Active</span>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-8" id="tab-container">
+            <!-- Tab contents injected by JS -->
+        </div>
+    </main>
+
+    <!-- Modal Root for Attendance/Forms -->
+    <div id="modal-root" class="fixed inset-0 z-[100] bg-black/95 hidden items-center justify-center p-4 backdrop-blur-sm"></div>
+
+    <script>
+        // APP CONFIG & INITIAL DATA
+        const SITE_NODES = [
+            { id: 'p1', name: 'Udaipur Smart City Hub', lat: 24.5854, lng: 73.7125, client: 'Udaipur Authority', value: '4.5 Cr' },
+            { id: 'p2', name: 'Bridge G-44 Replacement', lat: 26.9124, lng: 75.7873, client: 'NHAI', value: '12.0 Cr' }
+        ];
+
+        const TAB_CONFIG = [
+            { id: 'dashboard', label: 'Executive Dashboard', icon: '📈' },
+            { id: 'gis', label: 'Geospatial Viewer', icon: '🗺️' },
+            { id: 'tracking', label: 'Live Staff Tracking', icon: '📡' },
+            { id: 'telemetry', label: 'Telemetry History', icon: '🕒' },
+            { id: 'projects', label: 'Lifecycle Projects', icon: '🏗️' },
+            { id: 'measurements', label: 'Measurement Sheets', icon: '📏' },
+            { id: 'site-photos', label: 'Site Photo Updates', icon: '📸' },
+            { id: 'finance', label: 'Financial Ledger', icon: '💰' },
+            { id: 'subs', label: 'Subcontractor Hub', icon: '🤝' },
+            { id: 'billing', label: 'Billing & Invoices', icon: '🧾' },
+            { id: 'attendance', label: 'Daily Attendance', icon: '✅' }
+        ];
+
+        // PERSISTENT STATE
+        let appState = JSON.parse(localStorage.getItem('vantage_monolith_v5')) || {
+            attendance: [],
+            ledger: [
+                { date: '2024-03-20', entity: 'Udaipur Authority', type: 'Inflow', amount: 4500000, status: 'Verified' },
+                { date: '2024-03-18', entity: 'RK Cement Ltd', type: 'Outflow', amount: 125000, status: 'Verified' }
+            ],
+            projects: [...SITE_NODES]
+        };
+
+        function saveState() { localStorage.setItem('vantage_monolith_v5', JSON.stringify(appState)); }
+
+        // ROUTING ENGINE
+        function switchTab(id) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(`tab-${id}`).classList.add('active');
+            document.getElementById(`nav-${id}`).classList.add('active');
+            document.getElementById('active-tab-title').innerText = id.replace('-', ' ');
+
+            // Dynamic Renderers
+            if (id === 'attendance') renderAttendance();
+            if (id === 'dashboard') renderDashboard();
+            if (id === 'projects') renderProjects();
+            if (id === 'finance') renderFinance();
+            if (id === 'measurements') renderMeasurements();
+            if (['gis', 'tracking', 'telemetry', 'site-photos', 'subs', 'billing'].includes(id)) renderPlaceholder(id);
+        }
+
+        // SIDEBAR & VIEWPORT INIT
+        const navEl = document.getElementById('sidebar-nav');
+        const containerEl = document.getElementById('tab-container');
+
+        TAB_CONFIG.forEach(tab => {
+            // Create Sidebar Item
+            const btn = document.createElement('button');
+            btn.id = `nav-${tab.id}`;
+            btn.className = 'sidebar-item w-full flex items-center gap-4 px-4 h-12 rounded-lg transition-all text-[#64748b] hover:bg-[#1e293b] hover:text-white border border-transparent';
+            btn.innerHTML = `<span class="text-lg">${tab.icon}</span><span class="text-[11px] font-bold uppercase tracking-tight">${tab.label}</span>`;
+            btn.onclick = () => switchTab(tab.id);
+            navEl.appendChild(btn);
+
+            // Create Content Section
+            const div = document.createElement('div');
+            div.id = `tab-${tab.id}`;
+            div.className = 'tab-content w-full h-full';
+            containerEl.appendChild(div);
+        });
+
+        // --- DASHBOARD RENDER ---
+        function renderDashboard() {
+            const container = document.getElementById('tab-dashboard');
+            container.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+                    <div class="bg-[#0f172a] p-6 rounded-2xl border border-[#1e293b] group hover:border-[#308AF3]/40 transition-all">
+                        <div class="text-[9px] font-bold text-[#64748b] uppercase tracking-widest mb-4">Active Projects</div>
+                        <div class="text-3xl font-headline font-bold text-white">${appState.projects.length} Nodes</div>
+                        <div class="text-[8px] text-green-500 font-bold mt-2 uppercase">Operational Optimal</div>
+                    </div>
+                    <div class="bg-[#0f172a] p-6 rounded-2xl border border-[#1e293b]">
+                        <div class="text-[9px] font-bold text-[#64748b] uppercase tracking-widest mb-4">Net Collections</div>
+                        <div class="text-3xl font-headline font-bold text-green-500">₹ 82.1L</div>
+                        <div class="text-[8px] text-[#64748b] font-bold mt-2 uppercase">Verified Inflow</div>
+                    </div>
+                    <div class="bg-[#0f172a] p-6 rounded-2xl border border-[#1e293b]">
+                        <div class="text-[9px] font-bold text-[#64748b] uppercase tracking-widest mb-4">Site Expenses</div>
+                        <div class="text-3xl font-headline font-bold text-red-500">₹ 38.4L</div>
+                        <div class="text-[8px] text-red-400/50 font-bold mt-2 uppercase">Audit Pending: 0</div>
+                    </div>
+                    <div class="bg-[#0f172a] p-6 rounded-2xl border border-[#1e293b]">
+                        <div class="text-[9px] font-bold text-[#64748b] uppercase tracking-widest mb-4">Overall Efficiency</div>
+                        <div class="text-3xl font-headline font-bold text-white">94.2%</div>
+                        <div class="text-[8px] text-blue-500 font-bold mt-2 uppercase">Target: 90%</div>
+                    </div>
+                </div>
+                <div class="bg-[#0f172a] p-16 rounded-3xl border border-[#1e293b] border-dashed text-center opacity-30">
+                    <div class="text-5xl mb-6">📈</div>
+                    <h3 class="text-xs font-bold uppercase tracking-[0.4em] text-white">Global Telemetry Matrix Locked</h3>
+                    <p class="text-[10px] mt-4 italic text-[#64748b]">Processing site measurement logs and payroll disbursements...</p>
+                </div>
+            `;
+        }
+
+        // --- ATTENDANCE RENDER (GEOTAGGED) ---
+        function renderAttendance() {
+            const container = document.getElementById('tab-attendance');
+            container.innerHTML = `
+                <div class="max-w-4xl mx-auto space-y-12">
+                    <div class="text-center">
+                        <h2 class="text-4xl font-headline font-bold uppercase tracking-tight text-white mb-2">Shift Command Center</h2>
+                        <p class="text-[#64748b] text-[10px] font-bold uppercase tracking-[0.2em]">GIS-Anchored Biometric Presence certification</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="bg-[#308AF3]/5 p-8 rounded-3xl border border-[#308AF3]/20 relative overflow-hidden">
+                            <h3 class="text-[10px] font-bold uppercase text-[#308AF3] mb-8 tracking-[0.1em]">Site Presence Nodes</h3>
+                            <div class="space-y-4" id="att-sites"></div>
+                        </div>
+                        <div class="bg-[#0f172a] p-8 rounded-3xl border border-[#1e293b]">
+                            <h3 class="text-[10px] font-bold uppercase text-[#475569] mb-8 tracking-[0.1em]">Certification History</h3>
+                            <div class="space-y-4 max-h-[400px] overflow-y-auto pr-2" id="att-history"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const siteList = document.getElementById('att-sites');
+            appState.projects.forEach(p => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full h-24 bg-[#020617] border border-[#1e293b] hover:border-[#308AF3] rounded-2xl flex items-center px-6 gap-6 transition-all group active:scale-[0.98] text-left';
+                btn.innerHTML = `
+                    <div class="h-12 w-12 bg-[#1e293b] group-hover:bg-[#308AF3]/20 rounded-xl flex items-center justify-center text-2xl transition-all">📍</div>
+                    <div>
+                        <div class="text-sm font-bold text-white uppercase tracking-tight">${p.name}</div>
+                        <div class="text-[9px] font-bold text-[#475569] uppercase mt-1">Boundery Radius: 100 Meters</div>
+                    </div>
+                `;
+                btn.onclick = () => launchBiometricSync(p);
+                siteList.appendChild(btn);
+            });
+            refreshAttHistory();
+        }
+
+        function refreshAttHistory() {
+            const list = document.getElementById('att-history');
+            list.innerHTML = appState.attendance.length ? '' : '<div class="text-center py-20 text-[10px] font-bold text-[#475569] italic uppercase tracking-widest">Zero entries.</div>';
+            appState.attendance.slice().reverse().forEach(log => {
+                const div = document.createElement('div');
+                div.className = 'p-5 bg-[#0f172a]/40 rounded-2xl border border-[#1e293b] flex justify-between items-center';
+                div.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <div class="h-10 w-10 bg-black rounded-lg overflow-hidden border border-white/5"><img src="${log.selfie}" class="w-full h-full object-cover"></div>
+                        <div class="text-left">
+                            <div class="text-[10px] font-bold text-white uppercase">${log.site}</div>
+                            <div class="text-[8px] text-[#475569] font-bold mt-1 uppercase">${log.time}</div>
+                        </div>
+                    </div>
+                    <span class="px-2 py-1 rounded text-[8px] font-bold border ${log.status === 'PRESENT' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'} uppercase">${log.status}</span>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        let cameraStream = null;
+        async function launchBiometricSync(site) {
+            const modal = document.getElementById('modal-root');
+            modal.innerHTML = `
+                <div class="bg-[#0f172a] w-full max-w-md rounded-[2.5rem] border border-blue-600/30 overflow-hidden text-center p-8 shadow-2xl">
+                    <h4 class="text-[11px] font-bold uppercase tracking-[0.4em] text-[#308AF3] mb-6">Biometric Spatial Sync</h4>
+                    <div class="aspect-square bg-black rounded-[2rem] overflow-hidden border border-[#1e293b] relative mb-8">
+                        <video id="sync-video" autoplay playsinline class="w-full h-full object-cover"></video>
+                        <div id="sync-overlay" class="absolute inset-0 bg-black/80 hidden flex-col items-center justify-center gap-4">
+                            <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent animate-spin rounded-full"></div>
+                            <span class="text-[10px] font-bold uppercase tracking-[0.2em]">Verifying GIS Coordinates...</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-[#64748b] mb-10 font-medium italic">Establishing boundary for: <span class="text-white font-bold">${site.name}</span></p>
+                    <div class="flex gap-4">
+                        <button onclick="closeAttendanceModal()" class="flex-1 h-14 border border-[#1e293b] rounded-2xl font-bold text-[10px] uppercase text-[#64748b] hover:bg-[#1e293b]">Abort</button>
+                        <button onclick="certifyPresence(${JSON.stringify(site).replace(/"/g, '&quot;')})" class="flex-1 h-14 bg-blue-600 rounded-2xl font-bold text-[10px] uppercase text-white shadow-xl shadow-blue-600/30">Certify Presence</button>
+                    </div>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            try {
+                cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+                document.getElementById('sync-video').srcObject = cameraStream;
+            } catch (e) {
+                alert("Camera permission is mandatory for identity verification.");
+                closeAttendanceModal();
+            }
+        }
+
+        function closeAttendanceModal() {
+            if (cameraStream) cameraStream.getTracks().forEach(t => t.stop());
+            const modal = document.getElementById('modal-root');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function certifyPresence(site) {
+            const overlay = document.getElementById('sync-overlay');
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+
+            navigator.geolocation.getCurrentPosition(pos => {
+                const liveLat = pos.coords.latitude;
+                const liveLng = pos.coords.longitude;
+                const distMeters = calculateDistance(liveLat, liveLng, site.lat, site.lng);
+                const validated = distMeters <= 100;
+
+                const video = document.getElementById('sync-video');
+                const canvas = document.createElement('canvas');
+                canvas.width = 400; canvas.height = 400;
+                canvas.getContext('2d').drawImage(video, 0, 0, 400, 400);
+                const base64Photo = canvas.toDataURL('image/jpeg', 0.6);
+
+                appState.attendance.push({
+                    site: site.name,
+                    time: new Date().toLocaleString(),
+                    status: validated ? 'PRESENT' : 'ABSENT (Out of Range)',
+                    selfie: base64Photo,
+                    coordinates: `${liveLat.toFixed(6)}, ${liveLng.toFixed(6)}`,
+                    precision: Math.round(distMeters)
+                });
+                
+                saveState();
+                refreshAttHistory();
+                closeAttendanceModal();
+                
+                if (validated) {
+                    alert(`SUCCESS: Presence certified at ${Math.round(distMeters)}m from origin.`);
+                } else {
+                    alert(`REJECTED: Security violation. Device position is ${Math.round(distMeters)}m away from authorized site node.`);
+                }
+            }, err => {
+                alert("CRITICAL: GPS Geolocation failed. Attendance cannot be certified without spatial coordinates.");
+                closeAttendanceModal();
+            }, { enableHighAccuracy: true });
+        }
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3; // Earth radius in meters
+            const rad = Math.PI / 180;
+            const a = 0.5 - Math.cos((lat2 - lat1) * rad) / 2 + Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * (1 - Math.cos((lon2 - lon1) * rad)) / 2;
+            return R * 2 * Math.asin(Math.sqrt(a));
+        }
+
+        // --- MEASUREMENTS GRID ---
+        function renderMeasurements() {
+            const container = document.getElementById('tab-measurements');
+            container.innerHTML = `
+                <div class="flex justify-between items-center mb-10">
+                    <div><h2 class="text-3xl font-headline font-bold uppercase tracking-tight text-white leading-none">Engineering Dimension Grid</h2><p class="text-[#64748b] text-[10px] font-bold uppercase tracking-[0.2em] mt-2">Calculated L*W*T Site Volume Ledger</p></div>
+                    <button onclick="addMRow()" class="bg-[#308AF3] px-6 h-12 rounded-xl font-bold text-[10px] uppercase shadow-xl shadow-blue-600/20">Append New Row</button>
+                </div>
+                <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl overflow-hidden mb-10">
+                    <table class="w-full text-left text-[10px] font-bold uppercase tracking-widest">
+                        <thead class="bg-[#020617] text-[#475569]">
+                            <tr><th class="p-5 border-b border-[#1e293b]">Description</th><th class="p-5 border-b border-[#1e293b] text-center">L (m)</th><th class="p-5 border-b border-[#1e293b] text-center">W (m)</th><th class="p-5 border-b border-[#1e293b] text-center">T (m)</th><th class="p-5 border-b border-[#1e293b] text-right text-[#308AF3]">Qty (Cum)</th></tr>
+                        </thead>
+                        <tbody id="m-body-grid"></tbody>
+                    </table>
+                </div>
+                <div class="bg-blue-600/5 border border-blue-600/30 p-10 rounded-3xl flex justify-between items-center">
+                    <span class="text-xs font-bold uppercase tracking-[0.4em] text-[#308AF3]">Total Certified Site Volume</span>
+                    <span class="text-5xl font-headline font-bold text-white tracking-tighter" id="m-total-display">0.000 Cum</span>
+                </div>
+            `;
+            addMRow();
+        }
+
+        function addMRow() {
+            const tr = document.createElement('tr');
+            tr.className = 'border-b border-[#1e293b] hover:bg-white/[0.02] transition-colors';
+            tr.innerHTML = `
+                <td class="p-2"><input type="text" class="w-full bg-transparent px-3 h-10 text-white font-medium" placeholder="Concrete, PCC, etc."></td>
+                <td class="p-2 text-center"><input type="number" step="0.001" oninput="runMCalc(this)" class="w-full bg-transparent text-center h-10 font-mono text-blue-400" placeholder="0.000"></td>
+                <td class="p-2 text-center"><input type="number" step="0.001" oninput="runMCalc(this)" class="w-full bg-transparent text-center h-10 font-mono text-blue-400" placeholder="0.000"></td>
+                <td class="p-2 text-center"><input type="number" step="0.001" oninput="runMCalc(this)" class="w-full bg-transparent text-center h-10 font-mono text-blue-400" placeholder="0.000"></td>
+                <td class="p-5 text-right text-green-500 font-mono text-base font-bold">0.000</td>
+            `;
+            document.getElementById('m-body-grid').appendChild(tr);
+        }
+
+        function runMCalc(input) {
+            const row = input.closest('tr');
+            const nums = Array.from(row.querySelectorAll('input[type="number"]')).map(i => parseFloat(i.value) || 0);
+            const qty = nums.reduce((a, b) => a * b, 1);
+            const hasZero = nums.some(n => n <= 0);
+            row.querySelector('td:last-child').innerText = (hasZero ? 0 : qty).toFixed(3);
+            
+            let grandTotal = 0;
+            document.querySelectorAll('#m-body-grid td:last-child').forEach(td => grandTotal += parseFloat(td.innerText) || 0);
+            document.getElementById('m-total-display').innerText = grandTotal.toFixed(3) + ' Cum';
+        }
+
+        // --- FINANCE & PROJECTS ---
+        function renderFinance() {
+            const container = document.getElementById('tab-finance');
+            container.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
+                    <div class="p-10 bg-green-500/5 border border-green-500/10 rounded-3xl">
+                        <div class="text-[10px] font-bold text-green-500 mb-6 uppercase tracking-widest">Account Inflow</div>
+                        <div class="text-4xl font-headline font-bold text-white tracking-tighter">₹ 82.1L</div>
+                    </div>
+                    <div class="p-10 bg-red-500/5 border border-red-500/10 rounded-3xl">
+                        <div class="text-[10px] font-bold text-red-500 mb-6 uppercase tracking-widest">Operational Outflow</div>
+                        <div class="text-4xl font-headline font-bold text-white tracking-tighter">₹ 38.4L</div>
+                    </div>
+                    <div class="p-10 bg-[#308AF3]/5 border border-[#308AF3]/10 rounded-3xl">
+                        <div class="text-[10px] font-bold text-[#308AF3] mb-6 uppercase tracking-widest">Net Site Liquidity</div>
+                        <div class="text-4xl font-headline font-bold text-white tracking-tighter">₹ 43.7L</div>
+                    </div>
+                </div>
+                <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl overflow-hidden shadow-2xl">
+                    <div class="bg-[#020617] p-5 text-[10px] font-bold uppercase tracking-[0.4em] text-[#475569] border-b border-[#1e293b]">Corporate Financial Ledger</div>
+                    <table class="w-full text-left text-[10px] font-bold uppercase tracking-widest">
+                        <thead class="bg-[#020617]/50 text-[#475569]">
+                            <tr><th class="p-5">Stamp</th><th class="p-5">Entity / Project Node</th><th class="p-5 text-right">Amount (₹)</th><th class="p-5 text-center">Status</th></tr>
+                        </thead>
+                        <tbody class="divide-y divide-[#1e293b]">
+                            ${appState.ledger.map(tx => `
+                                <tr class="hover:bg-white/[0.02]">
+                                    <td class="p-5 text-[#64748b] font-mono">${tx.date}</td>
+                                    <td class="p-5 text-white font-medium">${tx.entity}</td>
+                                    <td class="p-5 text-right ${tx.type === 'Inflow' ? 'text-green-500' : 'text-red-400'} font-headline text-base">${tx.type === 'Inflow' ? '+' : '-'} ${tx.amount.toLocaleString()}</td>
+                                    <td class="p-5 text-center"><span class="px-2 py-1 rounded text-[8px] bg-blue-600/10 text-[#308AF3] border border-blue-600/20">${tx.status}</span></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function renderProjects() {
+            const container = document.getElementById('tab-projects');
+            container.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    ${appState.projects.map(p => `
+                        <div class="bg-[#0f172a] p-10 rounded-[2rem] border border-[#1e293b] group hover:border-[#308AF3]/50 transition-all">
+                            <div class="flex justify-between items-start mb-12">
+                                <div>
+                                    <h4 class="text-2xl font-headline font-bold text-white tracking-tight uppercase">${p.name}</h4>
+                                    <p class="text-[10px] uppercase font-bold text-[#64748b] tracking-[0.2em] mt-2">${p.client}</p>
+                                </div>
+                                <span class="bg-green-500/10 text-green-500 text-[9px] font-bold px-4 py-1.5 rounded-full border border-green-500/20">NODE: ACTIVE</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-10 mb-12">
+                                <div>
+                                    <div class="text-[10px] font-bold text-[#475569] uppercase tracking-widest mb-2">Contractual Value</div>
+                                    <div class="text-xl font-bold text-white font-headline">₹ ${p.value}</div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold text-[#475569] uppercase tracking-widest mb-2">Geographic Node</div>
+                                    <div class="text-xl font-bold text-[#308AF3] font-mono tracking-tighter">${p.lat}, ${p.lng}</div>
+                                </div>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="flex justify-between text-[10px] font-bold uppercase text-[#64748b] tracking-widest"><span>Site Completion</span><span>65%</span></div>
+                                <div class="h-2 bg-[#020617] rounded-full overflow-hidden border border-[#1e293b] shadow-inner">
+                                    <div class="h-full bg-[#308AF3] rounded-full shadow-[0_0_15px_rgba(48,138,243,0.5)]" style="width: 65%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // --- PLACEHOLDER ENGINE ---
+        function renderPlaceholder(id) {
+            const container = document.getElementById(`tab-${id}`);
+            container.innerHTML = `
+                <div class="h-[65vh] flex flex-col items-center justify-center opacity-30 text-center animate-pulse">
+                    <div class="text-6xl mb-10">📡</div>
+                    <h2 class="text-3xl font-headline font-bold text-white uppercase tracking-tighter">${id.replace('-', ' ')} HUB INITIALIZING</h2>
+                    <p class="text-[10px] font-bold text-[#64748b] uppercase tracking-[0.5em] mt-6">Security protocols provisioning global site telemetry nodes...</p>
+                </div>
+            `;
+        }
+
+        // BOOTSTRAP APP
+        switchTab('dashboard');
+    </script>
+</body>
+</html>
