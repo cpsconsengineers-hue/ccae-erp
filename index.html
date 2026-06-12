@@ -21,18 +21,22 @@
     <div id="app-root"></div>
 
     <script>
-        // --- 1. ENTERPRISE DATA MATRICES SEEDING ---
+        // --- HARDWARE FORCE RESET ENGINE ---
+        // Manoj ji, yeh block automatic aapke MacBook browser se purana dummy records saaf kar dega
+        const currentMatrixVersion = "vantage_v5_force_clear";
+        if (localStorage.getItem('vantage_matrix_version') !== currentMatrixVersion) {
+            localStorage.clear(); // Purana saara kachra ek jhatke me saaf
+            localStorage.setItem('vantage_matrix_version', currentMatrixVersion);
+        }
+
+        // --- ENTERPRISE DATA MATRICES SEEDING ---
         const INITIAL_PROJECTS = [
             { id: "p1", name: "Udaipur City Flyover Survey", client: "Udaipur Authority", location: "Udaipur, RJ", lat: 24.5854, lng: 73.7125, contractValue: 4500000, status: "Active" },
             { id: "p2", name: "Residential Complex Construction", client: "Geeta Sharma Ji", location: "Sarada, Salumber", lat: 24.1234, lng: 73.5678, contractValue: 7500000, status: "Active" }
         ];
 
-        // Core Matrix Registries - STRICTLY EMPTY FOR INITIAL SETUP
         if (!localStorage.getItem('vantage_projects')) localStorage.setItem('vantage_projects', JSON.stringify(INITIAL_PROJECTS));
-        
-        // STRICT LOCK: Is line se purana saara dummy staff database permanent band ho jayega
         if (!localStorage.getItem('vantage_staff')) localStorage.setItem('vantage_staff', JSON.stringify([])); 
-        
         if (!localStorage.getItem('vantage_attendance')) localStorage.setItem('vantage_attendance', JSON.stringify([]));
         if (!localStorage.getItem('vantage_measurements')) localStorage.setItem('vantage_measurements', JSON.stringify([]));
         if (!localStorage.getItem('vantage_financials')) localStorage.setItem('vantage_financials', JSON.stringify([]));
@@ -52,15 +56,13 @@
             return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
         }
 
-        // --- 2. REGISTRATION & SECURITY AUTHLOCK GATEWAY ---
+        // --- REGISTRATION & SECURITY AUTHLOCK GATEWAY ---
         function renderERP() {
             const root = document.getElementById('app-root');
             const staffList = JSON.parse(localStorage.getItem('vantage_staff')) || [];
-            
-            // System check karega ki database me koi 'Master Admin' hai ya nahi
             const hasAdmin = staffList.some(u => u.role === 'Master Admin');
 
-            // Phase A: Initial Admin Setup System (Agar database khali hai toh hi dikhega)
+            // Phase A: Initial Admin Setup System (Fresh Registration)
             if (!hasAdmin) {
                 root.innerHTML = `
                     <div class="min-h-screen flex items-center justify-center bg-darkBg px-4">
@@ -85,13 +87,10 @@
                     const pass = document.getElementById('setup-pass').value.trim();
                     if(pass !== document.getElementById('setup-confirm').value.trim()) { alert("Error: Security Keys do not match."); return; }
                     
-                    // Create primary admin entry in clean database
-                    const freshStaffList = [];
-                    freshStaffList.push({ id: 's_master', name, role: 'Master Admin', pass, baseSalary: 120000, status: 'Active', allottedWork: 'All Site Nodes' });
-                    localStorage.setItem('vantage_staff', JSON.stringify(freshStaffList));
-                    
-                    alert("Success: Master Admin configured safely. Please log in using your new credentials."); 
-                    renderERP();
+                    const freshList = [];
+                    freshList.push({ id: 's_master', name, role: 'Master Admin', pass, baseSalary: 120000, status: 'Active', allottedWork: 'All Site Nodes' });
+                    localStorage.setItem('vantage_staff', JSON.stringify(freshList));
+                    alert("Success: Credentials stored safely."); renderERP();
                 });
                 return;
             }
@@ -125,10 +124,9 @@
             const isAdmin = (currentUser.role === 'Master Admin' || currentUser.role === 'Accountant');
             const notifications = JSON.parse(localStorage.getItem('vantage_notifications')) || {};
 
-            // Phase C: Main Desktop App Frame Workspace
+            // Phase C: Main Workspace Framework
             root.innerHTML = `
                 <div class="min-h-screen flex bg-darkBg text-xs">
-                    <!-- SIDEBAR -->
                     <aside class="w-64 bg-panelBg border-r border-borderGray flex flex-col justify-between shrink-0">
                         <div class="overflow-y-auto max-h-[85vh]">
                             <div class="p-4 border-b border-borderGray"><h1 class="font-bold text-white tracking-wider truncate">CPS CONSULTANTS</h1><p class="text-[10px] text-blue-400 font-bold uppercase">Vantage Operations Node</p></div>
@@ -143,7 +141,7 @@
                                 
                                 ${isAdmin ? `
                                 <div class="pt-2 mt-2 border-t border-borderGray space-y-0.5">
-                                    <p class="px-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest">ELEVATED CORE CONTROLS</p>
+                                    <p class="px-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest">ELEVATED SYSTEM ARCHITECT</p>
                                     <button onclick="switchTab('billing')" class="w-full text-left px-3 py-2 rounded transition-colors ${currentTab === 'billing' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">💼 Billing & Invoices</button>
                                     <button onclick="switchTab('staff-mgmt')" class="w-full text-left px-3 py-2 rounded transition-colors ${currentTab === 'staff-mgmt' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">👥 Staff & Salary Matrix</button>
                                     <button onclick="switchTab('tenders')" class="w-full text-left px-3 py-2 rounded transition-colors ${currentTab === 'tenders' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">📈 Tender Pipeline</button>
@@ -165,9 +163,8 @@
                         </div>
                     </aside>
 
-                    <!-- WORKSPACE WINDOW ROUTER -->
                     <main class="flex-1 overflow-y-auto p-6 bg-darkBg">
-                        ${notifications[currentUser.name] ? `<div class="bg-blue-600 text-white p-3 rounded-xl font-bold mb-4 flex justify-between items-center font-sans"><span>⚡ NOTIFICATION: ${notifications[currentUser.name]}</span><button onclick="clearNotification('${currentUser.name}')" class="bg-black/20 px-2 py-0.5 rounded text-[10px]">OK</button></div>` : ''}
+                        ${notifications[currentUser.name] ? `<div class="bg-blue-600 text-white p-3 rounded-xl font-bold mb-4 flex justify-between items-center"><span>⚡ NOTIFICATION: ${notifications[currentUser.name]}</span><button onclick="clearNotification('${currentUser.name}')" class="bg-black/20 px-2 py-0.5 rounded text-[10px]">OK</button></div>` : ''}
                         <div id="tab-content-window"></div>
                     </main>
                 </div>
@@ -179,7 +176,7 @@
         function logoutSession() { currentUser = null; localStorage.removeItem('vantage_current_user'); renderERP(); }
         function clearNotification(user) { const n = JSON.parse(localStorage.getItem('vantage_notifications')) || {}; delete n[user]; localStorage.setItem('vantage_notifications', JSON.stringify(n)); renderERP(); }
 
-        // --- 3. RENDERING COMPONENT LAYERS ENGINE ---
+        // --- 5. COMPONENT RENDER BLOCK LIST ---
         function renderTabContent() {
             const container = document.getElementById('tab-content-window');
             const dbProjects = JSON.parse(localStorage.getItem('vantage_projects'));
@@ -187,8 +184,6 @@
             const dbAttendance = JSON.parse(localStorage.getItem('vantage_attendance'));
             const dbMeasurements = JSON.parse(localStorage.getItem('vantage_measurements'));
             const dbFinancials = JSON.parse(localStorage.getItem('vantage_financials'));
-            const dbMaterials = JSON.parse(localStorage.getItem('vantage_materials'));
-            const dbOdometer = JSON.parse(localStorage.getItem('vantage_odometer'));
             const dbDeductions = JSON.parse(localStorage.getItem('vantage_deductions')) || {};
 
             const isAdmin = (currentUser.role === 'Master Admin' || currentUser.role === 'Accountant');
@@ -200,10 +195,7 @@
             else if (currentTab === "lifecycle") {
                 container.innerHTML = `
                     <div class="space-y-4">
-                        <div class="flex justify-between items-center">
-                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Project Lifecycle Execution Nodes</h3>
-                            ${isAdmin ? `<button onclick="openProjectModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded font-bold transition-colors">+ Provision New Site</button>` : ''}
-                        </div>
+                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">Project Lifecycle Execution Nodes</h3>${isAdmin ? `<button onclick="openProjectModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded font-bold transition-colors">+ Provision New Site</button>` : ''}</div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             ${dbProjects.map(p=>`
                                 <div class="bg-panelBg border border-borderGray rounded-xl p-5 space-y-2 relative overflow-hidden">
@@ -255,19 +247,12 @@
                 });
             }
 
-            else if (currentTab === "measurements") {
-                container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-5 text-center text-gray-400">[ M-Book Core Interface Ready ]</div>`;
-            } else if (currentTab === "materials") {
-                container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-5 text-center text-gray-500">[ Material Pipeline Active ]</div>`;
-            } else if (currentTab === "machinery") {
-                container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-5 text-center text-gray-500">[ Telematics Logs Active ]</div>`;
-            } else if (currentTab === "financial") {
-                container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-5 text-center text-gray-500">[ Ledger Streams Active ]</div>`;
-            } else if (currentTab === "attendance") {
-                container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-5 text-center text-gray-500">[ Biometric Shift Lock Active ]</div>`;
-            }
+            else if (currentTab === "measurements") { container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-5 text-center text-gray-400">[ M-Book Buffer Engine Ready ]</div>`; }
+            else if (currentTab === "materials") { container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-5 text-center text-gray-500">[ Material Streams Connected ]</div>`; }
+            else if (currentTab === "machinery") { container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-5 text-center text-gray-500">[ Telematics Modules Ready ]</div>`; }
+            else if (currentTab === "financial") { container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-5 text-center text-gray-500">[ Voucher Ledger Ready ]</div>`; }
+            else if (currentTab === "attendance") { container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-5 text-center text-gray-500">[ Biometric Shifts Enforced ]</div>`; }
 
-            // --- 👥 STAFF MANAGEMENT MATRIX ---
             else if (currentTab === "staff-mgmt") {
                 if (!isAdmin) return;
                 container.innerHTML = `
@@ -335,33 +320,18 @@
                 `;
 
                 document.getElementById('s-form')?.addEventListener('submit', function(e){
-                    e.preventDefault();
-                    const id = document.getElementById('s-edit-id').value;
-                    const name = document.getElementById('s-name').value.trim();
-                    const role = document.getElementById('s-role').value;
-                    const pass = document.getElementById('s-pass').value.trim();
-                    const allottedWork = document.getElementById('s-work').value;
-                    const baseSalary = Number(document.getElementById('s-salary').value);
-
+                    e.preventDefault(); const id = document.getElementById('s-edit-id').value; const name = document.getElementById('s-name').value.trim(); const role = document.getElementById('s-role').value; const pass = document.getElementById('s-pass').value.trim(); const allottedWork = document.getElementById('s-work').value; const baseSalary = Number(document.getElementById('s-salary').value);
                     let staffList = JSON.parse(localStorage.getItem('vantage_staff'));
-                    if (id) {
-                        staffList = staffList.map(s => s.id === id ? { id, name, role, pass, allottedWork, baseSalary, status: s.status } : s);
-                    } else {
-                        staffList.push({ id: 's_' + Date.now(), name, role, pass, allottedWork, baseSalary, status: 'Active' });
-                    }
-                    localStorage.setItem('vantage_staff', JSON.stringify(staffList));
-                    closeModal('s-mod'); renderERP();
+                    if (id) { staffList = staffList.map(s => s.id === id ? { id, name, role, pass, allottedWork, baseSalary, status: s.status } : s); } 
+                    else { staffList.push({ id: 's_' + Date.now(), name, role, pass, allottedWork, baseSalary, status: 'Active' }); }
+                    localStorage.setItem('vantage_staff', JSON.stringify(staffList)); closeModal('s-mod'); renderERP();
                 });
             }
 
-            else if (currentTab === "billing") {
-                container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-5 text-xs text-gray-400">[ Invoicing Core Matrix Active ]</div>`;
-            } else {
-                container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-8 text-center font-bold text-gray-600 uppercase tracking-widest">[ Secure Elevated Module '${currentTab.toUpperCase()}' ]</div>`;
-            }
+            else if (currentTab === "billing") { container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-5 text-xs text-gray-400">[ Invoicing Node Ready ]</div>`; }
         }
 
-        // --- 4. DATA LOG PARAMETERS INTERFACES HANDLERS ---
+        // --- INTERFACES HANDLERS ---
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
         function openProjectModal() { document.getElementById('p-form').reset(); document.getElementById('p-edit-id').value = ""; document.getElementById('modal-project-title').innerText = "Provision New Construction Node"; openModal('p-mod'); }
@@ -392,7 +362,7 @@
 
         function deleteStaffAction(id) {
             const s = JSON.parse(localStorage.getItem('vantage_staff')).find(x => x.id === id);
-            if (s && s.role === 'Master Admin') { alert("Security Block: Master Admin configuration node cannot be deleted!"); return; }
+            if (s && s.role === 'Master Admin') { alert("Security Block: Master Admin node cannot be purged!"); return; }
             if (confirm("🚨 PURGE STAFF PROFILE FOREVER?")) {
                 let staffList = JSON.parse(localStorage.getItem('vantage_staff')).filter(x => x.id !== id);
                 localStorage.setItem('vantage_staff', JSON.stringify(staffList)); renderERP();
