@@ -21,13 +21,14 @@
     <div id="app-root"></div>
 
     <script>
-        // --- 1. HARDWARE STORAGE INTERFACE VERSION CONFIG ---
-        const currentMatrixVersion = "vantage_v12_supplier_return";
+        // --- 1. HARDWARE SYSTEM FORCE RESET RUNTIME ---
+        const currentMatrixVersion = "vantage_v13_final_admin_lock_fix";
         if (localStorage.getItem('vantage_matrix_version') !== currentMatrixVersion) {
             localStorage.clear();
             localStorage.setItem('vantage_matrix_version', currentMatrixVersion);
         }
 
+        // --- 2. ENTERPRISE DATA MATRICES SEEDING ---
         const INITIAL_PROJECTS = [
             { id: "p1", name: "Udaipur City Flyover Survey", client: "Udaipur Authority", location: "Udaipur, RJ", lat: 24.5854, lng: 73.7125, contractValue: 4500000, status: "Active" },
             { id: "p2", name: "Residential Complex Construction", client: "Geeta Sharma Ji", location: "Sarada, Salumber", lat: 24.1234, lng: 73.5678, contractValue: 7500000, status: "Active" }
@@ -38,31 +39,31 @@
         if (!localStorage.getItem('vantage_attendance')) localStorage.setItem('vantage_attendance', JSON.stringify([]));
         if (!localStorage.getItem('vantage_measurements')) localStorage.setItem('vantage_measurements', JSON.stringify([]));
         if (!localStorage.getItem('vantage_financials')) localStorage.setItem('vantage_financials', JSON.stringify([]));
+        if (!localStorage.getItem('vantage_materials')) localStorage.setItem('vantage_materials', JSON.stringify([]));
         if (!localStorage.getItem('vantage_odometer')) localStorage.setItem('vantage_odometer', JSON.stringify([]));
         if (!localStorage.getItem('vantage_site_photos')) localStorage.setItem('vantage_site_photos', JSON.stringify([]));
         if (!localStorage.getItem('vantage_notifications')) localStorage.setItem('vantage_notifications', JSON.stringify({}));
         if (!localStorage.getItem('vantage_deductions')) localStorage.setItem('vantage_deductions', JSON.stringify({}));
-
-        // Inventory Stock Database Registry
-        if (!localStorage.getItem('vantage_godowns')) localStorage.setItem('vantage_godowns', JSON.stringify([
-            { id: "g1", name: "Udaipur Central Godown", location: "Gordhan Vilas, Udaipur" }
-        ]));
-        if (!localStorage.getItem('vantage_stock_book')) localStorage.setItem('vantage_stock_book', JSON.stringify([
-            { godownName: "Udaipur Central Godown", item: "53 Grade Cement", qty: 500, unit: "Bags" },
-            { godownName: "Udaipur Central Godown", item: "TMT Steel Bars 12mm", qty: 15, unit: "Tons" }
-        ]));
+        if (!localStorage.getItem('vantage_godowns')) localStorage.setItem('vantage_godowns', JSON.stringify([{ id: "g1", name: "Udaipur Central Godown", location: "Gordhan Vilas, Udaipur" }]));
+        if (!localStorage.getItem('vantage_stock_book')) localStorage.setItem('vantage_stock_book', JSON.stringify([{ godownName: "Udaipur Central Godown", item: "53 Grade Cement", qty: 500, unit: "Bags" }]));
         if (!localStorage.getItem('vantage_dispatches')) localStorage.setItem('vantage_dispatches', JSON.stringify([]));
-        if (!localStorage.getItem('vantage_supplier_returns')) localStorage.setItem('vantage_supplier_returns', JSON.stringify([])); // Supplier Return Book
+        if (!localStorage.getItem('vantage_supplier_returns')) localStorage.setItem('vantage_supplier_returns', JSON.stringify([]));
 
-        let currentTab = "materials"; 
+        let currentTab = "dashboard"; 
         let currentUser = JSON.parse(localStorage.getItem('vantage_current_user')) || null;
 
-        // --- 2. MASTER ENTRY USER REGISTRATION & LOCK KERNEL ---
+        // Excel sheet active runtime rows state
+        let activeExcelRows = [{ chainageFrom: '0/000', chainageTo: '0/025', width: 7.5, thickness: '', formula: 'Multiply', yieldResult: 187.5 }];
+
+        // --- 3. REGISTRATION & AUTHLOCK CORE ENGINE ---
         function renderERP() {
             const root = document.getElementById('app-root');
             const staffList = JSON.parse(localStorage.getItem('vantage_staff')) || [];
+            
+            // Checks if a Master Admin profile node exists in registry database
             const hasAdmin = staffList.some(u => u.role === 'Master Admin');
 
+            // Phase A: Fresh Master Admin Registration Configuration
             if (!hasAdmin) {
                 root.innerHTML = `
                     <div class="min-h-screen flex items-center justify-center bg-darkBg px-4">
@@ -70,9 +71,10 @@
                             <div class="text-center mb-6">
                                 <span class="bg-blue-500/10 text-blue-400 font-mono text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-full font-bold">System Initialization</span>
                                 <h2 class="text-xl font-bold text-white tracking-wider mt-3">MASTER ADMIN INITIAL SETUP</h2>
+                                <p class="text-xs text-gray-400 mt-1">Configure your primary corporate administration identity keys.</p>
                             </div>
-                            <form id="setup-form" class="space-y-4">
-                                <div><label class="block text-gray-400 mb-1 font-bold uppercase">Admin Identity Name ID</label><input type="text" id="setup-name" required class="w-full bg-darkBg border border-borderGray rounded p-3 text-white focus:outline-none focus:border-blue-500 font-medium" placeholder="Manoj Singh Rao"></div>
+                            <form id="setup-form" class="space-y-4 text-xs">
+                                <div><label class="block text-gray-400 mb-1 font-bold uppercase">Admin Identity Name ID</label><input type="text" id="setup-name" required class="w-full bg-darkBg border border-borderGray rounded p-3 text-white focus:outline-none focus:border-blue-500 font-medium" placeholder="Manoj Singh"></div>
                                 <div><label class="block text-gray-400 mb-1 font-bold uppercase">Secret Security Key (Password)</label><input type="password" id="setup-pass" required class="w-full bg-darkBg border border-borderGray rounded p-3 text-white focus:outline-none focus:border-blue-500" placeholder="••••••••"></div>
                                 <div><label class="block text-gray-400 mb-1 font-bold uppercase">Confirm Security Key</label><input type="password" id="setup-confirm" required class="w-full bg-darkBg border border-borderGray rounded p-3 text-white focus:outline-none focus:border-blue-500" placeholder="••••••••"></div>
                                 <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded uppercase tracking-wider transition-colors shadow-lg">Save Master Credentials</button>
@@ -82,20 +84,24 @@
                 `;
                 document.getElementById('setup-form').addEventListener('submit', function(e) {
                     e.preventDefault();
-                    const name = document.getElementById('setup-name').value.trim(); const pass = document.getElementById('setup-pass').value.trim();
-                    if(pass !== document.getElementById('setup-confirm').value.trim()) { alert("Error: Security Keys mismatch."); return; }
-                    localStorage.setItem('vantage_staff', JSON.stringify([{ id: 's_master', name, role: 'Master Admin', pass, baseSalary: 120000, status: 'Active', allottedWork: 'All Site Nodes' }]));
+                    const name = document.getElementById('setup-name').value.trim();
+                    const pass = document.getElementById('setup-pass').value.trim();
+                    if(pass !== document.getElementById('setup-confirm').value.trim()) { alert("Error: Security Keys do not match."); return; }
+                    
+                    const freshList = [{ id: 's_master', name, role: 'Master Admin', pass, baseSalary: 150000, status: 'Active', allottedWork: 'All Site Nodes' }];
+                    localStorage.setItem('vantage_staff', JSON.stringify(freshList));
                     alert("Success: Master profile generated."); renderERP();
                 });
                 return;
             }
 
+            // Phase B: Secure Portal Authorization Lock
             if (!currentUser) {
                 root.innerHTML = `
                     <div class="min-h-screen flex items-center justify-center bg-darkBg px-4">
                         <div class="max-w-md w-full bg-panelBg border border-borderGray rounded-xl p-8 shadow-2xl">
                             <div class="text-center mb-6"><h2 class="text-xl font-bold text-white tracking-wider">CPS CONSULTANTS & ENGINEERS</h2><p class="text-xs text-gray-400 mt-1">Vantage Secure Cryptographic Portal</p></div>
-                            <form id="login-form" class="space-y-4">
+                            <form id="login-form" class="space-y-4 text-xs">
                                 <div><label class="block text-gray-400 mb-2 font-bold uppercase">Identity Code ID</label><input type="text" id="login-name" required class="w-full bg-darkBg border border-borderGray rounded p-3 text-white focus:outline-none focus:border-blue-500"></div>
                                 <div><label class="block text-gray-400 mb-2 font-bold uppercase">Security Key</label><input type="password" id="login-pass" required class="w-full bg-darkBg border border-borderGray rounded p-3 text-white focus:outline-none focus:border-blue-500"></div>
                                 <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded uppercase tracking-wider transition-colors">Authenticate</button>
@@ -105,36 +111,56 @@
                 `;
                 document.getElementById('login-form').addEventListener('submit', function(e) {
                     e.preventDefault();
-                    const user = JSON.parse(localStorage.getItem('vantage_staff')).find(u => u.name.toLowerCase() === document.getElementById('login-name').value.trim().toLowerCase() && u.pass === document.getElementById('login-pass').value.trim());
-                    if (user) { currentUser = user; localStorage.setItem('vantage_current_user', JSON.stringify(user)); renderERP(); }
-                    else { alert("Verification Mismatch."); }
+                    const uList = JSON.parse(localStorage.getItem('vantage_staff')) || [];
+                    const user = uList.find(u => u.name.toLowerCase() === document.getElementById('login-name').value.trim().toLowerCase() && u.pass === document.getElementById('login-pass').value.trim());
+                    if (user) { 
+                        if(user.status === 'Blocked' || user.status === 'Terminated') { alert("Access Denied: Node suspended."); return; }
+                        currentUser = user; localStorage.setItem('vantage_current_user', JSON.stringify(user)); currentTab = "dashboard"; renderERP(); 
+                    } else { alert("Verification Mismatch."); }
                 });
                 return;
             }
 
+            // STRICT STABLE ROLE-BASED MATCH CONTROLLER MATRIX (Fixes the frozen tabs anomaly)
             const isAdmin = (currentUser.role === 'Master Admin' || currentUser.role === 'Accountant');
+            const notifications = JSON.parse(localStorage.getItem('vantage_notifications')) || {};
 
+            // Phase C: Main Navigation Dynamic Workspace Framework
             root.innerHTML = `
                 <div class="min-h-screen flex bg-darkBg text-xs">
-                    <!-- SIDEBAR -->
                     <aside class="w-64 bg-panelBg border-r border-borderGray flex flex-col justify-between shrink-0">
-                        <div>
-                            <div class="p-4 border-b border-borderGray"><h1 class="font-bold text-white tracking-wider truncate">CPS CONSULTANTS</h1><p class="text-[10px] text-blue-400 font-bold uppercase">Vantage Core Grid</p></div>
+                        <div class="overflow-y-auto max-h-[85vh]">
+                            <div class="p-4 border-b border-borderGray"><h1 class="font-bold text-white tracking-wider truncate">CPS CONSULTANTS</h1><p class="text-[10px] text-blue-400 font-bold uppercase">Vantage Operations Hub</p></div>
                             <nav class="p-3 space-y-0.5">
-                                <button onclick="switchTab('dashboard')" class="w-full text-left px-3 py-2 rounded ${currentTab === 'dashboard' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">📊 Dashboard Matrix</button>
-                                <button onclick="switchTab('materials')" class="w-full text-left px-3 py-2 rounded ${currentTab === 'materials' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">📦 Godown & Materials Hub</button>
-                                <button onclick="switchTab('measurements')" class="w-full text-left px-3 py-2 rounded ${currentTab === 'measurements' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">📐 Measurement Sheets</button>
-                                <button onclick="switchTab('lifecycle')" class="w-full text-left px-3 py-2 rounded ${currentTab === 'lifecycle' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">🏗️ Project Nodes</button>
-                                ${isAdmin ? `<button onclick="switchTab('staff-mgmt')" class="w-full text-left px-3 py-2 rounded ${currentTab === 'staff-mgmt' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">👥 Staff Control Matrix</button>` : ''}
+                                <button onclick="switchTab('dashboard')" class="w-full text-left px-3 py-2 rounded transition-colors ${currentTab === 'dashboard' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">📊 Dashboard Matrix</button>
+                                <button onclick="switchTab('materials')" class="w-full text-left px-3 py-2 rounded transition-colors ${currentTab === 'materials' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">📦 Godown & Materials Hub</button>
+                                <button onclick="switchTab('measurements')" class="w-full text-left px-3 py-2 rounded transition-colors ${currentTab === 'measurements' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">📐 Excel Measurement Sheets</button>
+                                <button onclick="switchTab('site-photos')" class="w-full text-left px-3 py-2 rounded transition-colors ${currentTab === 'site-photos' ? 'bg-blue-600 text-white' : 'text-emerald-400 hover:bg-gray-800'}">📷 Site Photo Vault</button>
+                                <button onclick="switchTab('machinery')" class="w-full text-left px-3 py-2 rounded transition-colors ${currentTab === 'machinery' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">⚙️ Machinery & Fuel Logs</button>
+                                <button onclick="switchTab('financial')" class="w-full text-left px-3 py-2 rounded transition-colors ${currentTab === 'financial' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">💰 Financial Ledger</button>
+                                <button onclick="switchTab('attendance')" class="w-full text-left px-3 py-2 rounded transition-colors ${currentTab === 'attendance' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">✅ Daily Attendance (In/Out)</button>
+                                <button onclick="switchTab('lifecycle')" class="w-full text-left px-3 py-2 rounded transition-colors ${currentTab === 'lifecycle' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">🏗️ Project Site Nodes</button>
+                                
+                                ${isAdmin ? `
+                                <div class="pt-2 mt-2 border-t border-borderGray space-y-0.5">
+                                    <p class="px-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest">ELEVATED PRIVILEGES</p>
+                                    <button onclick="switchTab('billing')" class="w-full text-left px-3 py-2 rounded transition-colors ${currentTab === 'billing' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">💼 Billing & Invoices</button>
+                                    <button onclick="switchTab('staff-mgmt')" class="w-full text-left px-3 py-2 rounded transition-colors ${currentTab === 'staff-mgmt' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">👥 Staff Control Matrix</button>
+                                </div>
+                                ` : ''}
                             </nav>
                         </div>
                         <div class="p-4 border-t border-borderGray bg-darkBg/40">
-                            <p class="text-white font-bold truncate mb-2">👤 ${currentUser.name}</p>
-                            <button onclick="logoutSession()" class="w-full bg-gray-800 hover:bg-red-950/40 text-gray-400 py-1.5 rounded font-bold uppercase border border-borderGray text-[10px]">🔒 Logout Node</button>
+                            <div class="flex items-center space-x-3 mb-2">
+                                <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white uppercase text-[10px]">${currentUser.name.substring(0,2)}</div>
+                                <div class="truncate"><p class="font-medium text-white truncate">${currentUser.name}</p><p class="text-[9px] text-gray-500 font-bold uppercase tracking-wider">${currentUser.role}</p></div>
+                            </div>
+                            <button onclick="logoutSession()" class="w-full bg-gray-800 hover:bg-red-950/40 hover:text-red-400 text-gray-400 py-1.5 rounded font-bold uppercase border border-borderGray text-[10px]">🔒 LOGOUT NODE</button>
                         </div>
                     </aside>
 
                     <main class="flex-1 overflow-y-auto p-6 bg-darkBg">
+                        ${notifications[currentUser.name] ? `<div class="bg-blue-600 text-white p-3 rounded-xl font-bold mb-4 flex justify-between items-center"><span>⚡ NOTIFICATION: ${notifications[currentUser.name]}</span><button onclick="clearNotification('${currentUser.name}')" class="bg-black/20 px-2 py-0.5 rounded text-[10px]">OK</button></div>` : ''}
                         <div id="tab-content-window"></div>
                     </main>
                 </div>
@@ -144,224 +170,307 @@
 
         function switchTab(t) { currentTab = t; renderERP(); }
         function logoutSession() { currentUser = null; localStorage.removeItem('vantage_current_user'); renderERP(); }
+        function clearNotification(user) { const n = JSON.parse(localStorage.getItem('vantage_notifications')) || {}; delete n[user]; localStorage.setItem('vantage_notifications', JSON.stringify(n)); renderERP(); }
 
-        // --- 3. DYNAMIC INVENTORY & SUPPLIER RETURN INTERFACE PANELS ---
+        // --- 4. DYNAMIC UNFREEZE TARGET CONTENT BLOCKS ---
         function renderTabContent() {
             const container = document.getElementById('tab-content-window');
             const dbProjects = JSON.parse(localStorage.getItem('vantage_projects')) || [];
+            const dbStaff = JSON.parse(localStorage.getItem('vantage_staff')) || [];
+            const dbAttendance = JSON.parse(localStorage.getItem('vantage_attendance')) || [];
+            const dbMeasurements = JSON.parse(localStorage.getItem('vantage_measurements')) || [];
+            const dbFinancials = JSON.parse(localStorage.getItem('vantage_financials')) || [];
+            const dbMaterials = JSON.parse(localStorage.getItem('vantage_materials')) || [];
+            const dbOdometer = JSON.parse(localStorage.getItem('vantage_odometer')) || [];
+            const dbPhotos = JSON.parse(localStorage.getItem('vantage_site_photos')) || [];
             const dbGodowns = JSON.parse(localStorage.getItem('vantage_godowns')) || [];
             const dbStockBook = JSON.parse(localStorage.getItem('vantage_stock_book')) || [];
-            const dbDispatches = JSON.parse(localStorage.getItem('vantage_dispatches')) || [];
             const dbReturns = JSON.parse(localStorage.getItem('vantage_supplier_returns')) || [];
+            const dbDeductions = JSON.parse(localStorage.getItem('vantage_deductions')) || {};
 
             const isAdmin = (currentUser.role === 'Master Admin' || currentUser.role === 'Accountant');
 
             if (currentTab === "dashboard") {
-                container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-8 text-center text-gray-400 font-bold">Vantage Operations Matrix Core Online.</div>`;
+                container.innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Active Projects</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbProjects.length} Sites</h3></div>
+                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Odometer Telemetry</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbOdometer.length} Submissions</h3></div>
+                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Storage Godowns</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbGodowns.length} Units</h3></div>
+                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Total Personnel</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbStaff.length} Accounts</h3></div>
+                    </div>
+                    <div class="bg-panelBg border border-borderGray rounded-xl p-8 text-center text-gray-500 font-bold uppercase tracking-wider">Vantage Node Matrix Framework Active. Click submenus to execute parameters.</div>
+                `;
+            }
+
+            else if (currentTab === "lifecycle") {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">Project Site Infrastructure Configuration</h3>${isAdmin ? `<button onclick="openModal('p-mod')" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded font-bold transition-colors">+ Provision New Site</button>` : ''}</div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            ${dbProjects.map(p=>`
+                                <div class="bg-panelBg border border-borderGray rounded-xl p-5 space-y-2 relative overflow-hidden">
+                                    <h4 class="font-bold text-white text-xs border-b border-borderGray pb-2">${p.name}</h4>
+                                    <div class="space-y-1 text-gray-400 text-[11px] pt-1">
+                                        <p>📍 Location: <span class="text-gray-200 font-medium">${p.location}</span></p>
+                                        <p>🏢 Client Name: <span class="text-gray-200 font-medium">${p.client}</span></p>
+                                        ${isAdmin ? `<p>💰 Contract Sum Valuation: <span class="text-green-400 font-bold font-mono">₹${Number(p.contractValue).toLocaleString()}</span></p>` : ''}
+                                        <p>🎯 GPS Vectors: <span class="text-gray-400 font-mono">${p.lat}, ${p.lng}</span></p>
+                                    </div>
+                                    ${isAdmin ? `<div class="flex space-x-2 pt-2 border-t border-borderGray/40 mt-2"><button onclick="editProjectAction('${p.id}')" class="flex-1 bg-gray-800 text-gray-200 py-1 rounded font-bold">Modify</button><button onclick="deleteProjectAction('${p.id}')" class="bg-red-950/40 text-red-400 border border-red-900/60 px-3 py-1 rounded font-bold">Purge</button></div>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div id="p-mod" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 text-xs space-y-4">
+                            <h4 id="modal-project-title" class="text-sm font-bold text-white">Provision New Construction Node</h4>
+                            <form id="p-form" class="space-y-3">
+                                <input type="hidden" id="p-edit-id">
+                                <div><label class="text-gray-400 block mb-1">Project Site Name</label><input type="text" id="p-name" required class="w-full bg-darkBg border border-borderGray rounded p-2 text-white"></div>
+                                <div><label class="text-gray-400 block mb-1">Client Title</label><input type="text" id="p-client" required class="w-full bg-darkBg border border-borderGray rounded p-2 text-white"></div>
+                                <div><label class="text-gray-400 block mb-1">Physical Location</label><input type="text" id="p-loc" required class="w-full bg-darkBg border border-borderGray rounded p-2 text-white"></div>
+                                <div><label class="text-gray-400 block mb-1">Contract Valuation Sum (₹)</label><input type="number" id="p-val" required class="w-full bg-darkBg border border-borderGray rounded p-2 text-white"></div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div><label class="text-gray-400 block mb-1">GPS Latitude</label><input type="number" step="any" id="p-lat" required class="w-full bg-darkBg border border-borderGray rounded p-2 text-white" placeholder="24.5854"></div>
+                                    <div><label class="text-gray-400 block mb-1">GPS Longitude</label><input type="number" step="any" id="p-lng" required class="w-full bg-darkBg border border-borderGray rounded p-2 text-white" placeholder="73.7125"></div>
+                                </div>
+                                <div class="flex justify-end space-x-2 pt-2"><button type="button" onclick="closeModal('p-mod')" class="bg-gray-800 p-2 rounded text-gray-300">Cancel</button><button type="submit" class="bg-blue-600 p-2 rounded text-white font-bold">Commit Node</button></div>
+                            </form>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('p-form')?.addEventListener('submit', function(e){
+                    e.preventDefault(); const id = document.getElementById('p-edit-id').value; const name = document.getElementById('p-name').value; const client = document.getElementById('p-client').value; const location = document.getElementById('p-loc').value; const contractValue = document.getElementById('p-val').value; const lat = document.getElementById('p-lat').value; const lng = document.getElementById('p-lng').value;
+                    let pList = JSON.parse(localStorage.getItem('vantage_projects'));
+                    if (id) { pList = pList.map(p => p.id === id ? { id, name, client, location, contractValue, lat, lng, status: p.status } : p); } 
+                    else { pList.push({ id: 'p_' + Date.now(), name, client, location, contractValue, lat, lng, status: 'Active' }); }
+                    localStorage.setItem('vantage_projects', JSON.stringify(pList)); closeModal('p-mod'); renderERP();
+                });
+            }
+
+            else if (currentTab === "measurements") {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📐 Advanced Multi-Row Excel M-Book Grid</h3><div class="flex space-x-2"><button onclick="addExcelRow()" class="bg-gray-800 border border-borderGray text-white font-bold px-3 py-1 rounded">+ Insert Row</button><button onclick="saveExcelToDatabase()" class="bg-blue-600 font-bold px-3 py-1 rounded">💾 Save Spreadsheet</button></div></div>
+                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><label class="block text-gray-400 mb-1">Select Project</label><select id="sheet-project-node" class="bg-darkBg border border-borderGray p-2 rounded text-white w-48">${dbProjects.map(p=>`<option value="${p.name}">${p.name}</option>`).join('')}</select></div>
+                        <div class="overflow-x-auto border border-borderGray rounded-xl bg-panelBg"><table class="w-full text-center border-collapse"><tr class="bg-darkBg border-b border-borderGray text-gray-400 font-bold"><th>Seq</th><th>Chainage From</th><th>Chainage To</th><th>Length</th><th>Width (m)</th><th>Avg Width</th><th>Thickness (m)</th><th>Formula</th><th class="text-right pr-4 text-blue-400">Yield Output</th></tr><tbody id="excel-rows-body" class="divide-y divide-borderGray font-mono"></tbody></table></div>
+                        <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden"><table class="w-full text-left"><tr class="bg-darkBg border-b border-borderGray text-gray-400 font-bold font-sans"> Weimar <th class="p-3">Saved Dynamic Logs</th><th class="p-3">Span Section</th><th class="p-3 text-right">Yield Quantity Output</th></tr>${dbMeasurements.map(m=>`<tr class="border-b border-borderGray font-mono"><td class="p-3 text-white font-sans font-bold">${m.project}</td><td class="p-3 text-gray-400 text-center">${m.span}</td><td class="p-3 text-right text-blue-400 font-bold">${m.yield}</td></tr>`).join('')}</table></div>
+                    </div>
+                `;
+                buildExcelRowsMatrixHTML();
             }
 
             else if (currentTab === "materials") {
                 container.innerHTML = `
-                    <div class="space-y-6">
-                        <!-- CONTROL TRIGGER ROW -->
-                        <div class="flex justify-between items-center bg-panelBg border border-borderGray p-4 rounded-xl shadow-lg">
-                            <div>
-                                <h3 class="text-sm font-bold text-white uppercase tracking-wider">📦 Godown Logistics & Material Ledger Matrix</h3>
-                                <p class="text-gray-400 text-[11px] mt-0.5">Control storage profiles, accept bulk freight items, and execute supplier return cycles.</p>
-                            </div>
-                            <div class="flex space-x-2">
-                                ${isAdmin ? `<button onclick="openModal('godown-modal')" class="bg-gray-800 border border-borderGray hover:bg-gray-700 text-white font-bold px-3 py-1.5 rounded">🏢 + Create Godown</button>` : ''}
-                                ${isAdmin ? `<button onclick="openModal('stock-modal')" class="bg-emerald-950 border border-emerald-900 text-emerald-400 hover:bg-emerald-900/60 font-bold px-3 py-1.5 rounded">📥 + Stock Inward</button>` : ''}
-                                ${isAdmin ? `<button onclick="openSupplierReturnModal()" class="bg-red-950/60 border border-red-900 text-red-400 hover:bg-red-900/50 font-bold px-3 py-1.5 rounded">⏪ - Return Stock to Supplier</button>` : ''}
-                                <button onclick="openModal('dispatch-modal')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-1.5 rounded shadow-md">🚛 + Dispatch to Site</button>
-                            </div>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📦 Inventory Storage & Godown Management Pipeline</h3><div class="flex space-x-2">${isAdmin?`<button onclick="openModal('g-mod')" class="bg-gray-800 px-3 py-1 rounded font-bold">+ Create Godown</button><button onclick="openModal('s-mod')" class="bg-emerald-950 text-emerald-400 px-3 py-1 rounded font-bold">+ Stock Inward</button><button onclick="openSupplierReturnModal()" class="bg-red-950 text-red-400 px-3 py-1 rounded font-bold">⏪ Supplier Return</button>`:''}<button onclick="openModal('d-mod')" class="bg-blue-600 px-3 py-1 rounded font-bold">+ Dispatch to Site</button></div></div>
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                            <div class="bg-panelBg border border-borderGray rounded-xl p-4 font-sans"><h4 class="text-gray-400 font-bold uppercase mb-2">Registered Godowns</h4><div class="space-y-1">${dbGodowns.map(g=>`<div class="bg-darkBg p-2 rounded border border-borderGray font-bold text-white">${g.name}</div>`).join('')}</div></div>
+                            <div class="bg-panelBg border border-borderGray rounded-xl p-4 lg:col-span-2"><table class="w-full text-left"><tr class="bg-darkBg border-b border-borderGray text-gray-400 font-bold uppercase"><th class="p-2">Location Warehouse</th><th class="p-2">Material Commodity</th><th class="p-2 text-right">Balance</th></tr>${dbStockBook.map(s=>`<tr><td class="p-2 text-gray-400">${s.godownName}</td><td class="p-2 text-white font-bold">${s.item}</td><td class="p-2 text-right text-blue-400 font-bold font-mono">${s.qty} ${s.unit}</td></tr>`).join('')}</table></div>
                         </div>
-
-                        <!-- REPOSITORIES SUMMARY GRID -->
-                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            <div class="bg-panelBg border border-borderGray rounded-xl p-4 h-fit">
-                                <h4 class="font-bold text-white mb-3 uppercase text-[10px] tracking-widest text-gray-400">🏢 Registered Godowns</h4>
-                                <div class="space-y-2 max-h-64 overflow-y-auto">
-                                    ${dbGodowns.map(g => `<div class="bg-darkBg p-3 border border-borderGray rounded-lg"><p class="text-white font-bold">${g.name}</p><p class="text-gray-400 text-[10px] mt-0.5">📍 ${g.location}</p></div>`).join('')}
-                                </div>
-                            </div>
-
-                            <div class="bg-panelBg border border-borderGray rounded-xl p-4 lg:col-span-2">
-                                <h4 class="font-bold text-white mb-3 uppercase text-[10px] tracking-widest text-gray-400">📋 Godown Live Inventory Stock Book Balance</h4>
-                                <div class="overflow-hidden border border-borderGray rounded-xl">
-                                    <table class="w-full text-left border-collapse">
-                                        <tr class="bg-darkBg text-gray-400 font-bold border-b border-borderGray uppercase"><th class="p-2.5">Storage Godown</th><th class="p-2.5">Material Commodity</th><th class="p-2.5 text-right">Available Balance</th></tr>
-                                        ${dbStockBook.length === 0 ? `<tr><td colspan="3" class="p-4 text-center text-gray-500">No stock loaded.</td></tr>` : ''}
-                                        ${dbStockBook.map(s => `<tr class="border-b border-borderGray hover:bg-darkBg/40"><td class="p-2.5 text-gray-400 font-medium">${s.godownName}</td><td class="p-2.5 text-white font-bold">${s.item}</td><td class="p-2.5 text-right font-mono font-extrabold text-blue-400">${s.qty} ${s.unit}</td></tr>`).join('')}
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- SITE DISPATCH TRANSIT TABLES -->
-                        <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden shadow-xl">
-                            <div class="p-3 bg-darkBg/60 border-b border-borderGray font-bold text-gray-400 uppercase tracking-wider">🚛 Active Site Dispatch Transit Pipeline Logs</div>
-                            <table class="w-full text-left"><tr class="bg-darkBg text-gray-400 font-bold border-b border-borderGray uppercase"><th class="p-3">Timestamp</th><th class="p-3">Source Godown</th><th class="p-3">Target Project Site</th><th class="p-3">Item Name</th><th class="p-3 text-right">Dispatched Qty</th></tr>
-                            ${dbDispatches.length === 0 ? `<tr><td colspan="5" class="p-4 text-center text-gray-500 font-mono">No site dispatches circulating.</td></tr>` : ''}
-                            ${dbDispatches.map(d=>`<tr class="border-b border-borderGray font-mono text-[11px]"><td class="p-3 text-gray-500">${d.timestamp}</td><td class="p-3 text-white font-sans">${d.fromGodown}</td><td class="p-3 text-gray-300 font-sans">${d.toSite}</td><td class="p-3 text-gray-400 font-sans font-bold">${d.item}</td><td class="p-3 text-right font-bold text-orange-400">${d.qty} ${d.unit}</td></tr>`).join('')}
-                            </table>
-                        </div>
-
-                        <!-- ⏪ NEW: HIDDEN CORE SUPPLIER RETURN LEDGER LOGS -->
-                        ${isAdmin ? `
-                        <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden shadow-xl border-red-900/30">
-                            <div class="p-3 bg-red-950/10 border-b border-borderGray font-bold text-red-400 uppercase tracking-wider">⏪ Permanent Supplier Stock Return Logs (Admin/Accountant Eyes Only)</div>
-                            <table class="w-full text-left"><tr class="bg-darkBg text-gray-400 font-bold border-b border-borderGray uppercase"><th class="p-3">Timestamp</th><th class="p-3">Returned From Godown</th><th class="p-3">Material Commodity</th><th class="p-3 text-right">Quantity Sent Back</th><th class="p-3 font-semibold">Return Voucher Remarks</th></tr>
-                            ${dbReturns.length === 0 ? `<tr><td colspan="5" class="p-4 text-center text-gray-500 font-mono">No supplier return entries executed in this cycle.</td></tr>` : ''}
-                            ${dbReturns.map(r=>`<tr class="border-b border-borderGray font-mono text-[11px] text-red-200/80"><td class="p-3 text-gray-500">${r.timestamp}</td><td class="p-3 font-sans font-medium text-white">${r.godownName}</td><td class="p-3 font-sans text-gray-300 font-bold">${r.item}</td><td class="p-3 text-right font-bold text-red-400">${r.qty} ${r.unit}</td><td class="p-3 font-sans text-gray-400 italic">${r.remarks}</td></tr>`).join('')}
-                            </table>
-                        </div>
-                        ` : ''}
+                        ${isAdmin ? `<div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden"><div class="p-3 bg-red-950/10 font-bold text-red-400 border-b border-borderGray">⏪ SUPPLIER EXPULSION LOGS</div><table class="w-full text-left"><tr class="bg-darkBg text-gray-400 font-bold uppercase"><th class="p-2">Timestamp</th><th class="p-2">Godown Source</th><th class="p-2">Item</th><th class="p-2 text-right">Purged Vol</th></tr>${dbReturns.map(r=>`<tr class="font-mono text-red-200/70"><td class="p-2">${r.timestamp}</td><td class="p-2">${r.godownName}</td><td class="p-2 font-sans font-bold">${r.item}</td><td class="p-2 text-right">${r.qty} ${r.unit}</td></tr>`).join('')}</table></div>` : ''}
                     </div>
 
-                    <!-- MODAL 1: CREATE GODOWN -->
-                    <div id="godown-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
-                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 text-xs space-y-4">
-                            <h4 class="text-sm font-bold text-white border-b border-borderGray pb-2">🏢 Register New Storage Godown</h4>
-                            <form id="godown-form" class="space-y-3">
-                                <div><label class="text-gray-400 block mb-1">Godown Title Name</label><input type="text" id="g-name" required class="w-full bg-darkBg border border-borderGray rounded p-2 text-white font-medium"></div>
-                                <div><label class="text-gray-400 block mb-1">Location Address</label><input type="text" id="g-loc" required class="w-full bg-darkBg border border-borderGray rounded p-2 text-white"></div>
-                                <div class="flex justify-end space-x-2 pt-2"><button type="button" onclick="closeModal('godown-modal')" class="bg-gray-800 p-2 rounded text-gray-300">Cancel</button><button type="submit" class="bg-blue-600 p-2 rounded text-white font-bold">Deploy Godown Node</button></div>
-                            </form>
-                        </div>
+                    <div id="g-mod" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 space-y-3"><h4 class="font-bold text-white text-xs">🏢 Create New Godown Profile</h4><form id="g-form" class="space-y-2"><input type="text" id="g-name" placeholder="Godown Name" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"><input type="text" id="g-loc" placeholder="Address" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"><div class="flex justify-end space-x-1"><button type="button" onclick="closeModal('g-mod')" class="bg-gray-800 p-2 rounded">Close</button><button type="submit" class="bg-blue-600 p-2 rounded text-white font-bold">Deploy</button></div></form></div>
                     </div>
-
-                    <!-- MODAL 2: VENDOR STOCK INWARD -->
-                    <div id="stock-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
-                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 text-xs space-y-4">
-                            <h4 class="text-sm font-bold text-white border-b border-borderGray pb-2">Inward Procurement Material Freight</h4>
-                            <form id="stock-form" class="space-y-3">
-                                <div><label class="text-gray-400 block mb-1">Target Storage Godown</label><select id="st-godown" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-semibold">${dbGodowns.map(g=>`<option value="${g.name}">${g.name}</option>`).join('')}</select></div>
-                                <div><label class="text-gray-400 block mb-1">Material Item Name</label><input type="text" id="st-item" required class="w-full bg-darkBg border border-borderGray rounded p-2 text-white"></div>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <div><label class="text-gray-400 block mb-1">Quantity</label><input type="number" id="st-qty" required class="w-full bg-darkBg border border-borderGray rounded p-2 text-white font-mono"></div>
-                                    <div><label class="text-gray-400 block mb-1">Unit</label><input type="text" id="st-unit" placeholder="Bags/Tons/Cum" required class="w-full bg-darkBg border border-borderGray rounded p-2 text-white"></div>
-                                </div>
-                                <div class="flex justify-end space-x-2 pt-2"><button type="button" onclick="closeModal('stock-modal')" class="bg-gray-800 p-2 rounded text-gray-300">Cancel</button><button type="submit" class="bg-emerald-600 p-2 rounded text-white font-bold">Commit Inward</button></div>
-                            </form>
-                        </div>
+                    <div id="s-mod" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 space-y-3"><h4 class="font-bold text-white text-xs">📥 Stock Inward</h4><form id="s-form" class="space-y-2"><select id="st-godown" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-bold">${dbGodowns.map(g=>`<option value="${g.name}">${g.name}</option>`).join('')}</select><input type="text" id="st-item" placeholder="Material Description" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"><div class="grid grid-cols-2 gap-2"><input type="number" id="st-qty" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"><input type="text" id="st-unit" placeholder="Bags/Tons" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"></div><div class="flex justify-end space-x-1"><button type="button" onclick="closeModal('s-mod')" class="bg-gray-800 p-2 rounded">Cancel</button><button type="submit" class="bg-emerald-600 p-2 rounded text-white font-bold">Inward</button></div></form></div>
                     </div>
-
-                    <!-- MODAL 3: DISPATCH MATERIAL TO SITE -->
-                    <div id="dispatch-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
-                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 text-xs space-y-4">
-                            <h4 class="text-sm font-bold text-white border-b border-borderGray pb-2">🚛 Initialize Materials Dispatch Shipment</h4>
-                            <form id="disp-form" class="space-y-3">
-                                <div><label class="text-gray-400 block mb-1">Source Godown Node</label><select id="ds-from" onchange="populateLogisticsDropdown('ds-from', 'ds-item')" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-semibold">${dbGodowns.map(g=>`<option value="${g.name}">${g.name}</option>`).join('')}</select></div>
-                                <div><label class="text-gray-400 block mb-1">Select Stock Commodity</label><select id="ds-item" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-semibold"></select></div>
-                                <div><label class="text-gray-400 block mb-1">Transit Qty</label><input type="number" id="ds-qty" required class="w-full bg-darkBg border border-borderGray rounded p-2 text-white font-mono"></div>
-                                <div><label class="text-gray-400 block mb-1">Target Destination Project Node</label><select id="ds-to" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-semibold">${dbProjects.map(p=>`<option value="${p.name}">${p.name}</option>`).join('')}</select></div>
-                                <div class="flex justify-end space-x-2 pt-2"><button type="button" onclick="closeModal('dispatch-modal')" class="bg-gray-800 p-2 rounded text-gray-300">Cancel</button><button type="submit" class="bg-blue-600 p-2 rounded text-white font-bold">Execute Dispatch</button></div>
-                            </form>
-                        </div>
+                    <div id="d-mod" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 space-y-3"><h4 class="font-bold text-white text-xs">🚛 Site Dispatch Shipment</h4><form id="d-form" class="space-y-2"><select id="ds-from" onchange="populateLogisticsDropdown('ds-from', 'ds-item')" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-bold">${dbGodowns.map(g=>`<option value="${g.name}">${g.name}</option>`).join('')}</select><select id="ds-item" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-bold"></select><input type="number" id="ds-qty" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-mono"><select id="ds-to" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-bold">${dbProjects.map(p=>`<option value="${p.name}">${p.name}</option>`).join('')}</select><div class="flex justify-end space-x-1"><button type="button" onclick="closeModal('d-mod')" class="bg-gray-800 p-2 rounded">Cancel</button><button type="submit" class="bg-blue-600 p-2 rounded text-white font-bold">Dispatch</button></div></form></div>
                     </div>
-
-                    <!-- ⏪ NEW MODAL 4: RETURN MATERIAL TO SUPPLIER (STRICT ELEVATED SECURITY ACTION) -->
-                    <div id="return-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
-                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 text-xs space-y-4 border-red-900/50">
-                            <h4 class="text-sm font-bold text-red-400 border-b border-borderGray pb-2">⏪ Return Active Stock Parameters to Supplier Node</h4>
-                            <form id="return-form" class="space-y-3 text-xs">
-                                <div><label class="text-gray-400 block mb-1 font-bold">Select Source Godown Yard</label><select id="ret-from" onchange="populateLogisticsDropdown('ret-from', 'ret-item')" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-semibold">${dbGodowns.map(g=>`<option value="${g.name}">${g.name}</option>`).join('')}</select></div>
-                                <div><label class="text-gray-400 block mb-1 font-bold">Select Material Item to Reject</label><select id="ret-item" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-semibold"></select></div>
-                                <div><label class="text-gray-400 block mb-1 font-bold">Quantity to Send Back</label><input type="number" id="ret-qty" required class="w-full bg-darkBg border border-borderGray rounded p-2.5 text-white font-mono font-bold focus:border-red-500 focus:outline-none"></div>
-                                <div><label class="text-gray-400 block mb-1 font-bold">Reason/Voucher Remarks for Return</label><input type="text" id="ret-remarks" placeholder="e.g. Expired batch or Damaged during unloading..." required class="w-full bg-darkBg border border-borderGray rounded p-2.5 text-white focus:border-red-500 focus:outline-none"></div>
-                                <div class="flex justify-end space-x-2 pt-2">
-                                    <button type="button" onclick="closeModal('return-modal')" class="bg-gray-800 p-2 rounded text-gray-300">Cancel Execution</button>
-                                    <button type="submit" class="bg-red-600 hover:bg-red-500 text-white font-bold p-2 rounded uppercase">Approve Supplier Return</button>
-                                </div>
-                            </form>
-                        </div>
+                    <div id="r-mod" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 space-y-3 border-red-900/50"><h4 class="font-bold text-red-400 text-xs">⏪ Return Material stock parameters back to supplier</h4><form id="r-form" class="space-y-2"><select id="ret-from" onchange="populateLogisticsDropdown('ret-from', 'ret-item')" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-bold">${dbGodowns.map(g=>`<option value="${g.name}">${g.name}</option>`).join('')}</select><select id="ret-item" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-bold"></select><input type="number" id="ret-qty" required class="w-full bg-darkBg border border-borderGray p-2.5 text-white font-bold"><input type="text" id="ret-remarks" placeholder="Reason summary Remarks Required" required class="w-full bg-darkBg border border-borderGray p-2.5 text-white"><div class="flex justify-end space-x-1"><button type="button" onclick="closeModal('r-mod')" class="bg-gray-800 p-2 rounded">Cancel</button><button type="submit" class="bg-red-600 p-2 rounded text-white font-bold">Approve Return</button></div></form></div>
                     </div>
                 `;
                 populateLogisticsDropdown('ds-from', 'ds-item');
             }
 
-            else if (currentTab === "measurements") { container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-5 text-center text-gray-400">[ M-Book Core Spreadsheet Active ]</div>`; }
-            else if (currentTab === "lifecycle") { container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-5 text-center text-gray-400">[ Site Profiles Active ]</div>`; }
+            else if (currentTab === "site-photos") {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="bg-panelBg border border-borderGray p-5 rounded-xl"><h3 class="text-xs font-bold uppercase text-white mb-2">📷 Upload Progress Vault Stamped Snaps</h3><form id="photo-upload-form" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end"><div><select id="photo-project" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white">${dbProjects.map(p=>`<option value="${p.name}">${p.name}</option>`).join('')}</select></div><div><input type="file" id="photo-file" accept="image/*" required class="w-full bg-darkBg border border-borderGray p-1.5 text-white text-xs"></div><button type="submit" class="bg-emerald-600 p-2 rounded font-bold uppercase text-white">Upload</button></form></div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">${dbPhotos.map(ph=>`<div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden shadow-xl"><img src="${ph.imgData}" class="w-full h-36 object-cover bg-black"><div class="p-3 text-[10px] text-gray-400 font-mono"><p class="text-white font-bold text-xs font-sans truncate">${ph.projectName}</p><p>👤 Uploaded By: ${ph.uploadedBy}</p><p>📅 Date: ${ph.timestamp}</p><p class="text-emerald-400 font-bold">📍 GPS: ${ph.gps}</p></div></div>`).join('')}</div>
+                    </div>
+                `;
+                document.getElementById('photo-upload-form')?.addEventListener('submit', function(e){
+                    e.preventDefault(); const file = document.getElementById('photo-file').files[0]; const reader = new FileReader();
+                    navigator.geolocation.getCurrentPosition((pos)=>{
+                        const gps = `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
+                        reader.onload = function(event){
+                            dbPhotos.unshift({ id:'ph_'+Date.now(), projectName:document.getElementById('photo-project').value, imgData:event.target.result, uploadedBy:currentUser.name, timestamp:new Date().toLocaleString(), gps });
+                            localStorage.setItem('vantage_site_photos', JSON.stringify(dbPhotos)); alert("Snapshot Uploaded with Geo-stamps."); renderTabContent();
+                        }; reader.readAsDataURL(file);
+                    }, ()=>{alert("GPS Matrix Refused.");});
+                });
+            }
+
+            else if (currentTab === "machinery") {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="bg-panelBg border border-borderGray p-5 rounded-xl"><h3 class="text-xs font-bold uppercase text-white mb-2">⚙️ Telematics Shift Odometer Multiplier Engine</h3><div class="grid grid-cols-2 gap-4"><button onclick="triggerOdoPunch('Morning')" class="bg-blue-950 border border-blue-900 text-blue-400 p-3 rounded font-bold text-xs">☀️ Punch Morning Odometer</button><button onclick="triggerOdoPunch('Evening')" class="bg-indigo-950 border border-indigo-900 text-indigo-400 p-3 rounded font-bold text-xs">🌙 Punch Evening Odometer</button></div></div>
+                        <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden"><table class="w-full text-left text-xs"><tr class="bg-darkBg font-bold text-gray-400 border-b border-borderGray uppercase"><th class="p-2.5">Operator</th><th class="p-2.5 text-center">Initial</th><th class="p-2.5 text-center">Closure</th><th class="p-2.5 text-right">Net Traveled</th><th class="p-2.5 text-right text-blue-400">Claims (₹1.5/km)</th><th class="p-2.5 text-center">Operations</th></tr>
+                        ${dbOdometer.map(o=>{ const diff = o.evening ? (Number(o.evening)-Number(o.morning)):0;
+                            return `<tr><td class="p-2.5 text-white font-bold">${o.user}</td><td class="p-2.5 text-center font-mono">${o.morning} km</td><td class="p-2.5 text-center font-mono">${o.evening?`${o.evening} km`:'Active Shift'}</td><td class="p-2.5 text-right font-mono font-bold">${diff} km</td><td class="p-2.5 text-right font-mono text-blue-400 font-extrabold">₹${(diff*1.5).toFixed(0)}</td><td class="p-2.5 text-center">${o.cleared?'Cleared':isAdmin?`<button onclick="clearFuelVoucher('${o.id}','${o.user}')" class="bg-green-600 px-2 py-0.5 rounded font-bold text-white">Clear</button>`:'Pending'}</td></tr>`;
+                        }).join('')}</table></div>
+                    </div>
+                `;
+            }
+
+            else if (currentTab === "financial") {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider"> Central Audited Financial Ledger Streams</h3><button onclick="openModal('f-mod')" class="bg-blue-600 px-4 py-1.5 rounded font-bold uppercase tracking-wider text-white shadow-md">+ Record Ledger Entry</button></div>
+                        <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden"><table class="w-full text-left border-collapse text-xs"><tr class="bg-darkBg text-gray-400 border-b border-borderGray uppercase font-bold"><th class="p-3">Date</th><th class="p-3">Stream</th><th class="p-3">Category Component</th><th class="p-3">Allotted Project Node</th><th class="p-3">Operator</th><th class="p-3 text-right">Transaction Amount</th><th class="p-3 text-center">Audit Clearance</th></tr>
+                        ${dbFinancials.map(f=>`
+                            <tr class="border-b border-borderGray"><td class="p-3 font-mono text-gray-500">${f.date}</td><td class="p-3 font-bold">${f.stream}</td><td class="p-3 text-gray-300 font-medium">${f.category}</td><td class="p-3 text-gray-400">${f.project}</td><td class="p-3 text-gray-400 font-bold">${f.user}</td><td class="p-3 text-right font-bold font-mono text-gray-200">₹${f.amount.toLocaleString()}</td>
+                            <td class="p-3 text-center">${f.status==='Pending'&&isAdmin?`<div class="flex justify-center space-x-1"><button onclick="auditVoucherExpense('${f.id}','Approved')" class="bg-green-600 px-2 rounded font-bold text-white">Approve</button><button onclick="auditVoucherExpense('${f.id}','Rejected')" class="bg-red-600 px-2 rounded font-bold text-white">Reject</button></div>`:`<span class="px-2 py-0.5 rounded font-bold font-sans uppercase ${f.status==='Approved'?'bg-green-500/10 text-green-400':'bg-red-500/10 text-red-400'}">${f.status}</span>`}</td></tr>
+                        `).join('')}</table></div>
+                    </div>
+                    <div id="f-mod" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 text-xs space-y-4"><h4 class="font-bold text-white text-sm">📂 Record Dynamic Financial Entry Matrix</h4><form id="f-form" class="space-y-3"><select id="f-stream" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-bold"><option value="Payment OUT">📉 Payment OUT (Expense)</option><option value="Payment IN">📈 Payment IN (Milestone Realization)</option></select><select id="f-cat" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white"><option value="Material Purchase">📦 Material Purchase Procurement</option><option value="Labour Wages">👥 Labour Wages / Subcontractor</option><option value="Fuel Logistics">⛽ Fuel Logistics Fleet</option></select><select id="f-proj" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-semibold">${dbProjects.map(p=>`<option value="${p.name}">${p.name}</option>`).join('')}</select><input type="number" id="f-amt" placeholder="Amount Value (₹)" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-mono font-bold"><textarea id="f-desc" required rows="2" placeholder="Summary remarks, invoice voucher numbers details..." class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"></textarea><div class="flex justify-end space-x-2 pt-1"><button type="button" onclick="closeModal('f-mod')" class="bg-gray-800 p-2 rounded text-gray-300">Cancel</button><button type="submit" class="bg-blue-600 p-2 rounded text-white font-bold uppercase">Commit</button></div></form></div>
+                    </div>
+                `;
+            }
+
+            else if (currentTab === "attendance") {
+                const dayString = new Date().toISOString().split('T')[0]; const activeShift = dbAttendance.find(a => a.staffName === currentUser.name && a.date === dayString);
+                container.innerHTML = `
+                    <div class="max-w-md mx-auto bg-panelBg border border-borderGray rounded-xl p-6 text-center space-y-4">
+                        <h3 class="text-sm font-bold text-white uppercase tracking-wider">Shift Authentication Matrix</h3>
+                        <div class="grid grid-cols-2 gap-4"><button onclick="executeShiftPunch('In')" class="bg-blue-600 p-3 rounded font-bold uppercase text-white">☀️ Punch In</button><button onclick="executeShiftPunch('Out')" class="bg-indigo-600 p-3 rounded font-bold uppercase text-white">🌙 Punch Out</button></div>
+                    </div>
+                `;
+            }
+
+            else if (currentTab === "billing") {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <h3 class="text-sm font-bold text-white uppercase tracking-wider">💼 Central Client Invoicing & Billing Import Core</h3>
+                        <div class="bg-panelBg border border-borderGray rounded-xl p-5 space-y-3 font-mono text-[11px] text-gray-400">
+                            <span class="text-white font-bold text-xs font-sans block mb-1 font-bold">📦 Live Measurement Sheet M-Book Import Channel Buffer:</span>
+                            ${dbMeasurements.length === 0 ? '<p class="font-sans text-gray-500 p-1">Buffer Empty: No physical dimensions loaded.</p>' : ''}
+                            ${dbMeasurements.map((m,i)=>`<div class="flex justify-between items-center bg-darkBg/60 p-3 border border-borderGray rounded"><span>[MBOOK-STREAM-${i}] Field Surveyor Log: ${m.project} -> ${m.span} (<span class="text-blue-400 font-bold">${m.yield}</span>)</span><button onclick="alert('Import Complete')" class="bg-blue-600 text-white font-sans font-bold px-3 py-1 rounded text-[10px]">Import into Bill</button></div>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            else if (currentTab === "staff-mgmt") {
+                if (!isAdmin) return;
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">👥 Human Capital Assets & Clearance Control Panel</h3><button onclick="openStaffModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-xs font-bold transition-colors">+ Provision Profile Node</button></div>
+                        <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden"><table class="w-full text-left text-xs"><tr class="bg-darkBg font-bold text-gray-400 border-b border-borderGray uppercase"><th class="p-3">Identity Name</th><th class="p-3">Role</th><th class="p-3">Security Key</th><th class="p-3">Allotted Work Site</th><th class="p-3 text-right">Salary Matrix</th><th class="p-3 text-right text-red-400 font-bold">Penalties</th><th class="p-3 text-center">Operations</th></tr>
+                        ${dbStaff.map(s=>{ const penalty = dbDeductions[s.name] || 0;
+                            return `<tr class="border-b border-borderGray font-medium"><td class="p-3 text-white font-bold">${s.name}</td><td class="p-3 text-gray-400"><span class="bg-darkBg border border-borderGray px-2 py-0.5 rounded text-gray-300">${s.role}</span></td><td class="p-3 font-mono text-gray-500">${s.pass}</td><td class="p-3 text-gray-400 truncate max-w-[120px]">${s.allottedWork}</td><td class="p-3 text-right font-mono text-gray-300">₹${s.baseSalary.toLocaleString()}</td><td class="p-3 text-right text-red-500 font-bold font-mono">-₹${penalty.toLocaleString()}</td><td class="p-3 text-center"><div class="flex justify-center space-x-1"><button onclick="editStaffAction('${s.id}')" class="bg-gray-800 text-gray-200 px-2 py-0.5 rounded font-bold">Modify</button><button onclick="deleteStaffAction('${s.id}')" class="bg-red-950/40 text-red-400 border border-red-900/60 px-2 py-0.5 rounded font-bold">Purge</button></div></td></tr>`;
+                        }).join('')}</table></div>
+                    </div>
+
+                    <div id="s-mod" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 text-xs space-y-4"><h4 id="modal-staff-title" class="font-bold text-white text-sm border-b border-borderGray pb-1">Provision New Profile</h4><form id="s-form" class="space-y-3"><input type="hidden" id="s-edit-id"><input type="text" id="s-name" placeholder="Full Employee Identity Name" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-medium"><select id="s-role" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"><option value="Engineer">Civil Site Engineer</option><option value="Accountant">Accountant / surveyor node</option><option value="Supervisor">Site Supervisor</option></select><input type="text" id="s-pass" placeholder="Access Security Pass Key Code" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"><select id="s-work" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white">${dbProjects.map(p=>`<option value="${p.name}">${p.name}</option>`).join('')}</select><input type="number" id="s-salary" placeholder="Salary Rate Metric Value" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-mono"><div class="flex justify-end space-x-1 pt-1"><button type="button" onclick="closeModal('s-mod')" class="bg-gray-800 p-2 rounded text-gray-300">Cancel</button><button type="submit" class="bg-blue-600 p-2 rounded text-white font-bold">Commit Profile</button></div></form></div>
+                    </div>
+                `;
+                document.getElementById('s-form')?.addEventListener('submit', function(e){
+                    e.preventDefault(); const id = document.getElementById('s-edit-id').value; const name = document.getElementById('s-name').value.trim(); const role = document.getElementById('s-role').value; const pass = document.getElementById('s-pass').value.trim(); const allottedWork = document.getElementById('s-work').value; const baseSalary = Number(document.getElementById('s-salary').value);
+                    let sList = JSON.parse(localStorage.getItem('vantage_staff'));
+                    if (id) { sList = sList.map(s => s.id === id ? { id, name, role, pass, allottedWork, baseSalary, status: s.status } : s); } 
+                    else { sList.push({ id: 's_' + Date.now(), name, role, pass, allottedWork, baseSalary, status: 'Active' }); }
+                    localStorage.setItem('vantage_staff', JSON.stringify(sList)); closeModal('s-mod'); renderERP();
+                });
+            }
         }
 
+        // --- 5. DATA LOG INTERFACES ACTIONS SYSTEM HANDLERS ---
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        function openProjectModal() { document.getElementById('p-form').reset(); document.getElementById('p-edit-id').value = ""; document.getElementById('modal-project-title').innerText = "Provision New Construction Node"; openModal('p-mod'); }
+        function openStaffModal() { document.getElementById('s-form').reset(); document.getElementById('s-edit-id').value = ""; document.getElementById('modal-staff-title').innerText = "Provision New Staff Profile Node"; openModal('s-mod'); }
+        function openSupplierReturnModal() { openModal('r-mod'); populateLogisticsDropdown('ret-from', 'ret-item'); }
 
-        function openSupplierReturnModal() {
-            openModal('return-modal');
-            populateLogisticsDropdown('ret-from', 'ret-item');
+        function editProjectAction(id) {
+            const p = JSON.parse(localStorage.getItem('vantage_projects')).find(x => x.id === id);
+            if (p) {
+                document.getElementById('p-edit-id').value = p.id; document.getElementById('p-name').value = p.name; document.getElementById('p-client').value = p.client; document.getElementById('p-loc').value = p.location; document.getElementById('p-val').value = p.contractValue; document.getElementById('p-lat').value = p.lat; document.getElementById('p-lng').value = p.lng;
+                document.getElementById('modal-project-title').innerText = "Modify Active Construction Parameters"; openModal('p-mod');
+            }
         }
 
-        // Dropdown Auto-Populator Subsystem
-        function populateLogisticsDropdown(sourceId, targetId) {
-            const sourceElement = document.getElementById(sourceId);
-            const targetElement = document.getElementById(targetId);
-            if(!sourceElement || !targetElement) return;
-
-            const selectedGodown = sourceElement.value;
-            const dbStockBook = JSON.parse(localStorage.getItem('vantage_stock_book')) || [];
-            const items = dbStockBook.filter(x => x.godownName === selectedGodown);
-
-            targetElement.innerHTML = items.map(x => `<option value="${x.item}">${x.item} (Avail: ${x.qty} ${x.unit})</option>`).join('');
+        function deleteProjectAction(id) {
+            if (confirm("🚨 PURGE PROJECT FOREVER FROM STREAMS?")) {
+                let p = JSON.parse(localStorage.getItem('vantage_projects')).filter(x => x.id !== id);
+                localStorage.setItem('vantage_projects', JSON.stringify(p)); renderERP();
+            }
         }
 
-        // Unified Inward Submit Interceptor Controller
-        document.body.addEventListener('submit', function(e) {
-            if (e.target.id === 'godown-form') {
-                e.preventDefault(); const dbGodowns = JSON.parse(localStorage.getItem('vantage_godowns')) || [];
-                dbGodowns.push({ id: 'g_'+Date.now(), name: document.getElementById('g-name').value.trim(), location: document.getElementById('g-loc').value.trim() });
-                localStorage.setItem('vantage_godowns', JSON.stringify(dbGodowns)); closeModal('godown-modal'); renderERP();
+        function editStaffAction(id) {
+            const s = JSON.parse(localStorage.getItem('vantage_staff')).find(x => x.id === id);
+            if (s) {
+                document.getElementById('s-edit-id').value = s.id; document.getElementById('s-name').value = s.name; document.getElementById('s-role').value = s.role; document.getElementById('s-pass').value = s.pass; document.getElementById('s-work').value = s.allottedWork; document.getElementById('s-salary').value = s.baseSalary;
+                document.getElementById('modal-staff-title').innerText = "Modify Staff Profile Clearance Node"; openModal('s-mod');
             }
-            if (e.target.id === 'stock-form') {
-                e.preventDefault(); const godownName = document.getElementById('st-godown').value; const item = document.getElementById('st-item').value.trim(); const qty = Number(document.getElementById('st-qty').value); const unit = document.getElementById('st-unit').value.trim();
-                let dbStockBook = JSON.parse(localStorage.getItem('vantage_stock_book')) || []; const existing = dbStockBook.find(x => x.godownName === godownName && x.item.toLowerCase() === item.toLowerCase());
-                if (existing) { existing.qty += qty; } else { dbStockBook.push({ godownName, item, qty, unit }); }
-                localStorage.setItem('vantage_stock_book', JSON.stringify(dbStockBook)); closeModal('stock-modal'); renderERP();
+        }
+
+        function deleteStaffAction(id) {
+            const s = JSON.parse(localStorage.getItem('vantage_staff')).find(x => x.id === id);
+            if (s && s.id === 's_master') { alert("Security Block: Main setup Admin profile node cannot be purged!"); return; }
+            if (confirm("🚨 PURGE STAFF PROFILE FOREVER?")) {
+                let sList = JSON.parse(localStorage.getItem('vantage_staff')).filter(x => x.id !== id);
+                localStorage.setItem('vantage_staff', JSON.stringify(sList)); renderERP();
             }
-            if (e.target.id === 'disp-form') {
-                e.preventDefault(); const fromGodown = document.getElementById('ds-from').value; const item = document.getElementById('ds-item').value; const qty = Number(document.getElementById('ds-qty').value); const toSite = document.getElementById('ds-to').value;
-                let dbStockBook = JSON.parse(localStorage.getItem('vantage_stock_book')) || []; const stockItem = dbStockBook.find(x => x.godownName === fromGodown && x.item === item);
-                if (!stockItem || stockItem.qty < qty) { alert("Error: Insufficient stock matrix balance!"); return; }
-                stockItem.qty -= qty; localStorage.setItem('vantage_stock_book', JSON.stringify(dbStockBook));
-                let dbDispatches = JSON.parse(localStorage.getItem('vantage_dispatches')) || []; dbDispatches.unshift({ id: 'disp_'+Date.now(), fromGodown, toSite, item, qty, unit: stockItem.unit, timestamp: new Date().toLocaleString() });
-                localStorage.setItem('vantage_dispatches', JSON.stringify(dbDispatches)); closeModal('dispatch-modal'); renderERP();
-            }
+        }
 
-            // --- ⏪ NEW: EXPLICIT SUPPLIER MATERIAL RETURN INTERCEPTOR MATH ENGINE ---
-            if (e.target.id === 'return-form') {
-                e.preventDefault();
-                const godownName = document.getElementById('ret-from').value;
-                const item = document.getElementById('ret-item').value;
-                const qty = Number(document.getElementById('ret-qty').value);
-                const remarks = document.getElementById('ret-remarks').value.trim();
+        // --- 6. EXCEL REALTIME GRID MATH COMPILER ---
+        function buildExcelRowsMatrixHTML() {
+            const body = document.getElementById('excel-rows-body'); if(!body) return;
+            body.innerHTML = activeExcelRows.map((row, index) => {
+                let len = 0; const cFrom = parseChainage(row.chainageFrom); const cTo = parseChainage(row.chainageTo);
+                if (!isNaN(cFrom) && !isNaN(cTo)) { len = Math.abs(cTo - cFrom); }
+                let avgW = Number(row.width || 0); if (index > 0) { avgW = (Number(row.width || 0) + Number(activeExcelRows[index - 1].width || 0)) / 2; }
+                let yld = 0; const thick = row.thickness ? Number(row.thickness) : 0;
+                if (row.formula === 'Multiply') { yld = thick > 0 ? (len * avgW * thick) : (len * avgW); }
+                else if (row.formula === 'Sum') { yld = len + avgW + thick; }
+                else if (row.formula === 'Average') { yld = (len + avgW + thick) / (thick > 0 ? 3 : 2); }
+                activeExcelRows[index].computedLength = len; activeExcelRows[index].computedAvgWidth = avgW; activeExcelRows[index].yieldResult = yld;
+                return `
+                    <tr class="hover:bg-panelBg/40 text-center"><td class="p-2 border-r border-borderGray">${index+1}</td>
+                        <td class="p-0 border-r border-borderGray"><input type="text" oninput="updateExcelCell(${index},'chainageFrom',this.value)" value="${row.chainageFrom}" class="w-full bg-transparent px-2 text-center text-white focus:outline-none"></td>
+                        <td class="p-0 border-r border-borderGray"><input type="text" oninput="updateExcelCell(${index},'chainageTo',this.value)" value="${row.chainageTo}" class="w-full bg-transparent px-2 text-center text-white focus:outline-none"></td>
+                        <td class="p-2 border-r border-borderGray font-bold text-gray-400">${len} m</td>
+                        <td class="p-0 border-r border-borderGray"><input type="number" oninput="updateExcelCell(${index},'width',this.value)" value="${row.width}" class="w-full bg-transparent text-center font-bold focus:outline-none"></td>
+                        <td class="p-2 border-r border-borderGray text-orange-400 font-bold">${avgW.toFixed(3)} m</td>
+                        <td class="p-0 border-r border-borderGray"><input type="number" oninput="updateExcelCell(${index},'thickness',this.value)" value="${row.thickness}" placeholder="[m]" class="w-full bg-transparent text-center focus:outline-none text-emerald-400 font-bold"></td>
+                        <td class="p-1 border-r border-borderGray"><select onchange="updateExcelCell(${index},'formula',this.value)" class="bg-darkBg text-gray-300 font-sans focus:outline-none"><option value="Multiply" ${row.formula==='Multiply'?'selected':''}>✖️ Multiply</option><option value="Sum" ${row.formula==='Sum'?'selected':''}>➕ Sum</option></select></td>
+                        <td class="p-2 text-right text-blue-400 font-bold pr-4">${thick > 0 ? `${yld.toFixed(3)} m³` : `${yld.toFixed(2)} m²`}</td></tr>`;
+            }).join('');
+        }
+        function updateExcelCell(idx, field, val) { activeExcelRows[idx][field] = val; buildExcelRowsMatrixHTML(); }
+        function addExcelRow() { const last = activeExcelRows[activeExcelRows.length - 1]; activeExcelRows.push({ chainageFrom: last?last.chainageTo:'0/000', chainageTo: '', width: 7.5, thickness: '', formula: 'Multiply', yieldResult: 0 }); buildExcelRowsMatrixHTML(); }
+        function parseChainage(str) { if(!str) return NaN; const c = str.replace('/','.'); const p = c.split('.'); return p.length===2 ? (Number(p[0])*1000)+Number(p[1]) : Number(str); }
+        function saveExcelToDatabase() {
+            const project = document.getElementById('sheet-project-node').value; const dbM = JSON.parse(localStorage.getItem('vantage_measurements')) || [];
+            activeExcelRows.forEach(row => { dbM.unshift({ id:'m_'+Date.now()+Math.random(), timestamp:new Date().toLocaleString(), project, span:`${row.chainageFrom} to ${row.chainageTo} (L: ${row.computedLength}m)`, avgWidth:row.computedAvgWidth.toFixed(3), type:row.thickness?"Volume (m³)":"Area (m²)", yield:row.thickness?`${row.yieldResult.toFixed(3)} m³` : `${row.yieldResult.toFixed(2)} m²` }); });
+            localStorage.setItem('vantage_measurements', JSON.stringify(dbM)); alert("Batch rows added to M-Book Logs."); activeExcelRows = [{ chainageFrom: '0/000', chainageTo: '', width: 7.5, thickness: '', formula: 'Multiply', yieldResult: 0 }]; renderERP();
+        }
 
-                let dbStockBook = JSON.parse(localStorage.getItem('vantage_stock_book')) || [];
-                const stockItem = dbStockBook.find(x => x.godownName === godownName && x.item === item);
-
-                if (!stockItem || stockItem.qty < qty) {
-                    alert(`Logistical Rejection Error: Cannot return ${qty} units. Only ${stockItem ? stockItem.qty : 0} units left in ${godownName}!`);
-                    return;
-                }
-
-                // Strictly deduct structural stock from registry balance
-                stockItem.qty -= qty;
-                localStorage.setItem('vantage_stock_book', JSON.stringify(dbStockBook));
-
-                // Commit parameters into historical return book logs ledger
-                let dbReturns = JSON.parse(localStorage.getItem('vantage_supplier_returns')) || [];
-                dbReturns.unshift({
-                    id: 'ret_' + Date.now(),
-                    godownName, item, qty, unit: stockItem.unit, remarks,
-                    timestamp: new Date().toLocaleString()
-                });
-                localStorage.setItem('vantage_supplier_returns', JSON.stringify(dbReturns));
-
-                alert(`Success Vector Locked: ${qty} ${stockItem.unit} of '${item}' safely purged and dispatched back to Supplier ledger profile.`);
-                closeModal('return-modal');
-                renderERP();
-            }
+        // Logistics Interceptors Engine
+        function populateLogisticsDropdown(sId, tId) {
+            const s = document.getElementById(sId); const t = document.getElementById(tId); if(!s || !t) return;
+            const items = (JSON.parse(localStorage.getItem('vantage_stock_book')) || []).filter(x => x.godownName === s.value);
+            t.innerHTML = items.map(x => `<option value="${x.item}">${x.item} (Avail: ${x.qty} ${x.unit})</option>`).join('');
+        }
+        document.body.addEventListener('submit', function(e){
+            if(e.target.id === 'g-form'){ e.preventDefault(); const db = JSON.parse(localStorage.getItem('vantage_godowns')); db.push({id:'g_'+Date.now(), name:document.getElementById('g-name').value.trim(), location:document.getElementById('g-loc').value.trim()}); localStorage.setItem('vantage_godowns', JSON.stringify(db)); closeModal('g-mod'); renderERP(); }
+            if(e.target.id === 's-form') { e.preventDefault(); const g = document.getElementById('st-godown').value; const item = document.getElementById('st-item').value.trim(); const qty = Number(document.getElementById('st-qty').value); const unit = document.getElementById('st-unit').value.trim(); let db = JSON.parse(localStorage.getItem('vantage_stock_book')); const ex = db.find(x=>x.godownName===g&&x.item.toLowerCase()===item.toLowerCase()); if(ex){ex.qty+=qty;}else{db.push({godownName:g,item,qty,unit});} localStorage.setItem('vantage_stock_book', JSON.stringify(db)); closeModal('s-mod'); renderERP(); }
+            if(e.target.id === 'd-form') { e.preventDefault(); const f = document.getElementById('ds-from').value; const item = document.getElementById('ds-item').value; const qty = Number(document.getElementById('ds-qty').value); const to = document.getElementById('ds-to').value; let db = JSON.parse(localStorage.getItem('vantage_stock_book')); const st = db.find(x=>x.godownName===f&&x.item===item); if(!st||st.qty<qty){alert("Insufficient stock."); return;} st.qty-=qty; localStorage.setItem('vantage_stock_book', JSON.stringify(db)); let disp = JSON.parse(localStorage.getItem('vantage_dispatches')); disp.unshift({id:'d_'+Date.now(), fromGodown:f, toSite:to, item, qty, unit:st.unit, timestamp:new Date().toLocaleString()}); localStorage.setItem('vantage_dispatches', JSON.stringify(disp)); closeModal('d-mod'); renderERP(); }
+            if(e.target.id === 'r-form') { e.preventDefault(); const g = document.getElementById('ret-from').value; const item = document.getElementById('ret-item').value; const qty = Number(document.getElementById('ret-qty').value); let db = JSON.parse(localStorage.getItem('vantage_stock_book')); const st = db.find(x=>x.godownName===g&&x.item===item); if(!st||st.qty<qty){alert("Insufficient stock matrix."); return;} st.qty-=qty; localStorage.setItem('vantage_stock_book', JSON.stringify(db)); let ret = JSON.parse(localStorage.getItem('vantage_supplier_returns')); ret.unshift({id:'r_'+Date.now(), godownName:g, item, qty, unit:st.unit, timestamp:new Date().toLocaleString()}); localStorage.setItem('vantage_supplier_returns', JSON.stringify(ret)); closeModal('r-mod'); renderERP(); }
         });
+        function confirmMaterialReceipt(id) { let mats = JSON.parse(localStorage.getItem('vantage_materials')) || []; const t = mats.find(x=>x.id===id); if(t){t.received=true; localStorage.setItem('vantage_materials', JSON.stringify(mats)); renderERP();} }
+        function triggerOdoPunch(type) { const r = prompt(`Odometer entry for ${type} (km):`); if(!r||isNaN(r)) return; let odo = JSON.parse(localStorage.getItem('vantage_odometer')); if(type==='Morning'){odo.unshift({id:'o_'+Date.now(), user:currentUser.name, morning:r, evening:'', cleared:false});}else{const ex=odo.find(x=>x.user===currentUser.name&&x.evening===''); if(ex){ex.evening=r;}else{alert("Morning entry missing."); return;}} localStorage.setItem('vantage_odometer', JSON.stringify(odo)); renderERP(); }
+        function clearFuelVoucher(id, name) { let odo = JSON.parse(localStorage.getItem('vantage_odometer')); const t = odo.find(x=>x.id===id); if(t){t.cleared=true; localStorage.setItem('vantage_odometer', JSON.stringify(odo)); const n = JSON.parse(localStorage.getItem('vantage_notifications')); n[name]="Fuel claims approved."; localStorage.setItem('vantage_notifications', JSON.stringify(n)); renderERP();} }
+        function executeShiftPunch(type) { const day = new Date().toISOString().split('T')[0]; let att = JSON.parse(localStorage.getItem('vantage_attendance')); let cur = att.find(x=>x.staffName===currentUser.name&&x.date===day); if(type==='In'){if(!cur){att.unshift({staffName:currentUser.name, date:day, punchIn:new Date().toLocaleTimeString(), punchOut:'', status:'PRESENT'});} alert("Shift started.");}else{if(cur){cur.punchOut=new Date().toLocaleTimeString();} alert("Shift closed.");} localStorage.setItem('vantage_attendance', JSON.stringify(att)); renderERP(); }
+        function triggerOdoPunch(type) { const r = prompt(`Odometer entry for ${type} (km):`); if(!r||isNaN(r)) return; let odo = JSON.parse(localStorage.getItem('vantage_odometer')) || []; if(type==='Morning'){odo.unshift({id:'o_'+Date.now(), user:currentUser.name, morning:r, evening:'', cleared:false});}else{const ex=odo.find(x=>x.user===currentUser.name&&x.evening===''); if(ex){ex.evening=r;}else{alert("Morning entry missing."); return;}} localStorage.setItem('vantage_odometer', JSON.stringify(odo)); renderERP(); }
 
         renderERP();
     </script>
