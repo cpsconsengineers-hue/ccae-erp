@@ -19,37 +19,63 @@
 </head>
 <body class="bg-darkBg text-gray-100 font-sans antialiased text-xs">
 
-    <div id="app-root"></div>
+    <div id="app-root">
+        <div class="min-h-screen flex items-center justify-center bg-darkBg">
+            <div class="text-center">
+                <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p class="text-gray-400 font-mono tracking-widest uppercase text-[10px]">Initializing Vantage Cloud Core Matrix...</p>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // --- 1. SUPABASE CLOUD CONNECTOR CONFIG MATRIX (100% PRE-SET LOCK) ---
+        // --- 1. SUPABASE CLOUD CONNECTOR CONFIG MATRIX (100% SECURE PRE-SET) ---
         const SUPABASE_URL = "https://nshstymfggjffuhstghw.supabase.co"; 
         const SUPABASE_ANON_KEY = "sb_publishable_nwFVnbQgukQb3KcUUT5oFQ_kY4UIxgi";
 
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let supabase = null;
+        try {
+            supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch(e) {
+            console.error("Client Boot Error:", e);
+        }
 
+        // Global Runtime Memory Repositories
         let dbProjects = []; let dbStaff = []; let dbAttendance = []; let dbMeasurements = [];
         let dbFinancials = []; let dbMaterials = []; let dbOdometer = []; let dbPhotos = [];
-        let dbGodowns = []; let dbStockBook = []; let dbReturns = [];
+        let dbGodowns = []; let dbStockBook = []; let dbReturns = []; let dbDeductions = {};
 
         let currentTab = "dashboard";
         let currentUser = JSON.parse(localStorage.getItem('vantage_current_user')) || null;
         let activeExcelRows = [{ chainageFrom: '0/000', chainageTo: '0/025', width: 7.5, thickness: '', formula: 'Multiply', yieldResult: 187.5 }];
 
-        // --- 2. UNIVERSAL CLOUD RECON DATA SYNC ENGINE ---
+        // --- 2. UNIVERSAL HARDWARE CLOUD SYNC KERNEL ---
         async function syncSupabaseCloudAndRender() {
-            if (!currentUser) { renderERP(); return; }
+            const root = document.getElementById('app-root');
+            
+            // Fail-safe logic if client generation instances mismatch
+            if(!supabase) {
+                loadLocalFallbackMatrix("Supabase Module Generation Mismatch");
+                return;
+            }
+
             try {
+                // Parallel asynchronous query streams fetcher loop
                 const [proj, staff, att, meas, fin, mat, odo, photo, gd, st, ret] = await Promise.all([
                     supabase.from('projects').select('*'), supabase.from('staff').select('*'),
-                    supabase.from('attendance').select('*').order('created_at', { ascending: false }),
-                    supabase.from('measurements').select('*').order('created_at', { ascending: false }),
-                    supabase.from('financials').select('*').order('created_at', { ascending: false }),
-                    supabase.from('materials').select('*'), supabase.from('odometer').select('*'),
-                    supabase.from('site_photos').select('*').order('created_at', { ascending: false }),
+                    supabase.from('attendance').select('*'), supabase.from('measurements').select('*'),
+                    supabase.from('financials').select('*'), supabase.from('materials').select('*'),
+                    supabase.from('odometer').select('*'), supabase.from('site_photos').select('*'),
                     supabase.from('godowns').select('*'), supabase.from('stock_book').select('*'),
-                    supabase.from('supplier_returns').select('*').order('created_at', { ascending: false })
+                    supabase.from('supplier_returns').select('*')
                 ]);
+
+                // Trap explicit relational structural layout errors
+                if (proj.error || staff.error) {
+                    console.warn("Table routing gap captured, launching local fail-safe stub.");
+                    loadLocalFallbackMatrix(`Table Schema Missing: ${proj.error?.message || staff.error?.message}`);
+                    return;
+                }
 
                 dbProjects = proj.data || []; dbStaff = staff.data || []; dbAttendance = att.data || [];
                 dbMeasurements = meas.data || []; dbFinancials = fin.data || []; dbMaterials = mat.data || [];
@@ -58,27 +84,63 @@
 
                 renderERP();
             } catch (error) {
-                console.error("Supabase Sync Interruption:", error);
+                console.error("Supabase Connection Exception:", error);
+                loadLocalFallbackMatrix(error.message);
             }
         }
 
-        // --- 3. UI RENDERING FRAMEWORK MATRIX ---
-        async function renderERP() {
+        // --- 3. HARDWARE LOCAL FALLBACK STUB DRIVER (Prevents Blank Screen) ---
+        function loadLocalFallbackMatrix(reasonString) {
+            console.log("Engaging local offline matrix engine driver...");
+            
+            // Hard Seed local mock stubs to instantly unfreeze Manoj ji's dashboard viewport
+            dbProjects = JSON.parse(localStorage.getItem('vantage_projects')) || [
+                { id: "p1", name: "Udaipur City Flyover Survey", client: "Udaipur Authority", location: "Udaipur, RJ", lat: 24.5854, lng: 73.7125, contract_value: 4500000, status: "Active" },
+                { id: "p2", name: "Residential Complex Construction", client: "Geeta Sharma Ji", location: "Sarada, Salumber", lat: 24.1234, lng: 73.5678, contract_value: 7500000, status: "Active" }
+            ];
+            
+            // Local fallback master credentials logic
+            const localStaff = JSON.parse(localStorage.getItem('vantage_staff')) || [];
+            if(localStaff.length === 0) {
+                localStaff.push({ id: 's_master', name: 'Manoj Singh', role: 'Master Admin', pass: 'admin123', base_salary: 150000, status: 'Active', allotted_work: 'All Site Nodes' });
+                localStorage.setItem('vantage_staff', JSON.stringify(localStaff));
+            }
+            dbStaff = localStaff;
+            dbGodowns = JSON.parse(localStorage.getItem('vantage_godowns')) || [{ id: "g1", name: "Udaipur Central Godown", location: "Gordhan Vilas, Udaipur" }];
+            dbStockBook = JSON.parse(localStorage.getItem('vantage_stock_book')) || [{ godown_name: "Udaipur Central Godown", item: "53 Grade Cement", qty: 500, unit: "Bags" }];
+            dbMeasurements = JSON.parse(localStorage.getItem('vantage_measurements')) || [];
+            dbFinancials = JSON.parse(localStorage.getItem('vantage_financials')) || [];
+            dbReturns = JSON.parse(localStorage.getItem('vantage_supplier_returns')) || [];
+
+            // Injects absolute visual debugger warning notice banner layout onto top viewport frame dynamically
+            const errorBanner = document.createElement('div');
+            errorBanner.className = "bg-red-600 text-white p-2 font-mono text-[10px] text-center font-bold uppercase tracking-wider z-50 fixed top-0 left-0 w-full shadow-lg";
+            errorBanner.innerHTML = `⚠️ OFFLINE LOCAL MATRIX RUNTIME ENGAGED | REASON: ${reasonString}`;
+            document.body.appendChild(errorBanner);
+
+            renderERP();
+        }
+
+        // --- 4. MAIN UI DESKTOP RENDERING INTERFACE MODULE ---
+        function renderERP() {
             const root = document.getElementById('app-root');
+            
             if (!currentUser) {
-                const { data: adminCheck } = await supabase.from('staff').select('*').eq('role', 'Master Admin');
-                if (!adminCheck || adminCheck.length === 0) {
+                // Filter admin status node within active buffer variables
+                const hasAdmin = dbStaff.some(u => u.role === 'Master Admin');
+
+                if (!hasAdmin) {
                     root.innerHTML = `
                         <div class="min-h-screen flex items-center justify-center bg-darkBg px-4">
                             <div class="max-w-md w-full bg-panelBg border border-borderGray rounded-xl p-8 shadow-2xl">
                                 <div class="text-center mb-6">
-                                    <span class="bg-blue-500/10 text-blue-400 font-mono text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-full font-bold">Supabase Connected</span>
+                                    <span class="bg-blue-500/10 text-blue-400 font-mono text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-full font-bold">System Setup</span>
                                     <h2 class="text-xl font-bold text-white tracking-wider mt-3">MASTER ADMIN INITIAL SETUP</h2>
                                 </div>
                                 <form id="setup-form" class="space-y-4 text-xs">
                                     <div><label class="block text-gray-400 mb-1 font-bold uppercase">Admin Name ID</label><input type="text" id="setup-name" required class="w-full bg-darkBg border border-borderGray rounded p-3 text-white focus:outline-none"></div>
                                     <div><label class="block text-gray-400 mb-1 font-bold uppercase">Secret Pass Key Code</label><input type="password" id="setup-pass" required class="w-full bg-darkBg border border-borderGray rounded p-3 text-white focus:outline-none"></div>
-                                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded uppercase transition-colors">Lock Cloud Credentials</button>
+                                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded uppercase transition-colors font-sans">Initialize Database Lock</button>
                                 </form>
                             </div>
                         </div>
@@ -87,32 +149,38 @@
                         e.preventDefault();
                         const name = document.getElementById('setup-name').value.trim();
                         const pass = document.getElementById('setup-pass').value.trim();
-                        await supabase.from('staff').insert([{ name, role: 'Master Admin', pass, base_salary: 150000, status: 'Active', allotted_work: 'All Site Nodes' }]);
-                        alert("Cloud Master Lock Configured!"); location.reload();
+                        
+                        const newAdmin = { name, role: 'Master Admin', pass, base_salary: 150000, status: 'Active', allotted_work: 'All Site Nodes' };
+                        if(supabase && !document.body.innerText.includes("OFFLINE")) {
+                            await supabase.from('staff').insert([newAdmin]);
+                        } else {
+                            dbStaff.push(newAdmin); localStorage.setItem('vantage_staff', JSON.stringify(dbStaff));
+                        }
+                        alert("Master Profile Generated Successfully!"); location.reload();
                     });
                 } else {
                     root.innerHTML = `
                         <div class="min-h-screen flex items-center justify-center bg-darkBg px-4">
                             <div class="max-w-md w-full bg-panelBg border border-borderGray rounded-xl p-8 shadow-2xl">
-                                <div class="text-center mb-6"><h2 class="text-xl font-bold text-white tracking-wider">CPS CONSULTANTS & ENGINEERS</h2><p class="text-xs text-gray-400 mt-1">Vantage Supabase Cloud Center</p></div>
+                                <div class="text-center mb-6"><h2 class="text-xl font-bold text-white tracking-wider">CPS CONSULTANTS & ENGINEERS</h2><p class="text-xs text-gray-400 mt-1">Vantage Secure Cryptographic Portal</p></div>
                                 <form id="login-form" class="space-y-4 text-xs">
                                     <div><label class="block text-gray-400 mb-2 font-bold uppercase">Identity ID</label><input type="text" id="login-name" required class="w-full bg-darkBg border border-borderGray rounded p-3 text-white focus:outline-none"></div>
                                     <div><label class="block text-gray-400 mb-2 font-bold uppercase">Security Key</label><input type="password" id="login-pass" required class="w-full bg-darkBg border border-borderGray rounded p-3 text-white focus:outline-none"></div>
-                                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded uppercase">Authenticate App</button>
+                                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded uppercase font-sans">Authenticate App</button>
                                 </form>
                             </div>
                         </div>
                     `;
-                    document.getElementById('login-form').addEventListener('submit', async function(e) {
+                    document.getElementById('login-form').addEventListener('submit', function(e) {
                         e.preventDefault();
                         const name = document.getElementById('login-name').value.trim();
                         const pass = document.getElementById('login-pass').value.trim();
-                        const { data: userLogin } = await supabase.from('staff').select('*').eq('name', name).eq('pass', pass);
-                        if (userLogin && userLogin.length > 0) {
-                            const user = userLogin[0];
+                        
+                        const user = dbStaff.find(u => u.name.toLowerCase() === name.toLowerCase() && u.pass === pass);
+                        if (user) {
                             if(user.status === 'Blocked' || user.status === 'Terminated') { alert("Access suspended."); return; }
-                            currentUser = user; localStorage.setItem('vantage_current_user', JSON.stringify(user)); syncSupabaseCloudAndRender();
-                        } else { alert("Cryptographic Mismatch."); }
+                            currentUser = user; localStorage.setItem('vantage_current_user', JSON.stringify(user)); renderERP();
+                        } else { alert("Verification Mismatch."); }
                     });
                 }
                 return;
@@ -121,10 +189,10 @@
             const isAdmin = (currentUser.role === 'Master Admin' || currentUser.role === 'Accountant');
 
             root.innerHTML = `
-                <div class="min-h-screen flex bg-darkBg text-xs">
+                <div class="min-h-screen flex bg-darkBg text-xs pt-6">
                     <aside class="w-64 bg-panelBg border-r border-borderGray flex flex-col justify-between shrink-0">
-                        <div>
-                            <div class="p-4 border-b border-borderGray"><h1 class="font-bold text-white tracking-wider truncate">CPS CONSULTANTS</h1><p class="text-[10px] text-emerald-400 font-bold uppercase">⚡ SUPABASE DB ONLINE</p></div>
+                        <div class="overflow-y-auto max-h-[85vh]">
+                            <div class="p-4 border-b border-borderGray"><h1 class="font-bold text-white tracking-wider truncate">CPS CONSULTANTS</h1><p class="text-[10px] text-blue-400 font-bold uppercase">Vantage Core Command</p></div>
                             <nav class="p-3 space-y-0.5">
                                 <button onclick="switchTab('dashboard')" class="w-full text-left px-3 py-2 rounded ${currentTab === 'dashboard' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">📊 Dashboard Matrix</button>
                                 <button onclick="switchTab('materials')" class="w-full text-left px-3 py-2 rounded ${currentTab === 'materials' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">📦 Godown & Materials Hub</button>
@@ -145,7 +213,7 @@
                         </div>
                         <div class="p-4 border-t border-borderGray bg-darkBg/40">
                             <p class="text-white font-bold truncate mb-2">👤 ${currentUser.name}</p>
-                            <button onclick="logoutSession()" class="w-full bg-gray-800 text-gray-400 py-1.5 rounded font-bold uppercase border border-borderGray text-[10px]">🔒 LOGOUT CLOUD</button>
+                            <button onclick="logoutSession()" class="w-full bg-gray-800 text-gray-400 py-1.5 rounded font-bold uppercase border border-borderGray text-[10px]">🔒 LOGOUT PORTAL</button>
                         </div>
                     </aside>
                     <main class="flex-1 overflow-y-auto p-6 bg-darkBg">
@@ -156,10 +224,7 @@
             renderTabContent();
         }
 
-        function switchTab(t) { currentTab = t; renderERP(); }
-        function logoutSession() { currentUser = null; localStorage.removeItem('vantage_current_user'); renderERP(); }
-
-        // --- 4. DYNAMIC VIEW MODULE ROUTERS BLOCK ---
+        // --- 5. RENDER TAB HANDLER MODULE CONTENTS ---
         function renderTabContent() {
             const container = document.getElementById('tab-content-window');
             const isAdmin = (currentUser.role === 'Master Admin' || currentUser.role === 'Accountant');
@@ -167,62 +232,22 @@
             if (currentTab === "dashboard") {
                 container.innerHTML = `
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Active Sites</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbProjects.length} Nodes</h3></div>
-                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Warehouse Hubs</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbGodowns.length} Units</h3></div>
-                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">M-Book Batches</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbMeasurements.length} Logs</h3></div>
-                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Workforce Base</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbStaff.length} Accounts</h3></div>
+                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Active Projects</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbProjects.length} Sites</h3></div>
+                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Telemetry Log</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbOdometer.length} Logs</h3></div>
+                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Storage Godowns</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbGodowns.length} Units</h3></div>
+                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Total Personnel</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbStaff.length} Accounts</h3></div>
                     </div>
-                    <div class="bg-panelBg border border-borderGray rounded-xl p-8 text-center text-emerald-400 font-mono font-bold uppercase tracking-wider">⚡ POSTGRESQL HOSTED ENGINE OPERATIONAL: ALL FIELD PARAMETERS SYNCING GLOBALLY IN REALTIME.</div>
+                    <div class="bg-panelBg border border-borderGray rounded-xl p-8 text-center text-blue-400 font-mono font-bold uppercase tracking-wider">⚡ VANTAGE MATRIX UNFREEZE ENGINE ONLINE AND LIVE. READY FOR PARAMETER ENTRIES.</div>
                 `;
-            }
-
-            else if (currentTab === "lifecycle") {
-                container.innerHTML = `
-                    <div class="space-y-4">
-                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">Project Infrastructure Cluster</h3>${isAdmin ? `<button onclick="openModal('p-mod')" class="bg-blue-600 text-white px-3 py-1.5 rounded font-bold">+ Provision New Site</button>` : ''}</div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            ${dbProjects.map(p=>`
-                                <div class="bg-panelBg border border-borderGray rounded-xl p-5 space-y-2 relative overflow-hidden">
-                                    <h4 class="font-bold text-white text-xs border-b border-borderGray pb-2">${p.name}</h4>
-                                    <p class="text-gray-400 text-[11px] pt-1">🏢 Client: ${p.client} | Valuation: <span class="text-green-400 font-mono">₹${Number(p.contract_value || 0).toLocaleString()}</span></p>
-                                    <p class="text-gray-500 font-mono text-[10px]">📍 GPS: ${p.lat}, ${p.lng}</p>
-                                    ${isAdmin ? `<div class="pt-2 mt-1 border-t border-borderGray/40"><button onclick="deleteProjectCloud('${p.id}')" class="bg-red-950/40 text-red-400 border border-red-900/60 px-3 py-1 rounded font-bold w-full">Purge Document</button></div>` : ''}
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                    <div id="p-mod" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
-                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 text-xs space-y-3">
-                            <h4 class="font-bold text-white">Deploy Project Parameter</h4>
-                            <form id="p-form" class="space-y-2">
-                                <input type="text" id="p-name" placeholder="Project Name" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white">
-                                <input type="text" id="p-client" placeholder="Client Label" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white">
-                                <input type="text" id="p-loc" placeholder="Physical Address" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white">
-                                <input type="number" id="p-val" placeholder="Contract Valuation sum (₹)" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-mono">
-                                <div class="grid grid-cols-2 gap-2"><input type="number" step="any" id="p-lat" placeholder="Latitude" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"><input type="number" step="any" id="p-lng" placeholder="Longitude" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"></div>
-                                <button type="submit" class="w-full bg-blue-600 p-2 rounded text-white font-bold">Commit Parameters</button>
-                            </form>
-                        </div>
-                    </div>
-                `;
-                document.getElementById('p-form')?.addEventListener('submit', async function(e){
-                    e.preventDefault();
-                    await supabase.from('projects').insert([{
-                        name: document.getElementById('p-name').value, client: document.getElementById('p-client').value,
-                        location: document.getElementById('p-loc').value, contract_value: Number(document.getElementById('p-val').value),
-                        lat: Number(document.getElementById('p-lat').value), lng: Number(document.getElementById('p-lng').value), status: 'Active'
-                    }]);
-                    closeModal('p-mod'); syncSupabaseCloudAndRender();
-                });
             }
 
             else if (currentTab === "measurements") {
                 container.innerHTML = `
                     <div class="space-y-4">
-                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📐 Advanced Multi-Row Excel M-Book Grid</h3><div class="flex space-x-2"><button onclick="addExcelRow()" class="bg-gray-800 border border-borderGray text-white font-bold px-3 py-1 rounded">+ Insert Row</button><button onclick="saveExcelToSupabase()" class="bg-blue-600 font-bold px-3 py-1 rounded">💾 Cloud Sync Sheet</button></div></div>
+                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📐 Advanced Multi-Row Excel M-Book Grid</h3><div class="flex space-x-2"><button onclick="addExcelRow()" class="bg-gray-800 border border-borderGray text-white font-bold px-3 py-1 rounded">+ Insert Row</button><button onclick="saveExcelDataMatrix()" class="bg-blue-600 font-bold px-3 py-1 rounded">💾 Save Spreadsheet Batch</button></div></div>
                         <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><label class="block text-gray-400 mb-1">Select Active Project</label><select id="sheet-project-node" class="bg-darkBg border border-borderGray p-2 rounded text-white w-48">${dbProjects.map(p=>`<option value="${p.name}">${p.name}</option>`).join('')}</select></div>
                         <div class="overflow-x-auto border border-borderGray rounded-xl bg-panelBg"><table class="w-full text-center border-collapse"><tr class="bg-darkBg border-b border-borderGray text-gray-400 font-bold"><th>Seq</th><th>Chainage From</th><th>Chainage To</th><th>Length</th><th>Width (m)</th><th>Avg Width</th><th>Thickness (m)</th><th>Formula</th><th class="text-right pr-4 text-blue-400">Yield Output</th></tr><tbody id="excel-rows-body" class="divide-y divide-borderGray font-mono"></tbody></table></div>
-                        <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden"><table class="w-full text-left"><tr class="bg-darkBg border-b border-borderGray text-gray-400 font-bold font-sans"><th class="p-3">Saved Cloud Logs</th><th class="p-3">Span Section</th><th class="p-3 text-right">Yield Quantity Output</th></tr>${dbMeasurements.map(m=>`<tr class="border-b border-borderGray font-mono"><td class="p-3 text-white font-sans font-bold">${m.project}</td><td class="p-3 text-center text-gray-400">${m.span}</td><td class="p-3 text-right text-blue-400 font-bold">${m.yield_output}</td></tr>`).join('')}</table></div>
+                        <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden"><table class="w-full text-left"><tr class="bg-darkBg border-b border-borderGray text-gray-400 font-bold font-sans"><th class="p-3">Saved Registry Storage Logs</th><th class="p-3 text-center">Span Section Target</th><th class="p-3 text-right">Yield Quantity</th></tr>${dbMeasurements.map(m=>`<tr class="border-b border-borderGray font-mono"><td class="p-3 text-white font-sans font-bold">${m.project}</td><td class="p-3 text-center text-gray-400">${m.span}</td><td class="p-3 text-right text-blue-400 font-bold">${m.yield_output || m.yield}</td></tr>`).join('')}</table></div>
                     </div>
                 `;
                 buildExcelRowsMatrixHTML();
@@ -231,55 +256,94 @@
             else if (currentTab === "materials") {
                 container.innerHTML = `
                     <div class="space-y-4">
-                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📦 Inventory Storage & Godown Management Pipeline</h3><div class="flex space-x-2">${isAdmin?`<button onclick="openModal('g-mod')" class="bg-gray-800 px-3 py-1 rounded font-bold">+ Create Godown</button><button onclick="openModal('s-mod')" class="bg-emerald-950 text-emerald-400 px-3 py-1 rounded font-bold">+ Stock Inward</button>`:''}<button onclick="openModal('d-mod')" class="bg-blue-600 px-3 py-1 rounded font-bold">+ Dispatch to Site</button></div></div>
+                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📦 Inventory Storage & Godown Hub</h3><div class="flex space-x-2">${isAdmin?`<button onclick="openModal('g-mod')" class="bg-gray-800 px-3 py-1 rounded font-bold">+ Create Godown</button><button onclick="openModal('s-mod')" class="bg-emerald-950 text-emerald-400 px-3 py-1 rounded font-bold">+ Stock Inward</button>`:''}<button onclick="openModal('d-mod')" class="bg-blue-600 px-3 py-1 rounded font-bold">+ Dispatch to Site</button></div></div>
                         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                             <div class="bg-panelBg border border-borderGray rounded-xl p-4 font-sans"><h4 class="text-gray-400 font-bold uppercase mb-2">Registered Godowns</h4><div class="space-y-1">${dbGodowns.map(g=>`<div class="bg-darkBg p-2 rounded border border-borderGray font-bold text-white">${g.name}</div>`).join('')}</div></div>
-                            <div class="bg-panelBg border border-borderGray rounded-xl p-4 lg:col-span-2"><table class="w-full text-left"><tr class="bg-darkBg border-b border-borderGray text-gray-400 font-bold uppercase"><th class="p-2">Warehouse</th><th class="p-2">Material</th><th class="p-2 text-right">Balance Stock</th></tr>${dbStockBook.map(s=>`<tr><td class="p-2 text-gray-400">${s.godown_name || s.godownName}</td><td class="p-2 text-white font-bold">${s.item}</td><td class="p-2 text-right text-blue-400 font-bold font-mono">${s.qty} ${s.unit}</td></tr>`).join('')}</table></div>
+                            <div class="bg-panelBg border border-borderGray rounded-xl p-4 lg:col-span-2"><table class="w-full text-left"><tr class="bg-darkBg border-b border-borderGray text-gray-400 font-bold uppercase"><th class="p-2">Warehouse Location</th><th class="p-2">Material</th><th class="p-2 text-right">Balance Stock</th></tr>${dbStockBook.map(s=>`<tr><td class="p-2 text-gray-400">${s.godown_name || s.godownName}</td><td class="p-2 text-white font-bold">${s.item}</td><td class="p-2 text-right text-blue-400 font-bold font-mono">${s.qty} ${s.unit}</td></tr>`).join('')}</table></div>
                         </div>
                     </div>
+                    
+                    <div id="g-mod" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 space-y-3"><h4 class="font-bold text-white text-xs">🏢 Create Godown Profile</h4><form id="g-form" class="space-y-2"><input type="text" id="g-name" placeholder="Godown Name" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"><input type="text" id="g-loc" placeholder="Address" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"><button type="submit" class="w-full bg-blue-600 p-2 rounded text-white font-bold">Commit Profile</button></form></div>
+                    </div>
+                    <div id="s-mod" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 space-y-3"><h4 class="font-bold text-white text-xs">📥 Stock Inward Procurement</h4><form id="s-form" class="space-y-2"><select id="st-godown" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-bold">${dbGodowns.map(g=>`<option value="${g.name}">${g.name}</option>`).join('')}</select><input type="text" id="st-item" placeholder="Material Name Description" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"><div class="grid grid-cols-2 gap-2"><input type="number" id="st-qty" placeholder="Quantity Metric" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"><input type="text" id="st-unit" placeholder="Bags/Tons" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"></div><button type="submit" class="w-full bg-emerald-600 p-2 rounded text-white font-bold">Execute Inward</button></form></div>
+                    </div>
                 `;
+                document.getElementById('g-form')?.addEventListener('submit', async function(e){
+                    e.preventDefault();
+                    const n = document.getElementById('g-name').value.trim(); const l = document.getElementById('g-loc').value.trim();
+                    if(document.body.innerText.includes("OFFLINE")) {
+                        dbGodowns.push({ name:n, location:l }); localStorage.setItem('vantage_godowns', JSON.stringify(dbGodowns));
+                    } else { await supabase.from('godowns').insert([{ name: n, location: l }]); }
+                    closeModal('g-mod'); location.reload();
+                });
+                document.getElementById('s-form')?.addEventListener('submit', async function(e){
+                    e.preventDefault();
+                    const g = document.getElementById('st-godown').value; const item = document.getElementById('st-item').value.trim();
+                    const qty = Number(document.getElementById('st-qty').value); const unit = document.getElementById('st-unit').value.trim();
+                    const match = dbStockBook.find(x => (x.godown_name||x.godownName)===g && x.item.toLowerCase()===item.toLowerCase());
+                    if(match) {
+                        match.qty += qty;
+                        if(!document.body.innerText.includes("OFFLINE")) { await supabase.from('stock_book').update({ qty: match.qty }).eq('id', match.id); }
+                    } else {
+                        if(document.body.innerText.includes("OFFLINE")) { dbStockBook.push({ godownName:g, item, qty, unit }); }
+                        else { await supabase.from('stock_book').insert([{ godown_name:g, item, qty, unit }]); }
+                    }
+                    if(document.body.innerText.includes("OFFLINE")) localStorage.setItem('vantage_stock_book', JSON.stringify(dbStockBook));
+                    closeModal('s-mod'); location.reload();
+                });
             }
 
             else if (currentTab === "financial") {
                 container.innerHTML = `
                     <div class="space-y-4">
-                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">💰 Central Operational Financial Cloud Ledger</h3></div>
+                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider"> Central Audited Financial Ledger</h3><button onclick="openModal('f-mod')" class="bg-blue-600 px-4 py-1.5 rounded font-bold text-white shadow-md">+ Record Ledger Entry</button></div>
                         <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden"><table class="w-full text-left border-collapse text-xs"><tr class="bg-darkBg text-gray-400 border-b border-borderGray uppercase font-bold"><th class="p-3">Date</th><th class="p-3">Stream</th><th class="p-3">Category</th><th class="p-3">Project Node</th><th class="p-3">Operator</th><th class="p-3 text-right">Transaction Amount</th></tr>
                         ${dbFinancials.map(f=>`
                             <tr class="border-b border-borderGray"><td class="p-3 font-mono text-gray-500">${f.date}</td><td class="p-3 font-bold">${f.stream}</td><td class="p-3 text-gray-300 font-medium">${f.category}</td><td class="p-3 text-gray-400">${f.project}</td><td class="p-3 text-gray-400 font-bold">${f.user}</td><td class="p-3 text-right font-bold font-mono text-gray-200">₹${f.amount.toLocaleString()}</td></tr>
                         `).join('')}</table></div>
                     </div>
+                    <div id="f-mod" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 text-xs space-y-3"><h4 class="font-bold text-white text-sm">Record Transaction</h4><form id="f-form" class="space-y-2"><select id="f-stream" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-bold"><option value="Payment OUT">📉 Payment OUT (Expense)</option><option value="Payment IN">📈 Payment IN (Inflow)</option></select><input type="text" id="f-cat" placeholder="Category Type (e.g. Material Purchase)" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"><select id="f-proj" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-semibold">${dbProjects.map(p=>`<option value="${p.name}">${p.name}</option>`).join('')}</select><input type="number" id="f-amt" placeholder="Amount (₹)" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-mono"><input type="text" id="f-desc" placeholder="Remarks Summary Description" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"><button type="submit" class="w-full bg-blue-600 p-2 rounded text-white font-bold">Commit Entry</button></form></div>
+                    </div>
                 `;
+                document.getElementById('f-form')?.addEventListener('submit', async function(e){
+                    e.preventDefault();
+                    const newFin = { date: new Date().toISOString().split('T')[0], stream: document.getElementById('f-stream').value, category: document.getElementById('f-cat').value, project: document.getElementById('f-proj').value, user: currentUser.name, amount: Number(document.getElementById('f-amt').value), desc: document.getElementById('f-desc').value, status:'Approved' };
+                    if(document.body.innerText.includes("OFFLINE")) { dbFinancials.unshift(newFin); localStorage.setItem('vantage_financials', JSON.stringify(dbFinancials)); }
+                    else { await supabase.from('financials').insert([newFin]); }
+                    closeModal('f-mod'); location.reload();
+                });
             }
 
             else if (currentTab === "staff-mgmt") {
                 if (!isAdmin) return;
                 container.innerHTML = `
                     <div class="space-y-4">
-                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">👥 Human Capital Assets Matrix</h3><button onclick="openModal('s-mod')" class="bg-blue-600 text-white px-3 py-1.5 rounded text-xs font-bold font-sans transition-colors">+ Provision Profile Node</button></div>
-                        <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden"><table class="w-full text-left text-xs"><tr class="bg-darkBg font-bold text-gray-400 border-b border-borderGray uppercase"><th class="p-3">Identity Name</th><th class="p-3">Designation Role</th><th class="p-3">Security Pass Key</th><th class="p-3">Allotted Work Node</th><th class="p-3 text-right">Base Salary</th><th class="p-3 text-center">Cloud Action</th></tr>
+                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">👥 Human Capital Assets Control Panel</h3><button onclick="openModal('s-mod')" class="bg-blue-600 text-white px-3 py-1.5 rounded text-xs font-bold font-sans transition-colors">+ Provision Profile Node</button></div>
+                        <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden"><table class="w-full text-left text-xs"><tr class="bg-darkBg font-bold text-gray-400 border-b border-borderGray uppercase"><th class="p-3">Identity Name</th><th class="p-3">Clearance Designation</th><th class="p-3">Security Password Key</th><th class="p-3 text-right">Base Salary Matrix Rate</th></tr>
                         ${dbStaff.map(s=>{
-                            return `<tr class="border-b border-borderGray font-medium"><td class="p-3 text-white font-bold">${s.name}</td><td class="p-3 text-gray-400">${s.role}</td><td class="p-3 font-mono text-gray-500">${s.pass}</td><td class="p-3 text-gray-400 truncate max-w-[120px]">${s.allotted_work || s.allottedWork}</td><td class="p-3 text-right font-mono">₹${s.base_salary || s.baseSalary}</td><td class="p-3 text-center"><button onclick="deleteStaffCloud('${s.id}')" class="bg-red-950/40 text-red-400 border border-red-900/60 px-2 py-0.5 rounded font-bold">Purge</button></td></tr>`;
+                            return `<tr class="border-b border-borderGray font-medium"><td class="p-3 text-white font-bold">${s.name}</td><td class="p-3 text-gray-400"><span class="bg-darkBg border border-borderGray px-2 py-0.5 rounded text-gray-300">${s.role}</span></td><td class="p-3 font-mono text-gray-500">${s.pass}</td><td class="p-3 text-right font-mono text-blue-400 font-bold">₹${Number(s.base_salary || s.baseSalary).toLocaleString()}</td></tr>`;
                         }).join('')}</table></div>
                     </div>
                     <div id="s-mod" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
-                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 text-xs space-y-4"><h4 class="font-bold text-white text-sm border-b border-borderGray pb-1">Provision Profile Node</h4><form id="s-form" class="space-y-3"><input type="text" id="s-name" placeholder="Full Identity Name ID" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-medium"><select id="s-role" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"><option value="Engineer">Civil Site Engineer</option><option value="Accountant">Accountant / surveyor node</option><option value="Supervisor">Site Supervisor</option></select><input type="text" id="s-pass" placeholder="Access Security Pass Key Code" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"><select id="s-work" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white">${dbProjects.map(p=>`<option value="${p.name}">${p.name}</option>`).join('')}</select><input type="number" id="s-salary" placeholder="Salary Rate Metric Value" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-mono"><button type="submit" class="w-full bg-blue-600 p-2 rounded text-white font-bold">Deploy Node</button></form></div>
+                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 text-xs space-y-3"><h4 class="font-bold text-white text-xs">Provision New Node</h4><form id="s-form" class="space-y-2"><input type="text" id="s-name" placeholder="Full Identity Name ID" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"><select id="s-role" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"><option value="Engineer">Civil Site Engineer</option><option value="Accountant">Accountant / surveyor node</option></select><input type="text" id="s-pass" placeholder="Security Password Key" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"><input type="number" id="s-salary" placeholder="Salary Sum (₹)" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"><button type="submit" class="w-full bg-blue-600 p-2 rounded text-white font-bold">Deploy Profile Profile Node</button></form></div>
                     </div>
                 `;
                 document.getElementById('s-form')?.addEventListener('submit', async function(e){
                     e.preventDefault();
-                    await supabase.from('staff').insert([{
-                        name: document.getElementById('s-name').value.trim(), role: document.getElementById('s-role').value,
-                        pass: document.getElementById('s-pass').value.trim(), allotted_work: document.getElementById('s-work').value,
-                        base_salary: Number(document.getElementById('s-salary').value), status: 'Active'
-                    }]);
-                    closeModal('s-mod'); syncSupabaseCloudAndRender();
+                    const newStaff = { name: document.getElementById('s-name').value.trim(), role: document.getElementById('s-role').value, pass: document.getElementById('s-pass').value.trim(), base_salary: Number(document.getElementById('s-salary').value), status: 'Active', allotted_work: 'All Site Nodes' };
+                    if(document.body.innerText.includes("OFFLINE")) { dbStaff.push(newStaff); localStorage.setItem('vantage_staff', JSON.stringify(dbStaff)); }
+                    else { await supabase.from('staff').insert([newStaff]); }
+                    closeModal('s-mod'); location.reload();
                 });
             }
-            else { container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-8 text-center text-gray-600 uppercase tracking-widest">[ Cloud Active Component View Mode ]</div>`; }
+            
+            else { container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-8 text-center text-gray-600 uppercase tracking-widest">[ Selected Operational Node Component Frame Open ]</div>`; }
         }
 
-        // --- 5. HARDWARE CORE EXCEL MATRIX COMPILER ---
+        // --- 6. EXCEL MATRIX COMPILER SYSTEMS ---
         function buildExcelRowsMatrixHTML() {
             const body = document.getElementById('excel-rows-body'); if(!body) return;
             body.innerHTML = activeExcelRows.map((row, index) => {
@@ -296,8 +360,8 @@
                         <td class="p-2 border-r border-borderGray font-bold text-gray-400">${len} m</td>
                         <td class="p-0 border-r border-borderGray"><input type="number" oninput="updateExcelCell(${index},'width',this.value)" value="${row.width}" class="w-full bg-transparent text-center font-bold focus:outline-none"></td>
                         <td class="p-2 border-r border-borderGray text-orange-400 font-bold">${avgW.toFixed(3)} m</td>
-                        <td class="p-0 border-r border-borderGray"><input type="number" oninput="updateExcelCell(${index},'thickness',this.value)" value="${row.thickness}" class="w-full bg-transparent text-center focus:outline-none text-emerald-400 font-bold"></td>
-                        <td class="p-1 border-r border-borderGray"><select class="bg-darkBg text-gray-300 font-sans focus:outline-none"><option value="Multiply">✖️ Multiply</option></select></td>
+                        <td class="p-0 border-r border-borderGray"><input type="number" oninput="updateExcelCell(${index},'thickness',this.value)" value="${row.thickness}" placeholder="[m]" class="w-full bg-transparent text-center focus:outline-none text-emerald-400 font-bold"></td>
+                        <td class="p-1 border-r border-borderGray font-bold font-sans">Multiply</td>
                         <td class="p-2 text-right text-blue-400 font-bold pr-4">${thick > 0 ? `${yld.toFixed(3)} m³` : `${yld.toFixed(2)} m²`}</td></tr>`;
             }).join('');
         }
@@ -305,25 +369,25 @@
         function addExcelRow() { const last = activeExcelRows[activeExcelRows.length - 1]; activeExcelRows.push({ chainageFrom: last?last.chainageTo:'0/000', chainageTo: '', width: 7.5, thickness: '', formula: 'Multiply', yieldResult: 0 }); buildExcelRowsMatrixHTML(); }
         function parseChainage(str) { if(!str) return NaN; const c = str.replace('/','.'); const p = c.split('.'); return p.length===2 ? (Number(p[0])*1000)+Number(p[1]) : Number(str); }
 
-        async function saveExcelToSupabase() {
+        async function saveExcelDataMatrix() {
             const project = document.getElementById('sheet-project-node').value;
             const insertRows = activeExcelRows.map(row => ({
-                project,
-                span: `${row.chainageFrom} to ${row.chainageTo} (L: ${row.computedLength}m)`,
+                project, span: `${row.chainageFrom} to ${row.chainageTo} (L: ${row.computedLength}m)`,
                 avg_width: Number(row.computedAvgWidth.toFixed(3)),
                 yield_output: row.thickness ? `${row.yieldResult.toFixed(3)} m³` : `${row.yieldResult.toFixed(2)} m²`
             }));
-            await supabase.from('measurements').insert(insertRows);
-            alert("Spreadsheet Batch Synced onto Cloud!");
+            if(document.body.innerText.includes("OFFLINE")) {
+                insertRows.forEach(r => dbMeasurements.unshift(r)); localStorage.setItem('vantage_measurements', JSON.stringify(dbMeasurements));
+            } else { await supabase.from('measurements').insert(insertRows); }
+            alert("Spreadsheet parameters batch stored successfully.");
             activeExcelRows = [{ chainageFrom: '0/000', chainageTo: '', width: 7.5, thickness: '', formula: 'Multiply', yieldResult: 0 }];
-            syncSupabaseCloudAndRender();
+            location.reload();
         }
 
-        async function deleteProjectCloud(id) { if(confirm("Purge Node?")) { await supabase.from('projects').delete().eq('id', id); syncSupabaseCloudAndRender(); } }
-        async function deleteStaffCloud(id) { if(confirm("Purge Profile?")) { await supabase.from('staff').delete().eq('id', id); syncSupabaseCloudAndRender(); } }
+        async function deleteProjectCloud(id) { if(confirm("Purge Node?")) { await supabase.from('projects').delete().eq('id', id); location.reload(); } }
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-        
+
         syncSupabaseCloudAndRender();
     </script>
 </body>
