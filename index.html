@@ -27,9 +27,12 @@
             { id: "p2", name: "Residential Complex Construction", client: "Geeta Sharma Ji", location: "Sarada, Salumber", lat: 24.1234, lng: 73.5678, contractValue: 7500000, status: "Active" }
         ];
 
-        // Seed Core Matrix Registries
+        // Core Matrix Registries - STRICTLY EMPTY FOR INITIAL SETUP
         if (!localStorage.getItem('vantage_projects')) localStorage.setItem('vantage_projects', JSON.stringify(INITIAL_PROJECTS));
+        
+        // STRICT LOCK: Is line se purana saara dummy staff database permanent band ho jayega
         if (!localStorage.getItem('vantage_staff')) localStorage.setItem('vantage_staff', JSON.stringify([])); 
+        
         if (!localStorage.getItem('vantage_attendance')) localStorage.setItem('vantage_attendance', JSON.stringify([]));
         if (!localStorage.getItem('vantage_measurements')) localStorage.setItem('vantage_measurements', JSON.stringify([]));
         if (!localStorage.getItem('vantage_financials')) localStorage.setItem('vantage_financials', JSON.stringify([]));
@@ -53,9 +56,11 @@
         function renderERP() {
             const root = document.getElementById('app-root');
             const staffList = JSON.parse(localStorage.getItem('vantage_staff')) || [];
+            
+            // System check karega ki database me koi 'Master Admin' hai ya nahi
             const hasAdmin = staffList.some(u => u.role === 'Master Admin');
 
-            // Phase A: Initial Admin Setup System
+            // Phase A: Initial Admin Setup System (Agar database khali hai toh hi dikhega)
             if (!hasAdmin) {
                 root.innerHTML = `
                     <div class="min-h-screen flex items-center justify-center bg-darkBg px-4">
@@ -80,9 +85,13 @@
                     const pass = document.getElementById('setup-pass').value.trim();
                     if(pass !== document.getElementById('setup-confirm').value.trim()) { alert("Error: Security Keys do not match."); return; }
                     
-                    staffList.push({ id: 's_master', name, role: 'Master Admin', pass, baseSalary: 150000, status: 'Active', allottedWork: 'All Site Nodes' });
-                    localStorage.setItem('vantage_staff', JSON.stringify(staffList));
-                    alert("Success: Credentials stored safely."); renderERP();
+                    // Create primary admin entry in clean database
+                    const freshStaffList = [];
+                    freshStaffList.push({ id: 's_master', name, role: 'Master Admin', pass, baseSalary: 120000, status: 'Active', allottedWork: 'All Site Nodes' });
+                    localStorage.setItem('vantage_staff', JSON.stringify(freshStaffList));
+                    
+                    alert("Success: Master Admin configured safely. Please log in using your new credentials."); 
+                    renderERP();
                 });
                 return;
             }
@@ -103,7 +112,8 @@
                 `;
                 document.getElementById('login-form').addEventListener('submit', function(e) {
                     e.preventDefault();
-                    const user = JSON.parse(localStorage.getItem('vantage_staff')).find(u => u.name.toLowerCase() === document.getElementById('login-name').value.trim().toLowerCase() && u.pass === document.getElementById('login-pass').value.trim());
+                    const uList = JSON.parse(localStorage.getItem('vantage_staff')) || [];
+                    const user = uList.find(u => u.name.toLowerCase() === document.getElementById('login-name').value.trim().toLowerCase() && u.pass === document.getElementById('login-pass').value.trim());
                     if (user) { 
                         if(user.status === 'Blocked' || user.status === 'Terminated') { alert("Access Denied."); return; }
                         currentUser = user; localStorage.setItem('vantage_current_user', JSON.stringify(user)); currentTab = "dashboard"; renderERP(); 
@@ -157,7 +167,7 @@
 
                     <!-- WORKSPACE WINDOW ROUTER -->
                     <main class="flex-1 overflow-y-auto p-6 bg-darkBg">
-                        ${notifications[currentUser.name] ? `<div class="bg-blue-600 text-white p-3 rounded-xl font-bold mb-4 flex justify-between items-center"><span>⚡ NOTIFICATION: ${notifications[currentUser.name]}</span><button onclick="clearNotification('${currentUser.name}')" class="bg-black/20 px-2 py-0.5 rounded text-[10px]">OK</button></div>` : ''}
+                        ${notifications[currentUser.name] ? `<div class="bg-blue-600 text-white p-3 rounded-xl font-bold mb-4 flex justify-between items-center font-sans"><span>⚡ NOTIFICATION: ${notifications[currentUser.name]}</span><button onclick="clearNotification('${currentUser.name}')" class="bg-black/20 px-2 py-0.5 rounded text-[10px]">OK</button></div>` : ''}
                         <div id="tab-content-window"></div>
                     </main>
                 </div>
@@ -177,6 +187,8 @@
             const dbAttendance = JSON.parse(localStorage.getItem('vantage_attendance'));
             const dbMeasurements = JSON.parse(localStorage.getItem('vantage_measurements'));
             const dbFinancials = JSON.parse(localStorage.getItem('vantage_financials'));
+            const dbMaterials = JSON.parse(localStorage.getItem('vantage_materials'));
+            const dbOdometer = JSON.parse(localStorage.getItem('vantage_odometer'));
             const dbDeductions = JSON.parse(localStorage.getItem('vantage_deductions')) || {};
 
             const isAdmin = (currentUser.role === 'Master Admin' || currentUser.role === 'Accountant');
@@ -188,7 +200,10 @@
             else if (currentTab === "lifecycle") {
                 container.innerHTML = `
                     <div class="space-y-4">
-                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">Project Lifecycle Execution Nodes</h3>${isAdmin ? `<button onclick="openProjectModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded font-bold transition-colors">+ Provision New Site</button>` : ''}</div>
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Project Lifecycle Execution Nodes</h3>
+                            ${isAdmin ? `<button onclick="openProjectModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded font-bold transition-colors">+ Provision New Site</button>` : ''}
+                        </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             ${dbProjects.map(p=>`
                                 <div class="bg-panelBg border border-borderGray rounded-xl p-5 space-y-2 relative overflow-hidden">
@@ -210,7 +225,6 @@
                         </div>
                     </div>
 
-                    <!-- CREATE/EDIT PROJECT REGISTRY MODAL -->
                     <div id="p-mod" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
                         <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 text-xs space-y-4">
                             <h4 id="modal-project-title" class="text-sm font-bold text-white">Provision New Construction Node</h4>
@@ -253,7 +267,7 @@
                 container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-5 text-center text-gray-500">[ Biometric Shift Lock Active ]</div>`;
             }
 
-            // --- 👥 STRICTLY ELEVATED STAFF CONTROL AND PAYROLL WORKSPACE ---
+            // --- 👥 STAFF MANAGEMENT MATRIX ---
             else if (currentTab === "staff-mgmt") {
                 if (!isAdmin) return;
                 container.innerHTML = `
@@ -275,8 +289,6 @@
                                         <td class="p-3 text-right font-mono">₹${Number(s.baseSalary).toLocaleString()}</td>
                                         <td class="p-3 text-right text-red-400 font-bold">-₹${penalty.toLocaleString()}</td>
                                         <td class="p-3 text-right text-blue-400 font-extrabold font-mono text-sm">₹${(s.baseSalary - penalty).toLocaleString()}</td>
-                                        
-                                        <!-- CRITICAL MODIFY & PURGE RECOGNITION ACTIONS FOR ELEVATED CONTROLS -->
                                         <td class="p-3 text-center">
                                             <div class="flex items-center justify-center space-x-2">
                                                 <button onclick="editStaffAction('${s.id}')" class="bg-gray-800 hover:bg-gray-700 text-gray-200 px-2 py-1 rounded font-bold transition-colors">Modify</button>
@@ -290,7 +302,6 @@
                         </div>
                     </div>
 
-                    <!-- STAFF DYNAMIC FORM MODAL PIPELINE -->
                     <div id="s-mod" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
                         <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 text-xs space-y-4">
                             <h4 id="modal-staff-title" class="text-sm font-bold text-white border-b border-borderGray pb-2">Provision New Staff Profile Node</h4>
@@ -365,36 +376,26 @@
         }
 
         function deleteProjectAction(id) {
-            if (confirm("🚨 PURGE PROJECT FOREVER? This clears it from database storage.")) {
+            if (confirm("🚨 PURGE PROJECT FOREVER?")) {
                 let p = JSON.parse(localStorage.getItem('vantage_projects')).filter(x => x.id !== id);
                 localStorage.setItem('vantage_projects', JSON.stringify(p)); renderERP();
             }
         }
 
-        // --- DYNAMIC CORE ACTIONS FOR STAFF MANAGEMENT ENTRY (MODIFY / DELETE) ---
         function editStaffAction(id) {
             const s = JSON.parse(localStorage.getItem('vantage_staff')).find(x => x.id === id);
             if (s) {
-                document.getElementById('s-edit-id').value = s.id;
-                document.getElementById('s-name').value = s.name;
-                document.getElementById('s-role').value = s.role;
-                document.getElementById('s-pass').value = s.pass;
-                document.getElementById('s-work').value = s.allottedWork || 'All Site Nodes';
-                document.getElementById('s-salary').value = s.baseSalary;
-                
-                document.getElementById('modal-staff-title').innerText = "Modify Staff Profile Clearance Node";
-                openModal('s-mod');
+                document.getElementById('s-edit-id').value = s.id; document.getElementById('s-name').value = s.name; document.getElementById('s-role').value = s.role; document.getElementById('s-pass').value = s.pass; document.getElementById('s-work').value = s.allottedWork || 'All Site Nodes'; document.getElementById('s-salary').value = s.baseSalary;
+                document.getElementById('modal-staff-title').innerText = "Modify Staff Profile Clearance Node"; openModal('s-mod');
             }
         }
 
         function deleteStaffAction(id) {
             const s = JSON.parse(localStorage.getItem('vantage_staff')).find(x => x.id === id);
             if (s && s.role === 'Master Admin') { alert("Security Block: Master Admin configuration node cannot be deleted!"); return; }
-            
-            if (confirm("🚨 PURGE STAFF PROFILE FOREVER? This will instantly revoke access keys and delete their billing records.")) {
+            if (confirm("🚨 PURGE STAFF PROFILE FOREVER?")) {
                 let staffList = JSON.parse(localStorage.getItem('vantage_staff')).filter(x => x.id !== id);
-                localStorage.setItem('vantage_staff', JSON.stringify(staffList));
-                renderERP();
+                localStorage.setItem('vantage_staff', JSON.stringify(staffList)); renderERP();
             }
         }
 
