@@ -21,8 +21,8 @@
     <div id="app-root"></div>
 
     <script>
-        // --- 1. RUNTIME STATE SYNC CORE ---
-        const currentMatrixVersion = "vantage_v9_excel_mbook";
+        // --- 1. HARDWARE STORAGE INTERFACE MATRIX ---
+        const currentMatrixVersion = "vantage_v10_godown_inventory";
         if (localStorage.getItem('vantage_matrix_version') !== currentMatrixVersion) {
             localStorage.clear();
             localStorage.setItem('vantage_matrix_version', currentMatrixVersion);
@@ -33,24 +33,29 @@
             { id: "p2", name: "Residential Complex Construction", client: "Geeta Sharma Ji", location: "Sarada, Salumber", lat: 24.1234, lng: 73.5678, contractValue: 7500000, status: "Active" }
         ];
 
+        // Core Seeding Registries
         if (!localStorage.getItem('vantage_projects')) localStorage.setItem('vantage_projects', JSON.stringify(INITIAL_PROJECTS));
         if (!localStorage.getItem('vantage_staff')) localStorage.setItem('vantage_staff', JSON.stringify([])); 
         if (!localStorage.getItem('vantage_attendance')) localStorage.setItem('vantage_attendance', JSON.stringify([]));
         if (!localStorage.getItem('vantage_measurements')) localStorage.setItem('vantage_measurements', JSON.stringify([]));
         if (!localStorage.getItem('vantage_financials')) localStorage.setItem('vantage_financials', JSON.stringify([]));
-        if (!localStorage.getItem('vantage_materials')) localStorage.setItem('vantage_materials', JSON.stringify([]));
         if (!localStorage.getItem('vantage_odometer')) localStorage.setItem('vantage_odometer', JSON.stringify([]));
         if (!localStorage.getItem('vantage_site_photos')) localStorage.setItem('vantage_site_photos', JSON.stringify([]));
         if (!localStorage.getItem('vantage_notifications')) localStorage.setItem('vantage_notifications', JSON.stringify({}));
         if (!localStorage.getItem('vantage_deductions')) localStorage.setItem('vantage_deductions', JSON.stringify({}));
 
-        let currentTab = "measurements"; // Direct navigation override to M-Book tab for testing
-        let currentUser = JSON.parse(localStorage.getItem('vantage_current_user')) || null;
+        // --- NEW REALTIME INVENTORY DATA FIELDS ---
+        if (!localStorage.getItem('vantage_godowns')) localStorage.setItem('vantage_godowns', JSON.stringify([
+            { id: "g1", name: "Udaipur Central Godown", location: "Gordhan Vilas, Udaipur" }
+        ]));
+        if (!localStorage.getItem('vantage_stock_book')) localStorage.setItem('vantage_stock_book', JSON.stringify([
+            { godownName: "Udaipur Central Godown", item: "53 Grade Cement", qty: 500, unit: "Bags" },
+            { godownName: "Udaipur Central Godown", item: "TMT Steel Bars 12mm", qty: 15, unit: "Tons" }
+        ]));
+        if (!localStorage.getItem('vantage_dispatches')) localStorage.setItem('vantage_dispatches', JSON.stringify([]));
 
-        // Active volatile matrix for multi-row data entry
-        let activeExcelRows = [
-            { chainageFrom: '0/000', chainageTo: '0/025', width: 7.5, thickness: '', formula: 'Multiply', result: 187.5 }
-        ];
+        let currentTab = "materials"; // Auto override lock onto material logs tab for configuration ease
+        let currentUser = JSON.parse(localStorage.getItem('vantage_current_user')) || null;
 
         function renderERP() {
             const root = document.getElementById('app-root');
@@ -79,7 +84,7 @@
                     const name = document.getElementById('setup-name').value.trim(); const pass = document.getElementById('setup-pass').value.trim();
                     if(pass !== document.getElementById('setup-confirm').value.trim()) { alert("Error: Keys mismatch."); return; }
                     localStorage.setItem('vantage_staff', JSON.stringify([{ id: 's_master', name, role: 'Master Admin', pass, baseSalary: 120000, status: 'Active', allottedWork: 'All Site Nodes' }]));
-                    alert("Success: Credentials stored safely."); renderERP();
+                    alert("Success: Master profile generated."); renderERP();
                 });
                 return;
             }
@@ -110,14 +115,16 @@
 
             root.innerHTML = `
                 <div class="min-h-screen flex bg-darkBg text-xs">
+                    <!-- SIDEBAR -->
                     <aside class="w-64 bg-panelBg border-r border-borderGray flex flex-col justify-between shrink-0">
                         <div>
                             <div class="p-4 border-b border-borderGray"><h1 class="font-bold text-white tracking-wider truncate">CPS CONSULTANTS</h1><p class="text-[10px] text-blue-400 font-bold uppercase">Vantage Core Grid</p></div>
                             <nav class="p-3 space-y-0.5">
                                 <button onclick="switchTab('dashboard')" class="w-full text-left px-3 py-2 rounded ${currentTab === 'dashboard' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">📊 Dashboard Matrix</button>
-                                <button onclick="switchTab('measurements')" class="w-full text-left px-3 py-2 rounded ${currentTab === 'measurements' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">📐 Excel Measurement Sheets</button>
-                                <button onclick="switchTab('lifecycle')" class="w-full text-left px-3 py-2 rounded ${currentTab === 'lifecycle' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">🏗️ Project Lifecycle</button>
-                                ${isAdmin ? `<button onclick="switchTab('staff-mgmt')" class="w-full text-left px-3 py-2 rounded ${currentTab === 'staff-mgmt' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">👥 Staff & Payroll Matrix</button>` : ''}
+                                <button onclick="switchTab('materials')" class="w-full text-left px-3 py-2 rounded ${currentTab === 'materials' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">📦 Godown & Materials Hub</button>
+                                <button onclick="switchTab('measurements')" class="w-full text-left px-3 py-2 rounded ${currentTab === 'measurements' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">📐 Measurement Sheets</button>
+                                <button onclick="switchTab('lifecycle')" class="w-full text-left px-3 py-2 rounded ${currentTab === 'lifecycle' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">🏗️ Project Nodes</button>
+                                ${isAdmin ? `<button onclick="switchTab('staff-mgmt')" class="w-full text-left px-3 py-2 rounded ${currentTab === 'staff-mgmt' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">👥 Staff Control Matrix</button>` : ''}
                             </nav>
                         </div>
                         <div class="p-4 border-t border-borderGray bg-darkBg/40">
@@ -137,191 +144,194 @@
         function switchTab(t) { currentTab = t; renderERP(); }
         function logoutSession() { currentUser = null; localStorage.removeItem('vantage_current_user'); renderERP(); }
 
-        // --- 5. EXCEL SPREADSHEET ENGINE MODULE ---
+        // --- 4. EXPANDED MATERIAL LOGISTICS & WAREHOUSING INTERFACE PANEL ---
         function renderTabContent() {
             const container = document.getElementById('tab-content-window');
             const dbProjects = JSON.parse(localStorage.getItem('vantage_projects')) || [];
-            const dbMeasurements = JSON.parse(localStorage.getItem('vantage_measurements')) || [];
+            const dbGodowns = JSON.parse(localStorage.getItem('vantage_godowns')) || [];
+            const dbStockBook = JSON.parse(localStorage.getItem('vantage_stock_book')) || [];
+            const dbDispatches = JSON.parse(localStorage.getItem('vantage_dispatches')) || [];
 
-            if (currentTab === "measurements") {
+            const isAdmin = (currentUser.role === 'Master Admin' || currentUser.role === 'Accountant');
+
+            if (currentTab === "dashboard") {
+                container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-8 text-center text-gray-400 font-bold">Vantage Node Operations Active. Navigate via Sidebar items.</div>`;
+            }
+
+            else if (currentTab === "materials") {
                 container.innerHTML = `
                     <div class="space-y-6">
-                        <div class="bg-panelBg border border-borderGray rounded-xl p-5 shadow-xl space-y-4">
-                            <div class="flex justify-between items-center border-b border-borderGray pb-3">
-                                <div>
-                                    <h3 class="text-base font-bold text-white uppercase tracking-wider">📐 Advanced Multi-Row Excel M-Book Grid</h3>
-                                    <p class="text-gray-400 text-[11px] mt-0.5">Calculates Chainage Length, Cumulative Average Width, and Volume ($m^3$) or Area ($m^2$) Automatically</p>
-                                </div>
-                                <div class="flex space-x-2">
-                                    <button onclick="addExcelRow()" class="bg-gray-800 border border-borderGray hover:bg-gray-700 text-white font-bold px-3 py-1.5 rounded">+ Insert Row Line</button>
-                                    <button onclick="saveExcelToDatabase()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-1.5 rounded shadow-lg">💾 Save Sheet Batch</button>
-                                </div>
+                        <!-- CONTROL TRIGGER ROW -->
+                        <div class="flex justify-between items-center bg-panelBg border border-borderGray p-4 rounded-xl shadow-lg">
+                            <div>
+                                <h3 class="text-sm font-bold text-white uppercase tracking-wider">📦 Godown Logistics & Material Ledger Matrix</h3>
+                                <p class="text-gray-400 text-[11px] mt-0.5">Control storage profiles, accept bulk freight items, and dispatch stocks onto physical project sites.</p>
                             </div>
-
-                            <div class="max-w-xs">
-                                <label class="block text-gray-400 font-bold mb-1">Target Infrastructure Node Project</label>
-                                <select id="sheet-project-node" class="w-full bg-darkBg border border-borderGray rounded p-2 text-white font-semibold focus:border-blue-500 focus:outline-none">
-                                    ${dbProjects.map(p => `<option value="${p.name}">${p.name}</option>`).join('')}
-                                </select>
-                            </div>
-
-                            <div class="overflow-x-auto border border-borderGray rounded-xl bg-darkBg">
-                                <table class="w-full text-left text-xs border-collapse">
-                                    <thead>
-                                        <tr class="bg-panelBg/80 border-b border-borderGray text-gray-400 font-bold text-center uppercase tracking-wider">
-                                            <th class="p-3 border-r border-borderGray w-12">Seq</th>
-                                            <th class="p-3 border-r border-borderGray">Chainage From</th>
-                                            <th class="p-3 border-r border-borderGray">Chainage To</th>
-                                            <th class="p-3 border-r border-borderGray w-24">Length (m)</th>
-                                            <th class="p-3 border-r border-borderGray w-24">Width (m)</th>
-                                            <th class="p-3 border-r border-borderGray w-32">Avg Width (m)</th>
-                                            <th class="p-3 border-r border-borderGray w-24">Thickness (m)</th>
-                                            <th class="p-3 border-r border-borderGray w-36">Calculation Formula</th>
-                                            <th class="p-3 w-36 text-right text-blue-400">Total Yield Output</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="excel-rows-body" class="divide-y divide-borderGray font-mono">
-                                        </tbody>
-                                </table>
+                            <div class="flex space-x-2">
+                                ${isAdmin ? `<button onclick="openModal('godown-modal')" class="bg-gray-800 border border-borderGray hover:bg-gray-700 text-white font-bold px-3 py-1.5 rounded">🏢 + Create New Godown</button>` : ''}
+                                ${isAdmin ? `<button onclick="openModal('stock-modal')" class="bg-emerald-950 border border-emerald-900 text-emerald-400 hover:bg-emerald-900/60 font-bold px-3 py-1.5 rounded">📥 + Stock Material Inward</button>` : ''}
+                                <button onclick="openModal('dispatch-modal')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-1.5 rounded shadow-md">🚛 + Dispatch Stock onto Site</button>
                             </div>
                         </div>
 
+                        <!-- REPOSITORIES SUMMARY GRID GRID -->
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- Left: Live Warehouses Profiles -->
+                            <div class="bg-panelBg border border-borderGray rounded-xl p-4 h-fit">
+                                <h4 class="font-bold text-white mb-3 uppercase text-[10px] tracking-widest text-gray-400">🏢 Registered Godowns Profile Logs</h4>
+                                <div class="space-y-2 max-h-64 overflow-y-auto">
+                                    ${dbGodowns.map(g => `
+                                        <div class="bg-darkBg p-3 border border-borderGray rounded-lg">
+                                            <p class="text-white font-bold">${g.name}</p>
+                                            <p class="text-gray-400 text-[10px] mt-0.5">📍 Location: ${g.location}</p>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <!-- Right: Global Consolidated Inventory Balances -->
+                            <div class="bg-panelBg border border-borderGray rounded-xl p-4 lg:col-span-2">
+                                <h4 class="font-bold text-white mb-3 uppercase text-[10px] tracking-widest text-gray-400">📋 Godown Live Inventory Stock Book</h4>
+                                <div class="overflow-hidden border border-borderGray rounded-xl">
+                                    <table class="w-full text-left border-collapse">
+                                        <tr class="bg-darkBg text-gray-400 font-bold border-b border-borderGray uppercase"><th class="p-2.5">Storage Location</th><th class="p-2.5">Material Commodity</th><th class="p-2.5 text-right">Available Stock Balance</th></tr>
+                                        ${dbStockBook.length === 0 ? `<tr><td colspan="3" class="p-4 text-center text-gray-500 font-mono">No inventory balances loaded in system cluster core.</td></tr>` : ''}
+                                        ${dbStockBook.map(s => `
+                                            <tr class="border-b border-borderGray hover:bg-darkBg/40"><td class="p-2.5 text-gray-300 font-medium">${s.godownName}</td><td class="p-2.5 text-white font-bold">${s.item}</td><td class="p-2.5 text-right font-mono font-extrabold text-blue-400">${s.qty} ${s.unit}</td></tr>
+                                        `).join('')}
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- DISPATCH TRACKING REGISTRY LOGS -->
                         <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden shadow-xl">
-                            <div class="p-3 bg-darkBg/60 font-bold text-gray-400 uppercase tracking-wider border-b border-borderGray">Saved Measurement Batch Registry Logs</div>
-                            <table class="w-full text-left text-xs"><tr class="bg-darkBg text-gray-400 font-bold border-b border-borderGray uppercase"><th class="p-3">Timestamp</th><th class="p-3">Project Site Node</th><th class="p-3 text-center">Chainage Span</th><th class="p-3 text-center">Avg Width Matrix</th><th class="p-3 text-center">Calculated Profile Type</th><th class="p-3 text-right text-blue-400">Yield Output Quantity</th></tr>
-                            ${dbMeasurements.length === 0 ? `<tr><td colspan="6" class="p-6 text-center text-gray-500 font-bold">No saved logs detected in local system cluster memory.</td></tr>` : ''}
-                            ${dbMeasurements.map(m=>`<tr class="border-b border-borderGray"><td class="p-3 text-gray-500 font-mono">${m.timestamp}</td><td class="p-3 font-semibold text-white font-sans">${m.project}</td><td class="p-3 text-center font-mono">${m.span}</td><td class="p-3 text-center font-mono text-gray-400">${m.avgWidth}m</td><td class="p-3 text-center font-sans"><span class="px-2 py-0.5 rounded font-bold ${m.type==='Volume (m³)'?'bg-indigo-500/10 text-indigo-400':'bg-teal-500/10 text-teal-400'}">${m.type}</span></td><td class="p-3 text-right font-bold text-blue-400 font-mono">${m.yield}</td></tr>`).join('')}
+                            <div class="p-3 bg-darkBg/60 border-b border-borderGray font-bold text-gray-400 uppercase tracking-wider">🚛 Active Site Dispatch Transit Pipeline Logs</div>
+                            <table class="w-full text-left"><tr class="bg-darkBg text-gray-400 font-bold border-b border-borderGray uppercase"><th class="p-3">Timestamp</th><th class="p-3">Source Godown</th><th class="p-3">Target Project Site</th><th class="p-3">Item Name</th><th class="p-3 text-right">Dispatched Vol</th><th class="p-3 text-center">Status</th></tr>
+                            ${dbDispatches.length === 0 ? `<tr><td colspan="6" class="p-6 text-center text-gray-500 font-mono">No material dispatch logs currently recorded in local system pipeline.</td></tr>` : ''}
+                            ${dbDispatches.map(d=>`
+                                <tr class="border-b border-borderGray font-mono text-[11px]"><td class="p-3 text-gray-500">${d.timestamp}</td><td class="p-3 text-white font-medium font-sans">${d.fromGodown}</td><td class="p-3 text-gray-300 font-sans">${d.toSite}</td><td class="p-3 text-gray-400 font-sans font-bold">${d.item}</td><td class="p-3 text-right font-bold text-orange-400">${d.qty} ${d.unit}</td><td class="p-3 text-center"><span class="px-2 py-0.5 rounded font-sans font-bold bg-blue-500/10 text-blue-400 uppercase">TRANSIT CLEAR</span></td></tr>
+                            `).join('')}
                             </table>
                         </div>
                     </div>
+
+                    <!-- MODAL 1: CREATE GODOWN -->
+                    <div id="godown-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 text-xs space-y-4">
+                            <h4 class="text-sm font-bold text-white border-b border-borderGray pb-2">🏢 Register New Physical Storage Godown</h4>
+                            <form id="godown-form" class="space-y-3">
+                                <div><label class="text-gray-400 block mb-1">Godown/Warehouse Title Name</label><input type="text" id="g-name" placeholder="e.g. Salumber Main Godown" required class="w-full bg-darkBg border border-borderGray rounded p-2 text-white font-medium"></div>
+                                <div><label class="text-gray-400 block mb-1">Physical Site Address Location</label><input type="text" id="g-loc" placeholder="e.g. Sarada Road, Salumber" required class="w-full bg-darkBg border border-borderGray rounded p-2 text-white"></div>
+                                <div class="flex justify-end space-x-2 pt-2"><button type="button" onclick="closeModal('godown-modal')" class="bg-gray-800 p-2 rounded text-gray-300">Cancel</button><button type="submit" class="bg-blue-600 p-2 rounded text-white font-bold">Deploy Storage Profile</button></div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- MODAL 2: VENDOR STOCK INWARD -->
+                    <div id="stock-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 text-xs space-y-4">
+                            <h4 class="text-sm font-bold text-white border-b border-borderGray pb-2">Inward Procurement Freight Material</h4>
+                            <form id="stock-form" class="space-y-3">
+                                <div><label class="text-gray-400 block mb-1">Target Storage Destination Godown</label><select id="st-godown" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-semibold">${dbGodowns.map(g=>`<option value="${g.name}">${g.name}</option>`).join('')}</select></div>
+                                <div><label class="text-gray-400 block mb-1">Material Item Description</label><input type="text" id="st-item" placeholder="e.g. Crush Sand Grit" required class="w-full bg-darkBg border border-borderGray rounded p-2 text-white"></div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div><label class="text-gray-400 block mb-1">Quantity Metric</label><input type="number" id="st-qty" required class="w-full bg-darkBg border border-borderGray rounded p-2 text-white font-mono"></div>
+                                    <div><label class="text-gray-400 block mb-1">Unit Type</label><input type="text" id="st-unit" placeholder="e.g. Bags/Tons/Cum" required class="w-full bg-darkBg border border-borderGray rounded p-2 text-white"></div>
+                                </div>
+                                <div class="flex justify-end space-x-2 pt-2"><button type="button" onclick="closeModal('stock-modal')" class="bg-gray-800 p-2 rounded text-gray-300">Cancel</button><button type="submit" class="bg-emerald-600 p-2 rounded text-white font-bold">Inject Stock Entry</button></div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- MODAL 3: DISPATCH MATERIAL TO SITE -->
+                    <div id="dispatch-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 text-xs space-y-4">
+                            <h4 class="text-sm font-bold text-white border-b border-borderGray pb-2">🚛 Initialize Materials Dispatch Shipment</h4>
+                            <form id="disp-form" class="space-y-3">
+                                <div><label class="text-gray-400 block mb-1">Source Inventory Godown Node</label><select id="ds-from" onchange="populateGodownItemsDropdown()" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-semibold">${dbGodowns.map(g=>`<option value="${g.name}">${g.name}</option>`).join('')}</select></div>
+                                <div><label class="text-gray-400 block mb-1">Select Available Stock Commodity</label><select id="ds-item" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-semibold"></select></div>
+                                <div><label class="text-gray-400 block mb-1">Volume Transit Quantity</label><input type="number" id="ds-qty" required class="w-full bg-darkBg border border-borderGray rounded p-2 text-white font-mono"></div>
+                                <div><label class="text-gray-400 block mb-1">Target Project Site Destination Node</label><select id="ds-to" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-semibold">${dbProjects.map(p=>`<option value="${p.name}">${p.name}</option>`).join('')}</select></div>
+                                <div class="flex justify-end space-x-2 pt-2"><button type="button" onclick="closeModal('dispatch-modal')" class="bg-gray-800 p-2 rounded text-gray-300">Cancel</button><button type="submit" class="bg-blue-600 p-2 rounded text-white font-bold">Initialize Freight Shipment</button></div>
+                            </form>
+                        </div>
+                    </div>
                 `;
-                buildExcelRowsMatrixHTML();
-            } else {
-                container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-8 text-center text-gray-500 font-bold uppercase">[ Panel Area '${currentTab}' Active ]</div>`;
+                populateGodownItemsDropdown();
             }
+
+            else if (currentTab === "measurements") { container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-5 text-center text-gray-400">[ M-Book Spreadsheet Node Operational ]</div>`; }
+            else if (currentTab === "lifecycle") { container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-5 text-center text-gray-400">[ Project Engineering Profiles Operational ]</div>`; }
         }
 
-        // --- 6. REALTIME MATHEMATICAL COMPILER SPREADSHEET MATRIX LOGIC ---
-        function buildExcelRowsMatrixHTML() {
-            const body = document.getElementById('excel-rows-body');
-            if(!body) return;
+        // --- 5. LOGISTICAL COMPUTATION HANDLER OPERATIONS ---
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-            body.innerHTML = activeExcelRows.map((row, index) => {
-                // 1. Process Chainage Extraction & Span Math
-                let derivedLength = 0;
-                const cFrom = parseChainageNumericString(row.chainageFrom);
-                const cTo = parseChainageNumericString(row.chainageTo);
-                if (!isNaN(cFrom) && !isNaN(cTo)) {
-                    derivedLength = Math.abs(cTo - cFrom);
-                }
-
-                // 2. Cumulative Average Width Math Matrix Logic
-                let avgWidth = Number(row.width || 0);
-                if (index > 0) {
-                    const prevWidth = Number(activeExcelRows[index - 1].width || 0);
-                    avgWidth = (Number(row.width || 0) + prevWidth) / 2;
-                }
-
-                // 3. Automated Formulas Processing Kernel Engine
-                let calculatedYield = 0;
-                const thickness = row.thickness ? Number(row.thickness) : 0;
-
-                if (row.formula === 'Multiply') {
-                    // Standard structural math: Length x Avg Width x Thickness (Optional)
-                    calculatedYield = thickness > 0 ? (derivedLength * avgWidth * thickness) : (derivedLength * avgWidth);
-                } else if (row.formula === 'Sum') {
-                    calculatedYield = derivedLength + avgWidth + (thickness > 0 ? thickness : 0);
-                } else if (row.formula === 'Average') {
-                    calculatedYield = (derivedLength + avgWidth + (thickness > 0 ? thickness : 0)) / (thickness > 0 ? 3 : 2);
-                } else if (row.formula === 'Subtraction') {
-                    calculatedYield = derivedLength - avgWidth;
-                } else if (row.formula === 'Percentage') {
-                    calculatedYield = (derivedLength * avgWidth) / 100;
-                }
-
-                // Update runtime data reference safely
-                activeExcelRows[index].computedLength = derivedLength;
-                activeExcelRows[index].computedAvgWidth = avgWidth;
-                activeExcelRows[index].yieldResult = calculatedYield;
-
-                const yieldLabel = thickness > 0 ? `${calculatedYield.toFixed(3)} m³` : `${calculatedYield.toFixed(2)} m²`;
-
-                return `
-                    <tr class="hover:bg-panelBg/30 transition-colors text-center">
-                        <td class="p-2 border-r border-borderGray font-bold text-gray-500">${index + 1}</td>
-                        <td class="p-1 border-r border-borderGray"><input type="text" oninput="updateExcelCell(${index}, 'chainageFrom', this.value)" value="${row.chainageFrom}" class="w-full bg-transparent px-2 py-1 text-center text-white focus:bg-panelBg focus:outline-none rounded"></td>
-                        <td class="p-1 border-r border-borderGray"><input type="text" oninput="updateExcelCell(${index}, 'chainageTo', this.value)" value="${row.chainageTo}" class="w-full bg-transparent px-2 py-1 text-center text-white focus:bg-panelBg focus:outline-none rounded"></td>
-                        <td class="p-2 border-r border-borderGray font-bold text-gray-300">${derivedLength} m</td>
-                        <td class="p-1 border-r border-borderGray"><input type="number" step="any" oninput="updateExcelCell(${index}, 'width', this.value)" value="${row.width}" class="w-full bg-transparent px-2 py-1 text-center text-white focus:bg-panelBg focus:outline-none font-bold rounded"></td>
-                        <td class="p-2 border-r border-borderGray text-orange-400 font-bold">${avgWidth.toFixed(3)} m</td>
-                        <td class="p-1 border-r border-borderGray"><input type="number" step="any" oninput="updateExcelCell(${index}, 'thickness', this.value)" value="${row.thickness}" placeholder="[ Optional ]" class="w-full bg-transparent px-2 py-1 text-center text-white focus:bg-panelBg focus:outline-none text-emerald-400 font-bold rounded"></td>
-                        <td class="p-1 border-r border-borderGray">
-                            <select onchange="updateExcelCell(${index}, 'formula', this.value)" class="w-full bg-darkBg border border-borderGray rounded p-1 text-gray-300 font-sans text-[11px] font-semibold focus:outline-none">
-                                <option value="Multiply" ${row.formula==='Multiply'?'selected':''}>✖️ Multiply (Standard)</option>
-                                <option value="Sum" ${row.formula==='Sum'?'selected':''}>➕ Sum</option>
-                                <option value="Average" ${row.formula==='Average'?'selected':''}>📊 Average</option>
-                                <option value="Subtraction" ${row.formula==='Subtraction'?'selected':''}>➖ Subtraction</option>
-                                <option value="Percentage" ${row.formula==='Percentage'?'selected':''}>📈 Percentage</option>
-                            </select>
-                        </td>
-                        <td class="p-2 text-right font-extrabold text-blue-400 pr-4 text-sm">${yieldLabel}</td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function updateExcelCell(idx, field, value) {
-            activeExcelRows[idx][field] = value;
-            buildExcelRowsMatrixHTML(); // Re-compile parameters output calculation grid in realtime
-        }
-
-        function addExcelRow() {
-            // Fetch configuration bounds of last line entry row to automatically extrapolate chainage continuity data
-            const lastRow = activeExcelRows[activeExcelRows.length - 1];
-            const nextFrom = lastRow ? lastRow.chainageTo : '0/000';
-            activeExcelRows.push({ chainageFrom: nextFrom, chainageTo: '', width: 7.5, thickness: '', formula: 'Multiply', yieldResult: 0 });
-            buildExcelRowsMatrixHTML();
-        }
-
-        function parseChainageNumericString(str) {
-            if (!str) return NaN;
-            // Clears structural slash strings ('0/025' -> '025' -> 25)
-            const cleanStr = str.replace('/', '.'); 
-            const parts = cleanStr.split('.');
-            if(parts.length === 2) {
-                return (Number(parts[0]) * 1000) + Number(parts[1]);
+        // Form Event Inward Logic Listeners
+        document.body.addEventListener('submit', function(e) {
+            if (e.target.id === 'godown-form') {
+                e.preventDefault();
+                const dbGodowns = JSON.parse(localStorage.getItem('vantage_godowns')) || [];
+                dbGodowns.push({ id: 'g_'+Date.now(), name: document.getElementById('g-name').value.trim(), location: document.getElementById('g-loc').value.trim() });
+                localStorage.setItem('vantage_godowns', JSON.stringify(dbGodowns)); closeModal('godown-modal'); renderERP();
             }
-            return Number(str);
-        }
-
-        function saveExcelToDatabase() {
-            const project = document.getElementById('sheet-project-node').value;
-            const dbMeasurements = JSON.parse(localStorage.getItem('vantage_measurements')) || [];
-
-            activeExcelRows.forEach(row => {
-                const typeLabel = row.thickness ? "Volume (m³)" : "Area (m²)";
-                const yieldFormatted = row.thickness ? `${row.yieldResult.toFixed(3)} m³` : `${row.yieldResult.toFixed(2)} m²`;
-                
-                dbMeasurements.unshift({
-                    id: 'm_' + Date.now() + Math.random(),
-                    timestamp: new Date().toLocaleString(),
-                    project: project,
-                    span: `${row.chainageFrom} to ${row.chainageTo} (L: ${row.computedLength}m)`,
-                    avgWidth: row.computedAvgWidth.toFixed(3),
-                    type: typeLabel,
-                    yield: yieldFormatted
-                });
-            });
-
-            localStorage.setItem('vantage_measurements', JSON.stringify(dbMeasurements));
-            alert("Database Synced: Complete batch rows added safely into Project M-Book History records Matrix.");
             
-            // Re-initialize spreadsheet back to blank kora status slate
-            activeExcelRows = [{ chainageFrom: '0/000', chainageTo: '', width: 7.5, thickness: '', formula: 'Multiply', yieldResult: 0 }];
-            renderERP();
+            if (e.target.id === 'stock-form') {
+                e.preventDefault();
+                const godownName = document.getElementById('st-godown').value;
+                const item = document.getElementById('st-item').value.trim();
+                const qty = Number(document.getElementById('st-qty').value);
+                const unit = document.getElementById('st-unit').value.trim();
+
+                let dbStockBook = JSON.parse(localStorage.getItem('vantage_stock_book')) || [];
+                const existing = dbStockBook.find(x => x.godownName === godownName && x.item.toLowerCase() === item.toLowerCase());
+                
+                if (existing) { existing.qty += qty; } 
+                else { dbStockBook.push({ godownName, item, qty, unit }); }
+                
+                localStorage.setItem('vantage_stock_book', JSON.stringify(dbStockBook)); closeModal('stock-modal'); renderERP();
+            }
+
+            if (e.target.id === 'disp-form') {
+                e.preventDefault();
+                const fromGodown = document.getElementById('ds-from').value;
+                const item = document.getElementById('ds-item').value;
+                const qty = Number(document.getElementById('ds-qty').value);
+                const toSite = document.getElementById('ds-to').value;
+
+                let dbStockBook = JSON.parse(localStorage.getItem('vantage_stock_book')) || [];
+                const stockItem = dbStockBook.find(x => x.godownName === fromGodown && x.item === item);
+
+                if (!stockItem || stockItem.qty < qty) {
+                    alert(`Logistical Breach Error: Insufficient stock balance of '${item}' inside ${fromGodown}! Available stock: ${stockItem ? stockItem.qty : 0}`);
+                    return;
+                }
+
+                // Deduct balance stock parameter
+                stockItem.qty -= qty;
+                localStorage.setItem('vantage_stock_book', JSON.stringify(dbStockBook));
+
+                // Log into transit list framework
+                let dbDispatches = JSON.parse(localStorage.getItem('vantage_dispatches')) || [];
+                dbDispatches.unshift({ id: 'disp_'+Date.now(), fromGodown, toSite, item, qty, unit: stockItem.unit, timestamp: new Date().toLocaleString() });
+                localStorage.setItem('vantage_dispatches', JSON.stringify(dbDispatches));
+
+                closeModal('dispatch-modal'); renderERP();
+            }
+        });
+
+        function populateGodownItemsDropdown() {
+            const dropdown = document.getElementById('ds-item');
+            if(!dropdown) return;
+            const fromGodown = document.getElementById('ds-from').value;
+            const dbStockBook = JSON.parse(localStorage.getItem('vantage_stock_book')) || [];
+            const filteredItems = dbStockBook.filter(x => x.godownName === fromGodown);
+
+            dropdown.innerHTML = filteredItems.map(x => `<option value="${x.item}">${x.item} (Avail: ${x.qty} ${x.unit})</option>`).join('');
         }
 
-        function openProjectModal() { switchTab('lifecycle'); }
         renderERP();
     </script>
 </body>
