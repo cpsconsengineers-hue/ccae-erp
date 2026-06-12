@@ -21,14 +21,14 @@
     <div id="app-root"></div>
 
     <script>
-        // --- HARDWARE FORCE RESET ENGINE ---
-        const currentMatrixVersion = "vantage_v7_complete";
+        // --- 1. HARDWARE SYSTEM FORCE RESET RUNTIME ---
+        const currentMatrixVersion = "vantage_v8_unfreeze";
         if (localStorage.getItem('vantage_matrix_version') !== currentMatrixVersion) {
             localStorage.clear();
             localStorage.setItem('vantage_matrix_version', currentMatrixVersion);
         }
 
-        // --- ENTERPRISE DATA MATRICES SEEDING ---
+        // --- 2. ENTERPRISE DATA MATRICES SEEDING ---
         const INITIAL_PROJECTS = [
             { id: "p1", name: "Udaipur City Flyover Survey", client: "Udaipur Authority", location: "Udaipur, RJ", lat: 24.5854, lng: 73.7125, contractValue: 4500000, status: "Active" },
             { id: "p2", name: "Residential Complex Construction", client: "Geeta Sharma Ji", location: "Sarada, Salumber", lat: 24.1234, lng: 73.5678, contractValue: 7500000, status: "Active" }
@@ -48,21 +48,13 @@
         let currentTab = "dashboard";
         let currentUser = JSON.parse(localStorage.getItem('vantage_current_user')) || null;
 
-        function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371e3;
-            const phi1 = lat1 * Math.PI / 180; const phi2 = lat2 * Math.PI / 180;
-            const deltaPhi = (lat2 - lat1) * Math.PI / 180; const deltaLambda = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(deltaPhi/2) * Math.sin(deltaPhi/2) + Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda/2) * Math.sin(deltaLambda/2);
-            return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
-        }
-
-        // --- REGISTRATION & SECURITY AUTHLOCK GATEWAY ---
+        // --- 3. CORE ROUTING CONTROLLER & VIEW ENGINE ---
         function renderERP() {
             const root = document.getElementById('app-root');
             const staffList = JSON.parse(localStorage.getItem('vantage_staff')) || [];
             const hasAdmin = staffList.some(u => u.role === 'Master Admin');
 
-            // Phase A: Master Admin Registration Initial Setup
+            // Phase A: Admin Initialization Setup Screen
             if (!hasAdmin) {
                 root.innerHTML = `
                     <div class="min-h-screen flex items-center justify-center bg-darkBg px-4">
@@ -94,7 +86,7 @@
                 return;
             }
 
-            // Phase B: Secure Cryptographic Portal Gateway
+            // Phase B: Security Gateway Lock Screen
             if (!currentUser) {
                 root.innerHTML = `
                     <div class="min-h-screen flex items-center justify-center bg-darkBg px-4">
@@ -123,7 +115,7 @@
             const isAdmin = (currentUser.role === 'Master Admin' || currentUser.role === 'Accountant');
             const notifications = JSON.parse(localStorage.getItem('vantage_notifications')) || {};
 
-            // Phase C: Core App Desktop Sidebar Framework
+            // Phase C: Core Navigation Framework & Layout Configuration
             root.innerHTML = `
                 <div class="min-h-screen flex bg-darkBg text-xs">
                     <aside class="w-64 bg-panelBg border-r border-borderGray flex flex-col justify-between shrink-0">
@@ -166,7 +158,11 @@
             renderTabContent();
         }
 
-        // --- 4. DYNAMIC FORMS & REALTIME TRANSLATION PANELS ---
+        function switchTab(t) { currentTab = t; renderERP(); }
+        function logoutSession() { currentUser = null; localStorage.removeItem('vantage_current_user'); renderERP(); }
+        function clearNotification(user) { const n = JSON.parse(localStorage.getItem('vantage_notifications')) || {}; delete n[user]; localStorage.setItem('vantage_notifications', JSON.stringify(n)); renderERP(); }
+
+        // --- 4. UNFREEZE TAB RENDERING CORE CONTROLLER MODULES ---
         function renderTabContent() {
             const container = document.getElementById('tab-content-window');
             const dbProjects = JSON.parse(localStorage.getItem('vantage_projects')) || [];
@@ -184,24 +180,12 @@
             if (currentTab === "dashboard") {
                 container.innerHTML = `
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl">
-                            <p class="text-gray-400 text-[10px] font-bold uppercase">Active Projects</p>
-                            <h3 class="text-xl font-extrabold mt-1 text-white">${dbProjects.length} Nodes</h3>
-                        </div>
-                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl">
-                            <p class="text-gray-400 text-[10px] font-bold uppercase">Active Fleet Size</p>
-                            <h3 class="text-xl font-extrabold mt-1 text-white">${dbOdometer.length} Shift Logs</h3>
-                        </div>
-                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl">
-                            <p class="text-gray-400 text-[10px] font-bold uppercase">Material Shipments</p>
-                            <h3 class="text-xl font-extrabold mt-1 text-white">${dbMaterials.length} Items</h3>
-                        </div>
-                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl">
-                            <p class="text-gray-400 text-[10px] font-bold uppercase">Total Personnel</p>
-                            <h3 class="text-xl font-extrabold mt-1 text-white">${dbStaff.length} Accounts</h3>
-                        </div>
+                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Active Projects</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbProjects.length} Nodes</h3></div>
+                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Active Fleet Size</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbOdometer.length} Shift Logs</h3></div>
+                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Material Shipments</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbMaterials.length} Items</h3></div>
+                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Total Personnel</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbStaff.length} Accounts</h3></div>
                     </div>
-                    <div class="bg-panelBg border border-borderGray rounded-xl p-8 text-center text-gray-500 font-bold">Vantage Node Intelligent Core Synchronization Active.</div>
+                    <div class="bg-panelBg border border-borderGray rounded-xl p-8 text-center text-gray-500 font-bold">Vantage Node Intelligent Core Synchronization Active. All systems fully thawed and functional.</div>
                 `;
             }
 
@@ -243,10 +227,7 @@
                                     <div><label class="text-gray-400 block mb-1">GPS Latitude</label><input type="number" step="any" id="p-lat" required class="w-full bg-darkBg border border-borderGray rounded p-2 text-white"></div>
                                     <div><label class="text-gray-400 block mb-1">GPS Longitude</label><input type="number" step="any" id="p-lng" required class="w-full bg-darkBg border border-borderGray rounded p-2 text-white"></div>
                                 </div>
-                                <div class="flex justify-end space-x-2 pt-2">
-                                    <button type="button" onclick="closeModal('p-mod')" class="bg-gray-800 p-2 rounded text-gray-300">Cancel</button>
-                                    <button type="submit" class="bg-blue-600 p-2 rounded text-white font-bold">Commit Parameter Node</button>
-                                </div>
+                                <div class="flex justify-end space-x-2 pt-2"><button type="button" onclick="closeModal('p-mod')" class="bg-gray-800 p-2 rounded text-gray-300">Cancel</button><button type="submit" class="bg-blue-600 p-2 rounded text-white font-bold">Commit Parameter Node</button></div>
                             </form>
                         </div>
                     </div>
@@ -259,62 +240,36 @@
                         <div class="bg-panelBg border border-borderGray p-5 rounded-xl">
                             <h3 class="text-xs font-bold uppercase text-white mb-3">📷 Capture / Upload Site Progress Image</h3>
                             <form id="photo-upload-form" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                                <div>
-                                    <label class="text-gray-400 block mb-1 font-bold">Select Site</label>
-                                    <select id="photo-project" required class="w-full bg-darkBg border border-borderGray rounded p-2 text-white">
-                                        ${dbProjects.map(p => `<option value="${p.name}">${p.name}</option>`).join('')}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="text-gray-400 block mb-1 font-bold">Select File</label>
-                                    <input type="file" id="photo-file" accept="image/*" required class="w-full bg-darkBg border border-borderGray rounded p-1.5 text-white text-xs">
-                                </div>
+                                <div><label class="text-gray-400 block mb-1 font-bold">Select Site</label><select id="photo-project" required class="w-full bg-darkBg border border-borderGray rounded p-2.5 text-white">${dbProjects.map(p => `<option value="${p.name}">${p.name}</option>`).join('')}</select></div>
+                                <div><label class="text-gray-400 block mb-1 font-bold">Select Image</label><input type="file" id="photo-file" accept="image/*" required class="w-full bg-darkBg border border-borderGray rounded p-1.5 text-white text-xs"></div>
                                 <button type="submit" class="bg-emerald-600 p-2.5 rounded font-bold uppercase text-white tracking-wider">Commit Photo Snap</button>
                             </form>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            ${dbPhotos.map(ph => `
-                                <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden shadow-xl">
-                                    <img src="${ph.imgData}" class="w-full h-40 object-cover bg-black">
-                                    <div class="p-3 text-[10px] space-y-1 text-gray-400">
-                                        <p class="text-white font-bold text-xs truncate">${ph.projectName}</p>
-                                        <p>👤 Uploaded By: ${ph.uploadedBy}</p>
-                                        <p>📅 Date: ${ph.timestamp}</p>
-                                        <p class="text-emerald-400 font-mono">📍 GPS: ${ph.gps}</p>
-                                    </div>
-                                </div>
-                            `).join('')}
+                            ${dbPhotos.map(ph => `<div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden shadow-xl"><img src="${ph.imgData}" class="w-full h-40 object-cover bg-black"><div class="p-3 text-[10px] space-y-1 text-gray-400"><p class="text-white font-bold text-xs truncate">${ph.projectName}</p><p>👤 Uploaded By: ${ph.uploadedBy}</p><p>📅 Date: ${ph.timestamp}</p><p class="text-emerald-400 font-mono">📍 GPS: ${ph.gps}</p></div></div>`).join('')}
                         </div>
                     </div>
                 `;
                 document.getElementById('photo-upload-form')?.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    const file = document.getElementById('photo-file').files[0];
-                    const reader = new FileReader();
+                    e.preventDefault(); const file = document.getElementById('photo-file').files[0]; const reader = new FileReader();
                     navigator.geolocation.getCurrentPosition((pos) => {
                         const gps = `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
                         reader.onload = function(event) {
                             dbPhotos.unshift({ id: 'ph_'+Date.now(), projectName: document.getElementById('photo-project').value, imgData: event.target.result, uploadedBy: currentUser.name, timestamp: new Date().toLocaleString(), gps });
                             localStorage.setItem('vantage_site_photos', JSON.stringify(dbPhotos)); alert("Success: Progress image uploaded safely with Geo-tag."); renderTabContent();
-                        };
-                        reader.readAsDataURL(file);
-                    }, () => { alert("Error: Location matrix denied. Photograph upload locked."); });
+                        }; reader.readAsDataURL(file);
+                    }, () => { alert("Error: Location matrix denied."); });
                 });
             }
 
-            // --- 📐 FULLY FUNCTIONAL MEASUREMENT SHEETS PANEL ---
             else if (currentTab === "measurements") {
                 container.innerHTML = `
                     <div class="space-y-4">
-                        <div class="flex justify-between items-center">
-                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Measurement Sheets M-Book Records</h3>
-                            <button onclick="openModal('m-mod')" class="bg-blue-600 px-3 py-1.5 rounded font-bold">+ Log M-Book Dimensions</button>
-                        </div>
+                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">Measurement Sheets M-Book Records</h3><button onclick="openModal('m-mod')" class="bg-blue-600 px-3 py-1.5 rounded font-bold">+ Log M-Book Dimensions</button></div>
                         <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden">
-                            <table class="w-full text-left">
-                                <tr class="bg-darkBg text-gray-400 border-b border-borderGray uppercase font-bold"><th class="p-3">Site Node</th><th class="p-3">Component Log Description</th><th class="p-3 text-center">Dimensions (L x W x D)</th><th class="p-3 text-right">Computed Volume</th><th class="p-3 text-center">Logged By</th></tr>
-                                ${dbMeasurements.length === 0 ? `<tr><td colspan="5" class="p-6 text-center text-gray-500">No dimensions entered in database yet.</td></tr>` : ''}
-                                ${dbMeasurements.map(m=>`<tr><td class="p-3 text-white font-medium">${m.proj}</td><td class="p-3 text-gray-300">${m.desc}</td><td class="p-3 text-center font-mono text-gray-400">${m.l}m x ${m.w}m x ${m.d}m</td><td class="p-3 text-right text-blue-400 font-mono font-bold">${m.tot} m³</td><td class="p-3 text-center"><span class="bg-darkBg border border-borderGray px-2 py-0.5 rounded text-gray-400">${m.recordedBy}</span></td></tr>`).join('')}
+                            <table class="w-full text-left"><tr class="bg-darkBg text-gray-400 border-b border-borderGray uppercase font-bold"><th class="p-3">Site Node</th><th class="p-3">Component Log Description</th><th class="p-3 text-center">Dimensions (L x W x D)</th><th class="p-3 text-right">Volume</th><th class="p-3 text-center">Logged By</th></tr>
+                            ${dbMeasurements.length === 0 ? `<tr><td colspan="5" class="p-6 text-center text-gray-500">No dimensions entered in database yet.</td></tr>` : ''}
+                            ${dbMeasurements.map(m=>`<tr><td class="p-3 text-white font-medium">${m.proj}</td><td class="p-3 text-gray-300">${m.desc}</td><td class="p-3 text-center font-mono text-gray-400">${m.l}m x ${m.w}m x ${m.d}m</td><td class="p-3 text-right text-blue-400 font-mono font-bold">${m.tot} m³</td><td class="p-3 text-center"><span class="bg-darkBg border border-borderGray px-2 py-0.5 rounded text-gray-400">${m.recordedBy}</span></td></tr>`).join('')}
                             </table>
                         </div>
                     </div>
@@ -323,11 +278,11 @@
                             <h4 class="font-bold text-white text-xs border-b border-borderGray pb-2">Record Civil Log Measurement</h4>
                             <form id="m-form" class="space-y-3 text-xs">
                                 <div><label class="block mb-1 text-gray-400">Target Construction Site</label><select id="m-p" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white">${dbProjects.map(p=>`<option value="${p.name}">${p.name}</option>`).join('')}</select></div>
-                                <div><label class="block mb-1 text-gray-400">Item Component (e.g. Pillar Foundation)</label><input type="text" id="m-d" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"></div>
+                                <div><label class="block mb-1 text-gray-400">Item Component Description</label><input type="text" id="m-d" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"></div>
                                 <div class="grid grid-cols-3 gap-2">
                                     <div><label class="text-gray-400 block mb-1">Length (m)</label><input type="number" step="any" id="m-l" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"></div>
                                     <div><label class="text-gray-400 block mb-1">Width (m)</label><input type="number" step="any" id="m-w" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"></div>
-                                    <div><label class="text-gray-400 block mb-1">Depth/Height (m)</label><input type="number" step="any" id="m-depth" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"></div>
+                                    <div><label class="text-gray-400 block mb-1">Depth (m)</label><input type="number" step="any" id="m-depth" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"></div>
                                 </div>
                                 <div class="flex justify-end space-x-2 pt-2"><button type="button" onclick="closeModal('m-mod')" class="bg-gray-800 p-2 rounded text-gray-300">Cancel</button><button type="submit" class="bg-blue-600 p-2 rounded text-white font-bold">Commit M-Book Log</button></div>
                             </form>
@@ -341,22 +296,16 @@
                 });
             }
 
-            // --- 📦 FULLY FUNCTIONAL TWO-WAY MATERIAL LOGISTICS PANEL ---
             else if (currentTab === "materials") {
                 container.innerHTML = `
                     <div class="space-y-4">
-                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📦 Two-Way Material Logistics Tracker</h3><button onclick="openModal('mat-mod')" class="bg-blue-600 px-3 py-1.5 rounded font-bold">+ Dispatch Material Shipment</button></div>
+                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📦 Material Logistics Tracker</h3><button onclick="openModal('mat-mod')" class="bg-blue-600 px-3 py-1.5 rounded font-bold">+ Dispatch Material Shipment</button></div>
                         <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden">
-                            <table class="w-full text-left">
-                                <tr class="bg-darkBg text-gray-400 border-b border-borderGray uppercase font-bold"><th class="p-3">Item Description</th><th class="p-3">Qty</th><th class="p-3">Source Godown</th><th class="p-3">Destination Site Node</th><th class="p-3 text-center">Dispatch Status</th><th class="p-3 text-center">Action Operation</th></tr>
-                                ${dbMaterials.length === 0 ? `<tr><td colspan="6" class="p-6 text-center text-gray-500">No active material dispatches currently circulating in tracking matrix.</td></tr>` : ''}
-                                ${dbMaterials.map(m=>`
-                                    <tr class="border-b border-borderGray">
-                                        <td class="p-3 text-white font-bold">${m.item}</td><td class="p-3 font-mono font-bold text-gray-300">${m.qty} Units</td><td class="p-3 text-gray-400">${m.from}</td><td class="p-3 text-gray-400">${m.to}</td>
-                                        <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${m.received?'bg-green-500/10 text-green-400':'bg-yellow-500/10 text-yellow-500'}">${m.received?'DELIVERED (SAFE)':'IN-TRANSIT'}</span></td>
-                                        <td class="p-3 text-center">${(!m.received && currentUser.name !== m.sender) ? `<button onclick="confirmMaterialReceipt('${m.id}')" class="bg-green-600 text-white font-bold px-2 py-0.5 rounded">Confirm Receipt</button>` : '<span class="text-gray-500 font-mono">Verified Lock</span>'}</td>
-                                    </tr>
-                                `).join('')}
+                            <table class="w-full text-left"><tr class="bg-darkBg text-gray-400 border-b border-borderGray uppercase font-bold"><th class="p-3">Item Summary</th><th class="p-3">Qty</th><th class="p-3">Source Yard</th><th class="p-3">Destination Node</th><th class="p-3 text-center">Dispatch Status</th><th class="p-3 text-center">Operation</th></tr>
+                            ${dbMaterials.length === 0 ? `<tr><td colspan="6" class="p-6 text-center text-gray-500">No shipments loaded.</td></tr>` : ''}
+                            ${dbMaterials.map(m=>`
+                                <tr class="border-b border-borderGray"><td class="p-3 text-white font-bold">${m.item}</td><td class="p-3 font-mono text-gray-300">${m.qty} Units</td><td class="p-3">${m.from}</td><td class="p-3">${m.to}</td><td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${m.received?'bg-green-500/10 text-green-400':'bg-yellow-500/10 text-yellow-500'}">${m.received?'DELIVERED':'IN-TRANSIT'}</span></td><td class="p-3 text-center">${(!m.received && currentUser.name !== m.sender) ? `<button onclick="confirmMaterialReceipt('${m.id}')" class="bg-green-600 px-2 py-0.5 rounded font-bold">Confirm Receipt</button>` : '<span class="text-gray-500">Verified Lock</span>'}</td></tr>
+                            `).join('')}
                             </table>
                         </div>
                     </div>
@@ -364,76 +313,58 @@
                         <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 space-y-3">
                             <h4 class="font-bold text-white text-xs border-b border-borderGray pb-2">Initialize Material Dispatch</h4>
                             <form id="mat-form" class="space-y-3 text-xs">
-                                <div><label class="block mb-1 text-gray-400">Material Name (e.g. Steel Bars)</label><input type="text" id="mat-item" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"></div>
+                                <div><label class="block mb-1 text-gray-400">Material Commodity Item</label><input type="text" id="mat-item" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"></div>
                                 <div><label class="block mb-1 text-gray-400">Quantity Metric</label><input type="number" id="mat-qty" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"></div>
-                                <div><label class="block mb-1 text-gray-400">Source Godown/Location</label><input type="text" id="mat-from" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"></div>
-                                <div><label class="block mb-1 text-gray-400">Target Destination Site Node</label><select id="mat-to" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white">${dbProjects.map(p=>`<option value="${p.name}">${p.name}</option>`).join('')}</select></div>
-                                <div class="flex justify-end space-x-2 pt-2"><button type="button" onclick="closeModal('mat-mod')" class="bg-gray-800 p-2 rounded text-gray-300">Cancel</button><button type="submit" class="bg-blue-600 p-2 rounded text-white font-bold">Initialize Ship Transfer</button></div>
+                                <div><label class="block mb-1 text-gray-400">Source Yard Location</label><input type="text" id="mat-from" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"></div>
+                                <div><label class="block mb-1 text-gray-400">Target Destination Node</label><select id="mat-to" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white">${dbProjects.map(p=>`<option value="${p.name}">${p.name}</option>`).join('')}</select></div>
+                                <div class="flex justify-end space-x-2 pt-2"><button type="button" onclick="closeModal('mat-mod')" class="bg-gray-800 p-2 rounded text-gray-300">Cancel</button><button type="submit" class="bg-blue-600 p-2 rounded text-white font-bold">Initialize Transfer</button></div>
                             </form>
                         </div>
                     </div>
                 `;
                 document.getElementById('mat-form')?.addEventListener('submit', function(e){
-                    e.preventDefault();
-                    dbMaterials.push({ id:'m_'+Date.now(), item:document.getElementById('mat-item').value, qty:document.getElementById('mat-qty').value, from:document.getElementById('mat-from').value, to:document.getElementById('mat-to').value, received:false, sender:currentUser.name });
+                    e.preventDefault(); dbMaterials.push({ id:'m_'+Date.now(), item:document.getElementById('mat-item').value, qty:document.getElementById('mat-qty').value, from:document.getElementById('mat-from').value, to:document.getElementById('mat-to').value, received:false, sender:currentUser.name });
                     localStorage.setItem('vantage_materials', JSON.stringify(dbMaterials)); closeModal('mat-mod'); renderTabContent();
                 });
             }
 
-            // --- ⚙️ FULLY FUNCTIONAL MACHINERY FLEET & ODOMETER LOGS PANEL ---
             else if (currentTab === "machinery") {
                 container.innerHTML = `
                     <div class="space-y-6">
                         <div class="bg-panelBg border border-borderGray rounded-xl p-5 space-y-4">
                             <h3 class="text-sm font-bold text-white uppercase tracking-wider border-b border-borderGray pb-2">⚙️ Fleet Machinery & Daily Odometer Mileage Recorder</h3>
                             <div class="grid grid-cols-2 gap-4">
-                                <button onclick="triggerOdoPunch('Morning')" class="bg-blue-950 border border-blue-900 text-blue-400 p-3 rounded-lg font-bold uppercase tracking-wider text-xs">☀️ Punch Morning Initial Odometer (Site Start)</button>
-                                <button onclick="triggerOdoPunch('Evening')" class="bg-indigo-950 border border-indigo-900 text-indigo-400 p-3 rounded-lg font-bold uppercase tracking-wider text-xs">🌙 Punch Evening Closure Odometer (Site Exit)</button>
+                                <button onclick="triggerOdoPunch('Morning')" class="bg-blue-950 border border-blue-900 text-blue-400 p-3 rounded-lg font-bold uppercase tracking-wider text-xs">☀️ Punch Morning Initial Odometer</button>
+                                <button onclick="triggerOdoPunch('Evening')" class="bg-indigo-950 border border-indigo-900 text-indigo-400 p-3 rounded-lg font-bold uppercase tracking-wider text-xs">🌙 Punch Evening Closure Odometer</button>
                             </div>
                         </div>
                         <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden">
-                            <div class="p-3 bg-darkBg/50 font-bold text-gray-400 uppercase border-b border-borderGray">Calculated Travel Mileage Claim Invoices (₹1.5/km Multiplier Math)</div>
-                            <table class="w-full text-left">
-                                <tr class="bg-darkBg text-gray-400 border-b border-borderGray uppercase font-bold"><th class="p-3">Log Operator</th><th class="p-3 text-center">Initial (Morning)</th><th class="p-3 text-center">Closure (Evening)</th><th class="p-3 text-right">Net Traveled</th><th class="p-3 text-right text-blue-400">Fuel & Claim Expense (₹1.5/km)</th><th class="p-3 text-center">Clearance Status</th></tr>
-                                ${dbOdometer.length === 0 ? `<tr><td colspan="6" class="p-6 text-center text-gray-500">No vehicle telemetry logs recorded for this calendar session.</td></tr>` : ''}
-                                ${dbOdometer.map(o=>{
-                                    const diff = o.evening ? (Number(o.evening) - Number(o.morning)) : 0;
-                                    return `
-                                        <tr class="border-b border-borderGray">
-                                            <td class="p-3 text-white font-bold">${o.user}</td>
-                                            <td class="p-3 text-center font-mono text-gray-400">${o.morning} km</td>
-                                            <td class="p-3 text-center font-mono text-gray-400">${o.evening ? `${o.evening} km` : '<span class="text-yellow-500 font-bold">On-Site Execution</span>'}</td>
-                                            <td class="p-3 text-right font-mono font-bold text-gray-200">${diff} km</td>
-                                            <td class="p-3 text-right font-mono font-extrabold text-blue-400">₹${(diff * 1.5).toFixed(0)}</td>
-                                            <td class="p-3 text-center">${o.cleared ? '<span class="text-green-400 bg-green-500/10 px-2 py-0.5 font-bold rounded">APPROVED & CLEARED BY OFFICE</span>' : isAdmin ? `<button onclick="clearFuelVoucher('${o.id}', '${o.user}')" class="bg-green-600 text-white font-bold px-2 py-0.5 rounded">Clear & Send Notification</button>` : '<span class="text-yellow-500 font-bold">Pending Office Sync</span>'}</td>
-                                        </tr>
-                                    `;
-                                }).join('')}
+                            <table class="w-full text-left"><tr class="bg-darkBg text-gray-400 border-b border-borderGray uppercase font-bold"><th class="p-3">Log Operator</th><th class="p-3 text-center">Initial (Morning)</th><th class="p-3 text-center">Closure (Evening)</th><th class="p-3 text-right">Net Distance</th><th class="p-3 text-right text-blue-400">Fuel Amount (₹1.5/km)</th><th class="p-3 text-center">Clearance Status</th></tr>
+                            ${dbOdometer.length === 0 ? `<tr><td colspan="6" class="p-6 text-center text-gray-500">No vehicle telemetry logs recorded.</td></tr>` : ''}
+                            ${dbOdometer.map(o=>{ const diff = o.evening ? (Number(o.evening) - Number(o.morning)) : 0;
+                                return `<tr class="border-b border-borderGray"><td class="p-3 text-white font-bold">${o.user}</td><td class="p-3 text-center font-mono text-gray-400">${o.morning} km</td><td class="p-3 text-center font-mono text-gray-400">${o.evening ? `${o.evening} km` : 'On-Site Execution'}</td><td class="p-3 text-right font-mono">${diff} km</td><td class="p-3 text-right font-mono font-extrabold text-blue-400">₹${(diff * 1.5).toFixed(0)}</td><td class="p-3 text-center">${o.cleared ? '<span class="text-green-400 font-bold">CLEARED BY OFFICE</span>' : isAdmin ? `<button onclick="clearFuelVoucher('${o.id}', '${o.user}')" class="bg-green-600 text-white px-2 py-0.5 rounded font-bold">Clear Voucher</button>` : '<span class="text-yellow-500 font-bold">Pending Sync</span>'}</td></tr>`;
+                            }).join('')}
                             </table>
                         </div>
                     </div>
                 `;
             }
 
-            // --- 💰 FULLY FUNCTIONAL VOUCHER LEDGER & PENALTY MATRIX PANEL ---
             else if (currentTab === "financial") {
                 container.innerHTML = `
                     <div class="space-y-4">
-                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">💰 Central Operational Financial Ledger Matrix</h3><button onclick="openModal('f-mod')" class="bg-red-950 text-red-400 border border-red-900 px-3 py-1.5 rounded font-bold">+ Record Site Voucher Expense</button></div>
+                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">💰 Central Operational Financial Ledger Matrix</h3><button onclick="openModal('f-mod')" class="bg-red-950 text-red-400 border border-red-900 px-3 py-1.5 rounded font-bold">+ Record Site Expense</button></div>
                         <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden">
-                            <table class="w-full text-left">
-                                <tr class="bg-darkBg text-gray-400 border-b border-borderGray uppercase font-bold"><th class="p-3">Execution Date</th><th class="p-3">Staff Profile Node</th><th class="p-3">Line Item Summary Description</th><th class="p-3 text-right">Transaction Amount</th><th class="p-3 text-center">Audit Matrix Clearance Verification</th></tr>
-                                ${dbFinancials.length === 0 ? `<tr><td colspan="5" class="p-6 text-center text-gray-500">No financial voucher transactions logged in local storage memory core.</td></tr>` : ''}
-                                ${dbFinancials.map(f=>`
-                                    <tr class="border-b border-borderGray">
-                                        <td class="p-3 font-mono text-gray-500">${f.date}</td><td class="p-3 font-bold text-white">${f.user}</td><td class="p-3 text-gray-300 font-medium">${f.desc}</td><td class="p-3 text-right font-bold font-mono text-gray-200">₹${f.amount.toLocaleString()}</td>
-                                        <td class="p-3 text-center">
-                                            ${f.status === 'Pending' && isAdmin ? `
-                                                <div class="flex justify-center space-x-2"><button onclick="auditVoucherExpense('${f.id}', 'Approved')" class="bg-green-600 px-2 py-0.5 rounded font-bold text-white">Approve</button><button onclick="auditVoucherExpense('${f.id}', 'Rejected')" class="bg-red-600 px-2 py-0.5 rounded font-bold text-white">Unapprove & Deduct</button></div>
-                                            ` : `<span class="px-2 py-0.5 rounded font-bold uppercase text-[10px] ${f.status==='Approved'?'bg-green-500/10 text-green-400':'bg-red-500/10 text-red-400'}">${f.status}</span>`}
-                                        </td>
-                                    </tr>
-                                `).join('')}
+                            <table class="w-full text-left"><tr class="bg-darkBg text-gray-400 border-b border-borderGray uppercase font-bold"><th class="p-3">Execution Date</th><th class="p-3">Staff Profile Node</th><th class="p-3">Line Summary Description</th><th class="p-3 text-right">Transaction Amount</th><th class="p-3 text-center">Audit Matrix Clearance</th></tr>
+                            ${dbFinancials.length === 0 ? `<tr><td colspan="5" class="p-6 text-center text-gray-500">No financial voucher transactions logged.</td></tr>` : ''}
+                            ${dbFinancials.map(f=>`
+                                <tr class="border-b border-borderGray"><td class="p-3 font-mono text-gray-500">${f.date}</td><td class="p-3 font-bold text-white">${f.user}</td><td class="p-3 text-gray-300">${f.desc}</td><td class="p-3 text-right font-bold font-mono">₹${f.amount.toLocaleString()}</td>
+                                    <td class="p-3 text-center">
+                                        ${f.status === 'Pending' && isAdmin ? `
+                                            <div class="flex justify-center space-x-2"><button onclick="auditVoucherExpense('${f.id}', 'Approved')" class="bg-green-600 px-2 py-0.5 rounded font-bold text-white">Approve</button><button onclick="auditVoucherExpense('${f.id}', 'Rejected')" class="bg-red-600 px-2 py-0.5 rounded font-bold text-white">Reject & Deduct</button></div>
+                                        ` : `<span class="px-2 py-0.5 rounded font-bold uppercase text-[10px] ${f.status==='Approved'?'bg-green-500/10 text-green-400':'bg-red-500/10 text-red-400'}">${f.status}</span>`}
+                                    </td></tr>
+                            `).join('')}
                             </table>
                         </div>
                     </div>
@@ -442,92 +373,57 @@
                             <h4 class="font-bold text-white text-xs border-b border-borderGray pb-2">Record New Site Log Expense Voucher</h4>
                             <form id="f-form" class="space-y-3 text-xs">
                                 <div><label class="block mb-1 text-gray-400">Expense Amount Value (₹)</label><input type="number" id="f-amt" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-mono"></div>
-                                <div><label class="block mb-1 text-gray-400"> Vouchers Summary Description</label><input type="text" id="f-desc" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"></div>
+                                <div><label class="block mb-1 text-gray-400">Vouchers Summary Description</label><input type="text" id="f-desc" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"></div>
                                 <div class="flex justify-end space-x-2 pt-2"><button type="button" onclick="closeModal('f-mod')" class="bg-gray-800 p-2 rounded text-gray-300">Cancel</button><button type="submit" class="bg-blue-600 p-2 rounded text-white font-bold">Commit Request Entry</button></div>
                             </form>
                         </div>
                     </div>
                 `;
                 document.getElementById('f-form')?.addEventListener('submit', function(e){
-                    e.preventDefault();
-                    dbFinancials.unshift({ id:'f_'+Date.now(), user:currentUser.name, amount:Number(document.getElementById('f-amt').value), desc:document.getElementById('f-desc').value, date:new Date().toISOString().split('T')[0], status:'Pending' });
+                    e.preventDefault(); dbFinancials.unshift({ id:'f_'+Date.now(), user:currentUser.name, amount:Number(document.getElementById('f-amt').value), desc:document.getElementById('f-desc').value, date:new Date().toISOString().split('T')[0], status:'Pending' });
                     localStorage.setItem('vantage_financials', JSON.stringify(dbFinancials)); closeModal('f-mod'); renderTabContent();
                 });
             }
 
-            // --- ☀️ ADVANCED MULTI-SHIFT PUNCH-IN & PUNCH-OUT ATTENDANCE ENGINE ---
             else if (currentTab === "attendance") {
-                const dayString = new Date().toISOString().split('T')[0];
-                const activeShift = dbAttendance.find(a => a.staffName === currentUser.name && a.date === dayString);
+                const dayString = new Date().toISOString().split('T')[0]; const activeShift = dbAttendance.find(a => a.staffName === currentUser.name && a.date === dayString);
                 container.innerHTML = `
                     <div class="max-w-md mx-auto bg-panelBg border border-borderGray rounded-xl p-6 text-center space-y-4">
-                        <h3 class="text-sm font-bold text-white uppercase tracking-wider">Advanced Biometric Multi-Shift Authentication Lock</h3>
-                        <p class="text-gray-400 text-[11px]">Strict Enforcement Metrics: Site Arrival Punch-In & Departure Punch-Out Mandatory to Calculate Payroll Cycles.</p>
+                        <h3 class="text-sm font-bold text-white uppercase tracking-wider">Advanced Biometric Shift Lock</h3>
                         <div class="p-3 bg-darkBg rounded border border-borderGray text-left space-y-2 font-mono text-[11px]">
-                            <p class="text-gray-400">☀️ Punch-In Entry Vector: ${activeShift && activeShift.punchIn ? `<span class="text-green-400 font-bold">${activeShift.punchIn} [Locked Present]</span>` : '<span class="text-red-400 font-bold">Awaiting Shift Initial Activation</span>'}</p>
-                            <p class="text-gray-400">🌙 Punch-Out Exit Vector: ${activeShift && activeShift.punchOut ? `<span class="text-indigo-400 font-bold">${activeShift.punchOut} [Shift Terminal Closed]</span>` : '<span class="text-yellow-500 font-bold">Awaiting Shift Departure Execution</span>'}</p>
+                            <p>☀️ Punch-In Entry: ${activeShift && activeShift.punchIn ? `<span class="text-green-400 font-bold">${activeShift.punchIn}</span>` : '<span class="text-red-400 font-bold">Awaiting In-Shift Capture</span>'}</p>
+                            <p>🌙 Punch-Out Exit: ${activeShift && activeShift.punchOut ? `<span class="text-indigo-400 font-bold">${activeShift.punchOut}</span>` : '<span class="text-yellow-500 font-bold">Awaiting Out-Shift Execution</span>'}</p>
                         </div>
                         <div class="grid grid-cols-2 gap-4 pt-2">
-                            <button onclick="executeShiftPunch('In')" ${activeShift && activeShift.punchIn ? 'disabled class="bg-gray-800 text-gray-500 cursor-not-allowed py-3 rounded font-bold uppercase"' : 'class="bg-blue-600 hover:bg-blue-500 text-white py-3 rounded font-bold uppercase tracking-wider shadow-lg"'} >☀️ Punch In (Entry)</button>
-                            <button onclick="executeShiftPunch('Out')" ${(!activeShift || (activeShift && !activeShift.punchIn) || (activeShift && activeShift.punchOut)) ? 'disabled class="bg-gray-800 text-gray-500 cursor-not-allowed py-3 rounded font-bold uppercase"' : 'class="bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded font-bold uppercase tracking-wider shadow-lg"'} >🌙 Punch Out (Exit)</button>
+                            <button onclick="executeShiftPunch('In')" ${activeShift && activeShift.punchIn ? 'disabled class="bg-gray-800 text-gray-500 cursor-not-allowed py-3 rounded font-bold"' : 'class="bg-blue-600 hover:bg-blue-500 text-white py-3 rounded font-bold uppercase"'} >☀️ Punch In</button>
+                            <button onclick="executeShiftPunch('Out')" ${(!activeShift || (activeShift && !activeShift.punchIn) || (activeShift && activeShift.punchOut)) ? 'disabled class="bg-gray-800 text-gray-500 cursor-not-allowed py-3 rounded font-bold"' : 'class="bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded font-bold uppercase"'} >🌙 Punch Out</button>
                         </div>
                     </div>
                 `;
             }
 
-            // --- 💼 ELEVATED CORE: M-BOOK TO BILLING AUTO IMPORT LAYER ---
             else if (currentTab === "billing") {
                 container.innerHTML = `
                     <div class="space-y-4">
-                        <h3 class="text-sm font-bold text-white uppercase tracking-wider"> Central Client Invoicing & Billing Generation Ledger</h3>
+                        <h3 class="text-sm font-bold text-white uppercase tracking-wider">💼 Central Client Invoicing & Billing Import Core</h3>
                         <div class="bg-panelBg border border-borderGray rounded-xl p-5 space-y-3 font-mono text-[11px] text-gray-400">
-                            <span class="text-white font-bold text-xs font-sans block mb-2">📦 Live Measurement Sheet M-Book Import Channel Buffer:</span>
-                            ${dbMeasurements.length === 0 ? '<p class="font-sans text-gray-500 p-2">Buffer Empty: No physical structural measurement sheets loaded to fetch data.</p>' : ''}
-                            ${dbMeasurements.map((m,i)=>`
-                                <div class="flex justify-between items-center bg-darkBg/60 p-3 border border-borderGray rounded">
-                                    <span>[MBOOK-STREAM-${i}] Field Surveyor Log: ${m.proj} -> ${m.desc} (<span class="text-blue-400 font-bold">${m.tot} m³</span>)</span>
-                                    <button onclick="alert('Success: Core coordinates dimensions data imported into Client Invoice Matrix.')" class="bg-blue-600 hover:bg-blue-500 text-white font-sans font-bold px-3 py-1 rounded text-[10px] transition-colors">Import Data Into Bill</button>
-                                </div>
-                            `).join('')}
+                            <span class="text-white font-bold text-xs font-sans block mb-2 font-bold">📦 Live Measurement Sheet M-Book Import Channel Buffer:</span>
+                            ${dbMeasurements.length === 0 ? '<p class="font-sans text-gray-500 p-1">Buffer Empty: No physical dimensions loaded.</p>' : ''}
+                            ${dbMeasurements.map((m,i)=>`<div class="flex justify-between items-center bg-darkBg/60 p-3 border border-borderGray rounded"><span>[MBOOK-STREAM-${i}] Field Surveyor Log: ${m.proj} -> ${m.desc} (<span class="text-blue-400 font-bold">${m.tot} m³</span>)</span><button onclick="alert('Import Complete')" class="bg-blue-600 text-white font-sans font-bold px-3 py-1 rounded text-[10px]">Import into Bill</button></div>`).join('')}
                         </div>
                     </div>
                 `;
             }
 
-            // --- 👥 ELEVATED CORE: STAFF DEPLOYMENT MANAGEMENT & AUTO SALARY MATRIX ---
             else if (currentTab === "staff-mgmt") {
                 if (!isAdmin) return;
                 container.innerHTML = `
                     <div class="space-y-4">
-                        <div class="flex justify-between items-center">
-                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">👥 Human Capital Assets & Payroll Deployment Matrix</h3>
-                            <button onclick="openStaffModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-xs font-bold font-sans transition-colors">+ Provision Profile Node</button>
-                        </div>
+                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">👥 Human Capital Assets & Clearance Control</h3><button onclick="openStaffModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-xs font-bold font-sans transition-colors">+ Provision Profile Node</button></div>
                         <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden">
-                            <table class="w-full text-left text-xs"><tr class="bg-darkBg text-gray-400 border-b border-borderGray uppercase font-bold"><th class="p-3">Identity Name Name</th><th class="p-3">Designation Role</th><th class="p-3 font-semibold">Security Access Key</th><th class="p-3">Allotted Work Node Location</th><th class="p-3 text-right">Base Salary</th><th class="p-3 text-right text-red-400">Voucher Penalties</th><th class="p-3 text-right text-blue-400">Net Earned Payroll</th><th class="p-3 text-center">Operations</th></tr>
-                            ${dbStaff.map(s => {
-                                const penalty = dbDeductions[s.name] || 0;
-                                const presentDays = dbAttendance.filter(a => a.staffName === s.name && a.status === 'PRESENT').length;
-                                const calculatedGross = (Number(s.baseSalary) / 30) * (presentDays === 0 ? 30 : presentDays);
-                                const finalNetEarnings = Math.max(0, calculatedGross - penalty).toFixed(0);
-
-                                return `
-                                    <tr class="border-b border-borderGray hover:bg-gray-800/20">
-                                        <td class="p-3 text-white font-bold">${s.name}</td>
-                                        <td class="p-3"><span class="bg-darkBg border border-borderGray px-2 py-0.5 rounded text-gray-300 font-medium">${s.role}</span></td>
-                                        <td class="p-3 font-mono text-gray-500">${s.pass}</td>
-                                        <td class="p-3 text-gray-300 font-medium truncate max-w-[150px]">${s.allottedWork || 'All Site Nodes'}</td>
-                                        <td class="p-3 text-right font-mono">₹${Number(s.baseSalary).toLocaleString()}</td>
-                                        <td class="p-3 text-right text-red-400 font-bold">-₹${penalty.toLocaleString()}</td>
-                                        <td class="p-3 text-right font-mono font-extrabold text-blue-400 text-sm">₹${Number(finalNetEarnings).toLocaleString()}</td>
-                                        <td class="p-3 text-center">
-                                            <div class="flex items-center justify-center space-x-1">
-                                                <button onclick="editStaffAction('${s.id}')" class="bg-gray-800 text-gray-200 px-2 py-0.5 rounded font-bold">Modify</button>
-                                                <button onclick="deleteStaffAction('${s.id}')" class="bg-red-950/40 text-red-400 border border-red-900/60 px-2 py-0.5 rounded font-bold">Purge</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                `;
+                            <table class="w-full text-left text-xs"><tr class="bg-darkBg text-gray-400 border-b border-borderGray uppercase font-bold"><th class="p-3">Identity Name Name</th><th class="p-3">Designation Role</th><th class="p-3">Access Key</th><th class="p-3">Allotted Construction Work Location</th><th class="p-3 text-right">Base Salary</th><th class="p-3 text-right text-red-400">Penalties</th><th class="p-3 text-right text-blue-400">Net Final Earned</th><th class="p-3 text-center font-bold">Operations</th></tr>
+                            ${dbStaff.map(s => { const penalty = dbDeductions[s.name] || 0; const totalInShift = dbAttendance.filter(a => a.staffName === s.name && a.status === 'PRESENT').length; const gross = (Number(s.baseSalary)/30) * (totalInShift===0?30:totalInShift);
+                                return `<tr class="border-b border-borderGray hover:bg-gray-800/20"><td class="p-3 text-white font-bold">${s.name}</td><td class="p-3"><span class="bg-darkBg border border-borderGray px-2 py-0.5 rounded text-gray-300">${s.role}</span></td><td class="p-3 font-mono text-gray-500">${s.pass}</td><td class="p-3 text-gray-300 font-medium truncate max-w-[150px]">${s.allottedWork || 'All Site Nodes'}</td><td class="p-3 text-right font-mono">₹${Number(s.baseSalary).toLocaleString()}</td><td class="p-3 text-right text-red-400 font-bold">-₹${penalty.toLocaleString()}</td><td class="p-3 text-right font-mono font-extrabold text-blue-400 text-sm">₹${Math.max(0, gross - penalty).toFixed(0)}</td><td class="p-3 text-center"><div class="flex items-center justify-center space-x-1"><button onclick="editStaffAction('${s.id}')" class="bg-gray-800 text-gray-200 px-2 py-0.5 rounded font-bold">Modify</button><button onclick="deleteStaffAction('${s.id}')" class="bg-red-950/40 text-red-400 border border-red-900/60 px-2 py-0.5 rounded font-bold">Purge</button></div></td></tr>`;
                             }).join('')}
                             </table>
                         </div>
@@ -539,32 +435,15 @@
                             <form id="s-form" class="space-y-3">
                                 <input type="hidden" id="s-edit-id">
                                 <div><label class="text-gray-400 block mb-1">Full Identity Name ID</label><input type="text" id="s-name" placeholder="e.g. Hitesh Jain" required class="w-full bg-darkBg border border-borderGray rounded p-2 text-white font-medium"></div>
-                                <div>
-                                    <label class="text-gray-400 block mb-1">Workspace Clearance Designation</label>
-                                    <select id="s-role" class="w-full bg-darkBg border border-borderGray rounded p-2 text-white">
-                                        <option value="Engineer">Civil Site Engineer</option>
-                                        <option value="Accountant">Accountant / Quantity Surveyor</option>
-                                        <option value="Supervisor">Site Supervisor</option>
-                                    </select>
-                                </div>
-                                <div><label class="text-gray-400 block mb-1">Assigned Security Key (Password)</label><input type="text" id="s-pass" required class="w-full bg-darkBg border border-borderGray rounded p-2 text-white"></div>
-                                <div>
-                                    <label class="text-gray-400 block mb-1">Allot Construction Site Node Work</label>
-                                    <select id="s-work" class="w-full bg-darkBg border border-borderGray rounded p-2 text-white">
-                                        <option value="All Site Nodes">Global Allotment (All Sites)</option>
-                                        ${dbProjects.map(p => `<option value="${p.name}">${p.name}</option>`).join('')}
-                                    </select>
-                                </div>
+                                <div><label class="text-gray-400 block mb-1">Clearance Designation</label><select id="s-role" class="w-full bg-darkBg border border-borderGray rounded p-2 text-white"><option value="Engineer">Civil Site Engineer</option><option value="Accountant">Accountant / Quantity Surveyor</option><option value="Supervisor">Site Supervisor</option></select></div>
+                                <div><label class="text-gray-400 block mb-1">Assigned Security Password</label><input type="text" id="s-pass" required class="w-full bg-darkBg border border-borderGray rounded p-2 text-white"></div>
+                                <div><label class="text-gray-400 block mb-1">Allot Construction Site Node Work</label><select id="s-work" class="w-full bg-darkBg border border-borderGray rounded p-2 text-white"><option value="All Site Nodes">Global Allotment (All Sites)</option>${dbProjects.map(p => `<option value="${p.name}">${p.name}</option>`).join('')}</select></div>
                                 <div><label class="text-gray-400 block mb-1">Initial Base Monthly Salary (₹)</label><input type="number" id="s-salary" required class="w-full bg-darkBg border border-borderGray rounded p-2 text-white font-mono"></div>
-                                <div class="flex justify-end space-x-2 pt-2">
-                                    <button type="button" onclick="closeModal('s-mod')" class="bg-gray-800 p-2 rounded text-gray-300">Cancel</button>
-                                    <button type="submit" class="bg-blue-600 p-2 rounded text-white font-bold">Commit Profile Configuration</button>
-                                </div>
+                                <div class="flex justify-end space-x-2 pt-2"><button type="button" onclick="closeModal('s-mod')" class="bg-gray-800 p-2 rounded text-gray-300">Cancel</button><button type="submit" class="bg-blue-600 p-2 rounded text-white font-bold">Commit Profile</button></div>
                             </form>
                         </div>
                     </div>
                 `;
-
                 document.getElementById('s-form')?.addEventListener('submit', function(e){
                     e.preventDefault(); const id = document.getElementById('s-edit-id').value; const name = document.getElementById('s-name').value.trim(); const role = document.getElementById('s-role').value; const pass = document.getElementById('s-pass').value.trim(); const allottedWork = document.getElementById('s-work').value; const baseSalary = Number(document.getElementById('s-salary').value);
                     let staffList = JSON.parse(localStorage.getItem('vantage_staff'));
@@ -573,13 +452,9 @@
                     localStorage.setItem('vantage_staff', JSON.stringify(staffList)); closeModal('s-mod'); renderERP();
                 });
             }
-
-            else {
-                container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-8 text-center font-bold text-gray-600 uppercase tracking-widest">[ Module Security Clearance Active ]</div>`;
-            }
         }
 
-        // --- 5. SYSTEM FUNCTION ACTION HANDLERS INTERFACES ---
+        // --- 5. DATA LOG PARAMETERS INTERFACES HANDLERS ---
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
         function openProjectModal() { document.getElementById('p-form').reset(); document.getElementById('p-edit-id').value = ""; document.getElementById('modal-project-title').innerText = "Provision New Construction Node"; openModal('p-mod'); }
@@ -594,7 +469,7 @@
         }
 
         function deleteProjectAction(id) {
-            if (confirm("🚨 PURGE PROJECT FOREVER FROM STREAMS?")) {
+            if (confirm("🚨 PURGE PROJECT FOREVER?")) {
                 let p = JSON.parse(localStorage.getItem('vantage_projects')).filter(x => x.id !== id);
                 localStorage.setItem('vantage_projects', JSON.stringify(p)); renderERP();
             }
@@ -618,66 +493,41 @@
         }
 
         function confirmMaterialReceipt(id) {
-            let mats = JSON.parse(localStorage.getItem('vantage_materials')) || [];
-            const targeted = mats.find(x => x.id === id);
-            if(targeted) { targeted.received = true; localStorage.setItem('vantage_materials', JSON.stringify(mats)); alert("Logistics Acknowledged: Entry Approved."); renderERP(); }
+            let mats = JSON.parse(localStorage.getItem('vantage_materials')) || []; const t = mats.find(x => x.id === id);
+            if(t) { t.received = true; localStorage.setItem('vantage_materials', JSON.stringify(mats)); alert("Logistics Received Successfully."); renderERP(); }
         }
 
         function triggerOdoPunch(type) {
-            const reading = prompt(`Enter Current Vehicle Odometer Dashboard Reading for ${type} Shift (in km Metric):`);
+            const reading = prompt(`Enter Current Vehicle Odometer Dashboard Reading for ${type} Shift (in km):`);
             if(!reading || isNaN(reading)) return;
-
             let odoList = JSON.parse(localStorage.getItem('vantage_odometer')) || [];
-            if(type === 'Morning') {
-                odoList.unshift({ id: 'o_'+Date.now(), user: currentUser.name, morning: reading, evening:'', cleared: false });
-            } else {
-                const activeRecord = odoList.find(x => x.user === currentUser.name && x.evening === '');
-                if(activeRecord) { activeRecord.evening = reading; } 
-                else { alert("Configuration Error: Active Morning Shift Matrix entry missing."); return; }
-            }
-            localStorage.setItem('vantage_odometer', JSON.stringify(odoList)); alert(`${type} Odometer Parameters Logged successfully.`); renderERP();
+            if(type === 'Morning') { odoList.unshift({ id: 'o_'+Date.now(), user: currentUser.name, morning: reading, evening:'', cleared: false }); } 
+            else { const activeRecord = odoList.find(x => x.user === currentUser.name && x.evening === ''); if(activeRecord) { activeRecord.evening = reading; } else { alert("Error: Morning Entry missing."); return; } }
+            localStorage.setItem('vantage_odometer', JSON.stringify(odoList)); alert(`${type} Odometer Parameters Logged.`); renderERP();
         }
 
         function clearFuelVoucher(id, operatorName) {
-            let odoList = JSON.parse(localStorage.getItem('vantage_odometer')) || [];
-            const target = odoList.find(x=>x.id===id);
-            if(target) {
-                target.cleared = true; localStorage.setItem('vantage_odometer', JSON.stringify(odoList));
-                const notes = JSON.parse(localStorage.getItem('vantage_notifications')) || {};
-                notes[operatorName] = "Fuel expenses cleared! Your daily fleet maintenance voucher claim has been APPROVED and cleared by the central office accounts team.";
-                localStorage.setItem('vantage_notifications', JSON.stringify(notes));
-                renderERP();
-            }
+            let odoList = JSON.parse(localStorage.getItem('vantage_odometer')) || []; const target = odoList.find(x=>x.id===id);
+            if(target) { target.cleared = true; localStorage.setItem('vantage_odometer', JSON.stringify(odoList));
+                const notes = JSON.parse(localStorage.getItem('vantage_notifications')) || {}; notes[operatorName] = "Fuel expenses cleared! APPROVED by office.";
+                localStorage.setItem('vantage_notifications', JSON.stringify(notes)); renderERP(); }
         }
 
         function auditVoucherExpense(id, decision) {
-            let financials = JSON.parse(localStorage.getItem('vantage_financials')) || [];
-            const record = financials.find(x => x.id === id); if(!record) return;
+            let financials = JSON.parse(localStorage.getItem('vantage_financials')) || []; const record = financials.find(x => x.id === id); if(!record) return;
             record.status = decision; localStorage.setItem('vantage_financials', JSON.stringify(financials));
-
             if(decision === 'Rejected') {
-                let d = JSON.parse(localStorage.getItem('vantage_deductions')) || {}; d[record.user] = (d[record.user]||0) + record.amount;
-                localStorage.setItem('vantage_deductions', JSON.stringify(d));
-                const notes = JSON.parse(localStorage.getItem('vantage_notifications')) || {};
-                notes[record.user] = `🚨 AUDIT WARNING: Site expense voucher of ₹${record.amount.toLocaleString()} for '${record.desc}' was UNAPPROVED. Amount has been DEDUCTED from your final monthly payroll salary matrix automatically.`;
+                let d = JSON.parse(localStorage.getItem('vantage_deductions')) || {}; d[record.user] = (d[record.user]||0) + record.amount; localStorage.setItem('vantage_deductions', JSON.stringify(d));
+                const notes = JSON.parse(localStorage.getItem('vantage_notifications')) || {}; notes[record.user] = `🚨 AUDIT WARNING: Site expense voucher of ₹${record.amount.toLocaleString()} was UNAPPROVED and DEDUCTED from salary.`;
                 localStorage.setItem('vantage_notifications', JSON.stringify(notes));
-            }
-            renderERP();
+            } renderERP();
         }
 
         function executeShiftPunch(type) {
-            const dayString = new Date().toISOString().split('T')[0];
-            const timeString = new Date().toLocaleTimeString();
-            let attList = JSON.parse(localStorage.getItem('vantage_attendance')) || [];
-            let currentShift = attList.find(a => a.staffName === currentUser.name && a.date === dayString);
-
-            if(type === 'In') {
-                if(!currentShift) { attList.unshift({ staffName: currentUser.name, date: dayString, punchIn: timeString, punchOut: '', status: 'PRESENT' }); }
-                alert("☀️ Morning Shift Authentication Complete.");
-            } else {
-                if(currentShift) { currentShift.punchOut = timeString; }
-                alert("🌙 Evening Shift Execution Closed. Shift Timeline Saved.");
-            }
+            const dayString = new Date().toISOString().split('T')[0]; const timeString = new Date().toLocaleTimeString();
+            let attList = JSON.parse(localStorage.getItem('vantage_attendance')) || []; let currentShift = attList.find(a => a.staffName === currentUser.name && a.date === dayString);
+            if(type === 'In') { if(!currentShift) { attList.unshift({ staffName: currentUser.name, date: dayString, punchIn: timeString, punchOut: '', status: 'PRESENT' }); } alert("☀️ Morning Shift Authenticated."); } 
+            else { if(currentShift) { currentShift.punchOut = timeString; } alert("🌙 Evening Shift Closed."); }
             localStorage.setItem('vantage_attendance', JSON.stringify(attList)); renderERP();
         }
 
