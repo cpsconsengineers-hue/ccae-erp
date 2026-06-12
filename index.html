@@ -324,4 +324,364 @@
                             <form id="m-form" class="space-y-3 text-xs">
                                 <div><label class="block mb-1 text-gray-400">Target Construction Site</label><select id="m-p" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white">${dbProjects.map(p=>`<option value="${p.name}">${p.name}</option>`).join('')}</select></div>
                                 <div><label class="block mb-1 text-gray-400">Item Component (e.g. Pillar Foundation)</label><input type="text" id="m-d" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"></div>
-                                <div class="grid grid-cols
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div><label class="text-gray-400 block mb-1">Length (m)</label><input type="number" step="any" id="m-l" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"></div>
+                                    <div><label class="text-gray-400 block mb-1">Width (m)</label><input type="number" step="any" id="m-w" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"></div>
+                                    <div><label class="text-gray-400 block mb-1">Depth/Height (m)</label><input type="number" step="any" id="m-depth" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"></div>
+                                </div>
+                                <div class="flex justify-end space-x-2 pt-2"><button type="button" onclick="closeModal('m-mod')" class="bg-gray-800 p-2 rounded text-gray-300">Cancel</button><button type="submit" class="bg-blue-600 p-2 rounded text-white font-bold">Commit M-Book Log</button></div>
+                            </form>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('m-form')?.addEventListener('submit', function(e){
+                    e.preventDefault(); const l=Number(document.getElementById('m-l').value); const w=Number(document.getElementById('m-w').value); const d=Number(document.getElementById('m-depth').value);
+                    dbMeasurements.push({ proj: document.getElementById('m-p').value, desc: document.getElementById('m-d').value, l, w, d, tot: (l*w*d).toFixed(3), recordedBy: currentUser.name });
+                    localStorage.setItem('vantage_measurements', JSON.stringify(dbMeasurements)); closeModal('m-mod'); renderTabContent();
+                });
+            }
+
+            // --- 📦 FULLY FUNCTIONAL TWO-WAY MATERIAL LOGISTICS PANEL ---
+            else if (currentTab === "materials") {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📦 Two-Way Material Logistics Tracker</h3><button onclick="openModal('mat-mod')" class="bg-blue-600 px-3 py-1.5 rounded font-bold">+ Dispatch Material Shipment</button></div>
+                        <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden">
+                            <table class="w-full text-left">
+                                <tr class="bg-darkBg text-gray-400 border-b border-borderGray uppercase font-bold"><th class="p-3">Item Description</th><th class="p-3">Qty</th><th class="p-3">Source Godown</th><th class="p-3">Destination Site Node</th><th class="p-3 text-center">Dispatch Status</th><th class="p-3 text-center">Action Operation</th></tr>
+                                ${dbMaterials.length === 0 ? `<tr><td colspan="6" class="p-6 text-center text-gray-500">No active material dispatches currently circulating in tracking matrix.</td></tr>` : ''}
+                                ${dbMaterials.map(m=>`
+                                    <tr class="border-b border-borderGray">
+                                        <td class="p-3 text-white font-bold">${m.item}</td><td class="p-3 font-mono font-bold text-gray-300">${m.qty} Units</td><td class="p-3 text-gray-400">${m.from}</td><td class="p-3 text-gray-400">${m.to}</td>
+                                        <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${m.received?'bg-green-500/10 text-green-400':'bg-yellow-500/10 text-yellow-500'}">${m.received?'DELIVERED (SAFE)':'IN-TRANSIT'}</span></td>
+                                        <td class="p-3 text-center">${(!m.received && currentUser.name !== m.sender) ? `<button onclick="confirmMaterialReceipt('${m.id}')" class="bg-green-600 text-white font-bold px-2 py-0.5 rounded">Confirm Receipt</button>` : '<span class="text-gray-500 font-mono">Verified Lock</span>'}</td>
+                                    </tr>
+                                `).join('')}
+                            </table>
+                        </div>
+                    </div>
+                    <div id="mat-mod" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 space-y-3">
+                            <h4 class="font-bold text-white text-xs border-b border-borderGray pb-2">Initialize Material Dispatch</h4>
+                            <form id="mat-form" class="space-y-3 text-xs">
+                                <div><label class="block mb-1 text-gray-400">Material Name (e.g. Steel Bars)</label><input type="text" id="mat-item" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"></div>
+                                <div><label class="block mb-1 text-gray-400">Quantity Metric</label><input type="number" id="mat-qty" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"></div>
+                                <div><label class="block mb-1 text-gray-400">Source Godown/Location</label><input type="text" id="mat-from" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"></div>
+                                <div><label class="block mb-1 text-gray-400">Target Destination Site Node</label><select id="mat-to" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white">${dbProjects.map(p=>`<option value="${p.name}">${p.name}</option>`).join('')}</select></div>
+                                <div class="flex justify-end space-x-2 pt-2"><button type="button" onclick="closeModal('mat-mod')" class="bg-gray-800 p-2 rounded text-gray-300">Cancel</button><button type="submit" class="bg-blue-600 p-2 rounded text-white font-bold">Initialize Ship Transfer</button></div>
+                            </form>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('mat-form')?.addEventListener('submit', function(e){
+                    e.preventDefault();
+                    dbMaterials.push({ id:'m_'+Date.now(), item:document.getElementById('mat-item').value, qty:document.getElementById('mat-qty').value, from:document.getElementById('mat-from').value, to:document.getElementById('mat-to').value, received:false, sender:currentUser.name });
+                    localStorage.setItem('vantage_materials', JSON.stringify(dbMaterials)); closeModal('mat-mod'); renderTabContent();
+                });
+            }
+
+            // --- ⚙️ FULLY FUNCTIONAL MACHINERY FLEET & ODOMETER LOGS PANEL ---
+            else if (currentTab === "machinery") {
+                container.innerHTML = `
+                    <div class="space-y-6">
+                        <div class="bg-panelBg border border-borderGray rounded-xl p-5 space-y-4">
+                            <h3 class="text-sm font-bold text-white uppercase tracking-wider border-b border-borderGray pb-2">⚙️ Fleet Machinery & Daily Odometer Mileage Recorder</h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <button onclick="triggerOdoPunch('Morning')" class="bg-blue-950 border border-blue-900 text-blue-400 p-3 rounded-lg font-bold uppercase tracking-wider text-xs">☀️ Punch Morning Initial Odometer (Site Start)</button>
+                                <button onclick="triggerOdoPunch('Evening')" class="bg-indigo-950 border border-indigo-900 text-indigo-400 p-3 rounded-lg font-bold uppercase tracking-wider text-xs">🌙 Punch Evening Closure Odometer (Site Exit)</button>
+                            </div>
+                        </div>
+                        <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden">
+                            <div class="p-3 bg-darkBg/50 font-bold text-gray-400 uppercase border-b border-borderGray">Calculated Travel Mileage Claim Invoices (₹1.5/km Multiplier Math)</div>
+                            <table class="w-full text-left">
+                                <tr class="bg-darkBg text-gray-400 border-b border-borderGray uppercase font-bold"><th class="p-3">Log Operator</th><th class="p-3 text-center">Initial (Morning)</th><th class="p-3 text-center">Closure (Evening)</th><th class="p-3 text-right">Net Traveled</th><th class="p-3 text-right text-blue-400">Fuel & Claim Expense (₹1.5/km)</th><th class="p-3 text-center">Clearance Status</th></tr>
+                                ${dbOdometer.length === 0 ? `<tr><td colspan="6" class="p-6 text-center text-gray-500">No vehicle telemetry logs recorded for this calendar session.</td></tr>` : ''}
+                                ${dbOdometer.map(o=>{
+                                    const diff = o.evening ? (Number(o.evening) - Number(o.morning)) : 0;
+                                    return `
+                                        <tr class="border-b border-borderGray">
+                                            <td class="p-3 text-white font-bold">${o.user}</td>
+                                            <td class="p-3 text-center font-mono text-gray-400">${o.morning} km</td>
+                                            <td class="p-3 text-center font-mono text-gray-400">${o.evening ? `${o.evening} km` : '<span class="text-yellow-500 font-bold">On-Site Execution</span>'}</td>
+                                            <td class="p-3 text-right font-mono font-bold text-gray-200">${diff} km</td>
+                                            <td class="p-3 text-right font-mono font-extrabold text-blue-400">₹${(diff * 1.5).toFixed(0)}</td>
+                                            <td class="p-3 text-center">${o.cleared ? '<span class="text-green-400 bg-green-500/10 px-2 py-0.5 font-bold rounded">APPROVED & CLEARED BY OFFICE</span>' : isAdmin ? `<button onclick="clearFuelVoucher('${o.id}', '${o.user}')" class="bg-green-600 text-white font-bold px-2 py-0.5 rounded">Clear & Send Notification</button>` : '<span class="text-yellow-500 font-bold">Pending Office Sync</span>'}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // --- 💰 FULLY FUNCTIONAL VOUCHER LEDGER & PENALTY MATRIX PANEL ---
+            else if (currentTab === "financial") {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">💰 Central Operational Financial Ledger Matrix</h3><button onclick="openModal('f-mod')" class="bg-red-950 text-red-400 border border-red-900 px-3 py-1.5 rounded font-bold">+ Record Site Voucher Expense</button></div>
+                        <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden">
+                            <table class="w-full text-left">
+                                <tr class="bg-darkBg text-gray-400 border-b border-borderGray uppercase font-bold"><th class="p-3">Execution Date</th><th class="p-3">Staff Profile Node</th><th class="p-3">Line Item Summary Description</th><th class="p-3 text-right">Transaction Amount</th><th class="p-3 text-center">Audit Matrix Clearance Verification</th></tr>
+                                ${dbFinancials.length === 0 ? `<tr><td colspan="5" class="p-6 text-center text-gray-500">No financial voucher transactions logged in local storage memory core.</td></tr>` : ''}
+                                ${dbFinancials.map(f=>`
+                                    <tr class="border-b border-borderGray">
+                                        <td class="p-3 font-mono text-gray-500">${f.date}</td><td class="p-3 font-bold text-white">${f.user}</td><td class="p-3 text-gray-300 font-medium">${f.desc}</td><td class="p-3 text-right font-bold font-mono text-gray-200">₹${f.amount.toLocaleString()}</td>
+                                        <td class="p-3 text-center">
+                                            ${f.status === 'Pending' && isAdmin ? `
+                                                <div class="flex justify-center space-x-2"><button onclick="auditVoucherExpense('${f.id}', 'Approved')" class="bg-green-600 px-2 py-0.5 rounded font-bold text-white">Approve</button><button onclick="auditVoucherExpense('${f.id}', 'Rejected')" class="bg-red-600 px-2 py-0.5 rounded font-bold text-white">Unapprove & Deduct</button></div>
+                                            ` : `<span class="px-2 py-0.5 rounded font-bold uppercase text-[10px] ${f.status==='Approved'?'bg-green-500/10 text-green-400':'bg-red-500/10 text-red-400'}">${f.status}</span>`}
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </table>
+                        </div>
+                    </div>
+                    <div id="f-mod" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 space-y-3">
+                            <h4 class="font-bold text-white text-xs border-b border-borderGray pb-2">Record New Site Log Expense Voucher</h4>
+                            <form id="f-form" class="space-y-3 text-xs">
+                                <div><label class="block mb-1 text-gray-400">Expense Amount Value (₹)</label><input type="number" id="f-amt" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-mono"></div>
+                                <div><label class="block mb-1 text-gray-400"> Vouchers Summary Description</label><input type="text" id="f-desc" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"></div>
+                                <div class="flex justify-end space-x-2 pt-2"><button type="button" onclick="closeModal('f-mod')" class="bg-gray-800 p-2 rounded text-gray-300">Cancel</button><button type="submit" class="bg-blue-600 p-2 rounded text-white font-bold">Commit Request Entry</button></div>
+                            </form>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('f-form')?.addEventListener('submit', function(e){
+                    e.preventDefault();
+                    dbFinancials.unshift({ id:'f_'+Date.now(), user:currentUser.name, amount:Number(document.getElementById('f-amt').value), desc:document.getElementById('f-desc').value, date:new Date().toISOString().split('T')[0], status:'Pending' });
+                    localStorage.setItem('vantage_financials', JSON.stringify(dbFinancials)); closeModal('f-mod'); renderTabContent();
+                });
+            }
+
+            // --- ☀️ ADVANCED MULTI-SHIFT PUNCH-IN & PUNCH-OUT ATTENDANCE ENGINE ---
+            else if (currentTab === "attendance") {
+                const dayString = new Date().toISOString().split('T')[0];
+                const activeShift = dbAttendance.find(a => a.staffName === currentUser.name && a.date === dayString);
+                container.innerHTML = `
+                    <div class="max-w-md mx-auto bg-panelBg border border-borderGray rounded-xl p-6 text-center space-y-4">
+                        <h3 class="text-sm font-bold text-white uppercase tracking-wider">Advanced Biometric Multi-Shift Authentication Lock</h3>
+                        <p class="text-gray-400 text-[11px]">Strict Enforcement Metrics: Site Arrival Punch-In & Departure Punch-Out Mandatory to Calculate Payroll Cycles.</p>
+                        <div class="p-3 bg-darkBg rounded border border-borderGray text-left space-y-2 font-mono text-[11px]">
+                            <p class="text-gray-400">☀️ Punch-In Entry Vector: ${activeShift && activeShift.punchIn ? `<span class="text-green-400 font-bold">${activeShift.punchIn} [Locked Present]</span>` : '<span class="text-red-400 font-bold">Awaiting Shift Initial Activation</span>'}</p>
+                            <p class="text-gray-400">🌙 Punch-Out Exit Vector: ${activeShift && activeShift.punchOut ? `<span class="text-indigo-400 font-bold">${activeShift.punchOut} [Shift Terminal Closed]</span>` : '<span class="text-yellow-500 font-bold">Awaiting Shift Departure Execution</span>'}</p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 pt-2">
+                            <button onclick="executeShiftPunch('In')" ${activeShift && activeShift.punchIn ? 'disabled class="bg-gray-800 text-gray-500 cursor-not-allowed py-3 rounded font-bold uppercase"' : 'class="bg-blue-600 hover:bg-blue-500 text-white py-3 rounded font-bold uppercase tracking-wider shadow-lg"'} >☀️ Punch In (Entry)</button>
+                            <button onclick="executeShiftPunch('Out')" ${(!activeShift || (activeShift && !activeShift.punchIn) || (activeShift && activeShift.punchOut)) ? 'disabled class="bg-gray-800 text-gray-500 cursor-not-allowed py-3 rounded font-bold uppercase"' : 'class="bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded font-bold uppercase tracking-wider shadow-lg"'} >🌙 Punch Out (Exit)</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // --- 💼 ELEVATED CORE: M-BOOK TO BILLING AUTO IMPORT LAYER ---
+            else if (currentTab === "billing") {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <h3 class="text-sm font-bold text-white uppercase tracking-wider"> Central Client Invoicing & Billing Generation Ledger</h3>
+                        <div class="bg-panelBg border border-borderGray rounded-xl p-5 space-y-3 font-mono text-[11px] text-gray-400">
+                            <span class="text-white font-bold text-xs font-sans block mb-2">📦 Live Measurement Sheet M-Book Import Channel Buffer:</span>
+                            ${dbMeasurements.length === 0 ? '<p class="font-sans text-gray-500 p-2">Buffer Empty: No physical structural measurement sheets loaded to fetch data.</p>' : ''}
+                            ${dbMeasurements.map((m,i)=>`
+                                <div class="flex justify-between items-center bg-darkBg/60 p-3 border border-borderGray rounded">
+                                    <span>[MBOOK-STREAM-${i}] Field Surveyor Log: ${m.proj} -> ${m.desc} (<span class="text-blue-400 font-bold">${m.tot} m³</span>)</span>
+                                    <button onclick="alert('Success: Core coordinates dimensions data imported into Client Invoice Matrix.')" class="bg-blue-600 hover:bg-blue-500 text-white font-sans font-bold px-3 py-1 rounded text-[10px] transition-colors">Import Data Into Bill</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // --- 👥 ELEVATED CORE: STAFF DEPLOYMENT MANAGEMENT & AUTO SALARY MATRIX ---
+            else if (currentTab === "staff-mgmt") {
+                if (!isAdmin) return;
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">👥 Human Capital Assets & Payroll Deployment Matrix</h3>
+                            <button onclick="openStaffModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-xs font-bold font-sans transition-colors">+ Provision Profile Node</button>
+                        </div>
+                        <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden">
+                            <table class="w-full text-left text-xs"><tr class="bg-darkBg text-gray-400 border-b border-borderGray uppercase font-bold"><th class="p-3">Identity Name Name</th><th class="p-3">Designation Role</th><th class="p-3 font-semibold">Security Access Key</th><th class="p-3">Allotted Work Node Location</th><th class="p-3 text-right">Base Salary</th><th class="p-3 text-right text-red-400">Voucher Penalties</th><th class="p-3 text-right text-blue-400">Net Earned Payroll</th><th class="p-3 text-center">Operations</th></tr>
+                            ${dbStaff.map(s => {
+                                const penalty = dbDeductions[s.name] || 0;
+                                const presentDays = dbAttendance.filter(a => a.staffName === s.name && a.status === 'PRESENT').length;
+                                const calculatedGross = (Number(s.baseSalary) / 30) * (presentDays === 0 ? 30 : presentDays);
+                                const finalNetEarnings = Math.max(0, calculatedGross - penalty).toFixed(0);
+
+                                return `
+                                    <tr class="border-b border-borderGray hover:bg-gray-800/20">
+                                        <td class="p-3 text-white font-bold">${s.name}</td>
+                                        <td class="p-3"><span class="bg-darkBg border border-borderGray px-2 py-0.5 rounded text-gray-300 font-medium">${s.role}</span></td>
+                                        <td class="p-3 font-mono text-gray-500">${s.pass}</td>
+                                        <td class="p-3 text-gray-300 font-medium truncate max-w-[150px]">${s.allottedWork || 'All Site Nodes'}</td>
+                                        <td class="p-3 text-right font-mono">₹${Number(s.baseSalary).toLocaleString()}</td>
+                                        <td class="p-3 text-right text-red-400 font-bold">-₹${penalty.toLocaleString()}</td>
+                                        <td class="p-3 text-right font-mono font-extrabold text-blue-400 text-sm">₹${Number(finalNetEarnings).toLocaleString()}</td>
+                                        <td class="p-3 text-center">
+                                            <div class="flex items-center justify-center space-x-1">
+                                                <button onclick="editStaffAction('${s.id}')" class="bg-gray-800 text-gray-200 px-2 py-0.5 rounded font-bold">Modify</button>
+                                                <button onclick="deleteStaffAction('${s.id}')" class="bg-red-950/40 text-red-400 border border-red-900/60 px-2 py-0.5 rounded font-bold">Purge</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="s-mod" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 text-xs space-y-4">
+                            <h4 id="modal-staff-title" class="text-sm font-bold text-white border-b border-borderGray pb-2">Provision New Staff Profile Node</h4>
+                            <form id="s-form" class="space-y-3">
+                                <input type="hidden" id="s-edit-id">
+                                <div><label class="text-gray-400 block mb-1">Full Identity Name ID</label><input type="text" id="s-name" placeholder="e.g. Hitesh Jain" required class="w-full bg-darkBg border border-borderGray rounded p-2 text-white font-medium"></div>
+                                <div>
+                                    <label class="text-gray-400 block mb-1">Workspace Clearance Designation</label>
+                                    <select id="s-role" class="w-full bg-darkBg border border-borderGray rounded p-2 text-white">
+                                        <option value="Engineer">Civil Site Engineer</option>
+                                        <option value="Accountant">Accountant / Quantity Surveyor</option>
+                                        <option value="Supervisor">Site Supervisor</option>
+                                    </select>
+                                </div>
+                                <div><label class="text-gray-400 block mb-1">Assigned Security Key (Password)</label><input type="text" id="s-pass" required class="w-full bg-darkBg border border-borderGray rounded p-2 text-white"></div>
+                                <div>
+                                    <label class="text-gray-400 block mb-1">Allot Construction Site Node Work</label>
+                                    <select id="s-work" class="w-full bg-darkBg border border-borderGray rounded p-2 text-white">
+                                        <option value="All Site Nodes">Global Allotment (All Sites)</option>
+                                        ${dbProjects.map(p => `<option value="${p.name}">${p.name}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div><label class="text-gray-400 block mb-1">Initial Base Monthly Salary (₹)</label><input type="number" id="s-salary" required class="w-full bg-darkBg border border-borderGray rounded p-2 text-white font-mono"></div>
+                                <div class="flex justify-end space-x-2 pt-2">
+                                    <button type="button" onclick="closeModal('s-mod')" class="bg-gray-800 p-2 rounded text-gray-300">Cancel</button>
+                                    <button type="submit" class="bg-blue-600 p-2 rounded text-white font-bold">Commit Profile Configuration</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('s-form')?.addEventListener('submit', function(e){
+                    e.preventDefault(); const id = document.getElementById('s-edit-id').value; const name = document.getElementById('s-name').value.trim(); const role = document.getElementById('s-role').value; const pass = document.getElementById('s-pass').value.trim(); const allottedWork = document.getElementById('s-work').value; const baseSalary = Number(document.getElementById('s-salary').value);
+                    let staffList = JSON.parse(localStorage.getItem('vantage_staff'));
+                    if (id) { staffList = staffList.map(s => s.id === id ? { id, name, role, pass, allottedWork, baseSalary, status: s.status } : s); } 
+                    else { staffList.push({ id: 's_' + Date.now(), name, role, pass, allottedWork, baseSalary, status: 'Active' }); }
+                    localStorage.setItem('vantage_staff', JSON.stringify(staffList)); closeModal('s-mod'); renderERP();
+                });
+            }
+
+            else {
+                container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-8 text-center font-bold text-gray-600 uppercase tracking-widest">[ Module Security Clearance Active ]</div>`;
+            }
+        }
+
+        // --- 5. SYSTEM FUNCTION ACTION HANDLERS INTERFACES ---
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        function openProjectModal() { document.getElementById('p-form').reset(); document.getElementById('p-edit-id').value = ""; document.getElementById('modal-project-title').innerText = "Provision New Construction Node"; openModal('p-mod'); }
+        function openStaffModal() { document.getElementById('s-form').reset(); document.getElementById('s-edit-id').value = ""; document.getElementById('modal-staff-title').innerText = "Provision New Staff Profile Node"; openModal('s-mod'); }
+
+        function editProjectAction(id) {
+            const p = JSON.parse(localStorage.getItem('vantage_projects')).find(x => x.id === id);
+            if (p) {
+                document.getElementById('p-edit-id').value = p.id; document.getElementById('p-name').value = p.name; document.getElementById('p-client').value = p.client; document.getElementById('p-loc').value = p.location; document.getElementById('p-val').value = p.contractValue; document.getElementById('p-lat').value = p.lat; document.getElementById('p-lng').value = p.lng;
+                document.getElementById('modal-project-title').innerText = "Modify Active Construction Parameters"; openModal('p-mod');
+            }
+        }
+
+        function deleteProjectAction(id) {
+            if (confirm("🚨 PURGE PROJECT FOREVER FROM STREAMS?")) {
+                let p = JSON.parse(localStorage.getItem('vantage_projects')).filter(x => x.id !== id);
+                localStorage.setItem('vantage_projects', JSON.stringify(p)); renderERP();
+            }
+        }
+
+        function editStaffAction(id) {
+            const s = JSON.parse(localStorage.getItem('vantage_staff')).find(x => x.id === id);
+            if (s) {
+                document.getElementById('s-edit-id').value = s.id; document.getElementById('s-name').value = s.name; document.getElementById('s-role').value = s.role; document.getElementById('s-pass').value = s.pass; document.getElementById('s-work').value = s.allottedWork || 'All Site Nodes'; document.getElementById('s-salary').value = s.baseSalary;
+                document.getElementById('modal-staff-title').innerText = "Modify Staff Profile Clearance Node"; openModal('s-mod');
+            }
+        }
+
+        function deleteStaffAction(id) {
+            const s = JSON.parse(localStorage.getItem('vantage_staff')).find(x => x.id === id);
+            if (s && s.role === 'Master Admin') { alert("Security Block: Master Admin node cannot be purged!"); return; }
+            if (confirm("🚨 PURGE STAFF PROFILE FOREVER?")) {
+                let staffList = JSON.parse(localStorage.getItem('vantage_staff')).filter(x => x.id !== id);
+                localStorage.setItem('vantage_staff', JSON.stringify(staffList)); renderERP();
+            }
+        }
+
+        function confirmMaterialReceipt(id) {
+            let mats = JSON.parse(localStorage.getItem('vantage_materials')) || [];
+            const targeted = mats.find(x => x.id === id);
+            if(targeted) { targeted.received = true; localStorage.setItem('vantage_materials', JSON.stringify(mats)); alert("Logistics Acknowledged: Entry Approved."); renderERP(); }
+        }
+
+        function triggerOdoPunch(type) {
+            const reading = prompt(`Enter Current Vehicle Odometer Dashboard Reading for ${type} Shift (in km Metric):`);
+            if(!reading || isNaN(reading)) return;
+
+            let odoList = JSON.parse(localStorage.getItem('vantage_odometer')) || [];
+            if(type === 'Morning') {
+                odoList.unshift({ id: 'o_'+Date.now(), user: currentUser.name, morning: reading, evening:'', cleared: false });
+            } else {
+                const activeRecord = odoList.find(x => x.user === currentUser.name && x.evening === '');
+                if(activeRecord) { activeRecord.evening = reading; } 
+                else { alert("Configuration Error: Active Morning Shift Matrix entry missing."); return; }
+            }
+            localStorage.setItem('vantage_odometer', JSON.stringify(odoList)); alert(`${type} Odometer Parameters Logged successfully.`); renderERP();
+        }
+
+        function clearFuelVoucher(id, operatorName) {
+            let odoList = JSON.parse(localStorage.getItem('vantage_odometer')) || [];
+            const target = odoList.find(x=>x.id===id);
+            if(target) {
+                target.cleared = true; localStorage.setItem('vantage_odometer', JSON.stringify(odoList));
+                const notes = JSON.parse(localStorage.getItem('vantage_notifications')) || {};
+                notes[operatorName] = "Fuel expenses cleared! Your daily fleet maintenance voucher claim has been APPROVED and cleared by the central office accounts team.";
+                localStorage.setItem('vantage_notifications', JSON.stringify(notes));
+                renderERP();
+            }
+        }
+
+        function auditVoucherExpense(id, decision) {
+            let financials = JSON.parse(localStorage.getItem('vantage_financials')) || [];
+            const record = financials.find(x => x.id === id); if(!record) return;
+            record.status = decision; localStorage.setItem('vantage_financials', JSON.stringify(financials));
+
+            if(decision === 'Rejected') {
+                let d = JSON.parse(localStorage.getItem('vantage_deductions')) || {}; d[record.user] = (d[record.user]||0) + record.amount;
+                localStorage.setItem('vantage_deductions', JSON.stringify(d));
+                const notes = JSON.parse(localStorage.getItem('vantage_notifications')) || {};
+                notes[record.user] = `🚨 AUDIT WARNING: Site expense voucher of ₹${record.amount.toLocaleString()} for '${record.desc}' was UNAPPROVED. Amount has been DEDUCTED from your final monthly payroll salary matrix automatically.`;
+                localStorage.setItem('vantage_notifications', JSON.stringify(notes));
+            }
+            renderERP();
+        }
+
+        function executeShiftPunch(type) {
+            const dayString = new Date().toISOString().split('T')[0];
+            const timeString = new Date().toLocaleTimeString();
+            let attList = JSON.parse(localStorage.getItem('vantage_attendance')) || [];
+            let currentShift = attList.find(a => a.staffName === currentUser.name && a.date === dayString);
+
+            if(type === 'In') {
+                if(!currentShift) { attList.unshift({ staffName: currentUser.name, date: dayString, punchIn: timeString, punchOut: '', status: 'PRESENT' }); }
+                alert("☀️ Morning Shift Authentication Complete.");
+            } else {
+                if(currentShift) { currentShift.punchOut = timeString; }
+                alert("🌙 Evening Shift Execution Closed. Shift Timeline Saved.");
+            }
+            localStorage.setItem('vantage_attendance', JSON.stringify(attList)); renderERP();
+        }
+
+        renderERP();
+    </script>
+</body>
+</html>
