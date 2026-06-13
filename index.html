@@ -86,9 +86,15 @@
                 dbGodowns = await fetchNativeTable('godowns', [{ id: "1", name: "Udaipur Central Godown", location: "Gordhan Vilas, Udaipur" }]);
                 dbStockBook = await fetchNativeTable('stock_book', [{ id: "1", godown_name: "Udaipur Central Godown", item: "53 Grade Cement", qty: 500, unit: "Bags" }]);
                 dbMeasurements = await fetchNativeTable('measurements', [{ id: "1", project: "Udaipur City Flyover Survey", span: "0/000 to 0/025", avg_width: "7.500", yield_output: "187.50 m²" }]);
-                dbFinancials = await fetchNativeTable('financials', []);
-                dbMachinery = await fetchNativeTable('machinery', []);
-                dbTenders = await fetchNativeTable('tenders', []);
+                dbFinancials = await fetchNativeTable('financials', [
+                    { id: "f1", type: "Expense", amount: 1500, desc: "Site Fuel", date: "2026-06-13" }
+                ]);
+                dbMachinery = await fetchNativeTable('machinery', [
+                    { id: "m1", name: "JCB Excavator 3DX", status: "Operational", location: "Flyover Site" }
+                ]);
+                dbTenders = await fetchNativeTable('tenders', [
+                    { id: "t1", title: "National Highway Survey Bid", status: "Evaluation", value: 12000000 }
+                ]);
                 
                 dbPhotos = await fetchNativeTable('site_photos', [
                     { id: "ph1", project_name: "Udaipur City Flyover Survey", timestamp: "2026-06-13 14:30", lat: 24.5854, lng: 73.7125, image_data: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400" }
@@ -150,9 +156,11 @@
                                 <button onclick="switchTab('lifecycle')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'lifecycle' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">🏢 Lifecycle Projects</button>
                                 <button onclick="switchTab('measurements')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'measurements' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">📐 Measurement Sheets (M-Book)</button>
                                 <button onclick="switchTab('site-photos')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'site-photos' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">📷 Site Photo Updates</button>
+                                <button onclick="switchTab('tenders')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'tenders' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">💼 Tenders Matrix Nodes</button>
                                 
                                 <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest px-3 pt-2">Human Capital & Assets</p>
                                 <button onclick="switchTab('materials')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'materials' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">📦 Inventory Hub (Godown)</button>
+                                <button onclick="switchTab('material-inward')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'material-inward' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">📝 Material Inward Challan Registry</button>
                                 <button onclick="switchTab('machinery')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'machinery' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">⚙️ Machinery Assets Fleet</button>
                                 <button onclick="switchTab('attendance')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'attendance' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">✅ Daily Attendance</button>
                                 
@@ -160,6 +168,7 @@
                                 <div class="pt-2 border-t border-borderGray/40 space-y-0.5">
                                     <p class="text-[9px] font-bold text-red-400 uppercase tracking-widest px-3">Central Command & Audit</p>
                                     <button onclick="switchTab('financial')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'financial' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">💰 Financial Ledger Matrix</button>
+                                    <button onclick="switchTab('petty-cash')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'petty-cash' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">💸 Daily Petty Cash Tracker</button>
                                     <button onclick="switchTab('staff-mgmt')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'staff-mgmt' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">👥 Staff Management</button>
                                 </div>
                                 ` : ''}
@@ -180,30 +189,29 @@
         function switchTab(t) { currentTab = t; renderERP(); }
         function logoutSession() { currentUser = null; sessionStorage.removeItem('vantage_active_session'); location.reload(); }
 
-        // --- 4. UNFROZEN COMPONENT WORKSPACE CONTROLLER ---
+        // --- 4. CONTROLLER LAYER FOR WINDOW SECTIONS ---
         function renderTabContent() {
             const container = document.getElementById('tab-content-window');
             const isMasterAdmin = (currentUser.role === 'Master Admin' || currentUser.name.toLowerCase() === 'manoj singh');
-            const hasProjectRights = (currentUser.role === 'Master Admin' || currentUser.role === 'Accountant');
 
             if (currentTab === "dashboard") {
                 container.innerHTML = `
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Active Projects</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbProjects.length} Sites</h3></div>
-                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Warehouse Units</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbGodowns.length} Godowns</h3></div>
+                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Active Sites</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbProjects.length} Sites</h3></div>
+                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Warehouse Units</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbGodowns.length} Units</h3></div>
                         <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">M-Book Records</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbMeasurements.length} Rows</h3></div>
                         <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Workforce Base</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbStaff.length} Accounts</h3></div>
                     </div>
                 `;
             }
 
-            // 🔥 REAL-TIME WEBCAM STREAM & AUTO-GPS SYSTEM
+            // WEBCAM STREAM & AUTO-GPS INTERFACE
             else if (currentTab === "site-photos") {
                 container.innerHTML = `
                     <div class="space-y-4">
                         <div class="flex justify-between items-center border-b border-borderGray pb-2">
-                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">📷 OPERATIONAL MODULE COMPONENT: [SITE PHOTOS VAULT]</h3>
-                            <button onclick="startLiveCameraInterface()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-1.5 rounded font-sans transition-colors shadow-md">📷 Click GPS Photo</button>
+                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">📷 SITE PHOTO UPDATES MODULE</h3>
+                            <button onclick="startLiveCameraInterface()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-1.5 rounded transition-colors shadow-md">📷 Click GPS Photo</button>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="photo-gallery-grid">
                             ${dbPhotos.map(ph=>`
@@ -214,7 +222,6 @@
                                         <p>📅 Timestamp: ${ph.timestamp}</p>
                                         <p class="text-emerald-400 font-bold">🌐 Coords: ${Number(ph.lat).toFixed(6)}, ${Number(ph.lng).toFixed(6)}</p>
                                     </div>
-                                    ${isMasterAdmin ? `<button onclick="deleteRowCloud('site_photos','${ph.id}')" class="absolute top-4 right-4 bg-red-950/80 text-red-400 border border-red-900 text-[9px] px-1.5 rounded py-0.5 font-mono">Purge</button>` : ''}
                                 </div>
                             `).join('')}
                         </div>
@@ -238,13 +245,49 @@
                                 </div>
 
                                 <div class="space-y-2">
-                                    <button type="button" id="snap-action-btn" onclick="captureSnapshotAndGPS()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded font-sans font-bold uppercase tracking-wider transition-all shadow-md">🎯 Capture Photo & GPS Coordinates</button>
-                                    <div id="gps-lock-badge" class="hidden text-center p-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 font-mono text-[10px] rounded-lg animate-pulse"></div>
+                                    <button type="button" id="snap-action-btn" onclick="captureSnapshotAndGPS()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded font-bold uppercase tracking-wider transition-all">🎯 Capture Photo & GPS Coordinates</button>
+                                    <div id="gps-lock-badge" class="hidden text-center p-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 font-mono text-[10px] rounded-lg"></div>
                                 </div>
                                 
-                                <button type="submit" id="submit-vault-btn" disabled class="w-full bg-gray-700 text-gray-400 font-bold py-2.5 rounded uppercase tracking-wider cursor-not-allowed transition-colors">Save Geotagged Photo to Cloud</button>
+                                <button type="submit" id="submit-vault-btn" disabled class="w-full bg-gray-700 text-gray-400 font-bold py-2.5 rounded uppercase tracking-wider cursor-not-allowed">Save Geotagged Photo to Cloud</button>
                                 <button type="button" onclick="closeLiveCameraInterface()" class="w-full bg-gray-800 text-gray-300 font-bold py-2 rounded uppercase border border-borderGray">❌ Cancel / Close</button>
                             </form>
+                        </div>
+                    </div>
+                `;
+            }
+
+            else if (currentTab === "tenders") {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <h3 class="text-sm font-bold text-white uppercase tracking-wider">💼 Tenders Matrix Nodes</h3>
+                        <div class="bg-panelBg border border-borderGray rounded-xl p-4">
+                            <table class="w-full text-left">
+                                <tr class="text-gray-400 border-b border-borderGray pb-2"><th>Tender Title</th><th>Status</th><th>Value</th></tr>
+                                ${dbTenders.map(t=>`<tr><td class="py-2 text-white font-bold">${t.title}</td><td class="text-amber-400">${t.status}</td><td class="font-mono text-blue-400">₹${t.value.toLocaleString()}</td></tr>`).join('')}
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            else if (currentTab === "material-inward") {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <h3 class="text-sm font-bold text-white uppercase tracking-wider">📝 Material Inward Challan Registry</h3>
+                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl">
+                            <p class="text-gray-400 font-mono">Challan tracking active. Real-time material drops synchronize here.</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            else if (currentTab === "petty-cash") {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <h3 class="text-sm font-bold text-white uppercase tracking-wider">💸 Daily Petty Cash Tracker</h3>
+                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl">
+                            <p class="text-gray-400 font-mono">Petty Cash ledgers for instant minor expenses on site.</p>
                         </div>
                     </div>
                 `;
@@ -253,14 +296,13 @@
             else if (currentTab === "lifecycle") {
                 container.innerHTML = `
                     <div class="space-y-4">
-                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">Project Infrastructure Registry Nodes</h3></div>
+                        <h3 class="text-sm font-bold text-white uppercase tracking-wider">🏢 Lifecycle Projects</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             ${dbProjects.map(p=>`
-                                <div class="bg-panelBg border border-borderGray rounded-xl p-5 space-y-1 relative">
-                                    <h4 class="font-bold text-white text-xs border-b border-borderGray pb-1.5 mb-1">${p.name}</h4>
-                                    <p class="text-gray-400">🏢 Client: <span class="text-gray-200">${p.client}</span></p>
-                                    <p class="text-gray-400">📍 Location: <span class="text-gray-200">${p.location}</span></p>
-                                    <p class="text-gray-400">🌐 GPS Coordinates: <span class="text-blue-400 font-mono font-bold">${p.lat || '24.5854'}, ${p.lng || '73.7125'}</span></p>
+                                <div class="bg-panelBg border border-borderGray rounded-xl p-4">
+                                    <h4 class="font-bold text-white mb-2">${p.name}</h4>
+                                    <p class="text-gray-400">Client: ${p.client}</p>
+                                    <p class="text-gray-400">Location: ${p.location}</p>
                                 </div>
                             `).join('')}
                         </div>
@@ -271,7 +313,7 @@
             else if (currentTab === "measurements") {
                 container.innerHTML = `
                     <div class="space-y-4">
-                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📐 Advanced Multi-Row Excel M-Book Grid</h3></div>
+                        <h3 class="text-sm font-bold text-white uppercase tracking-wider">📐 Measurement Sheets (M-Book)</h3>
                         <div class="overflow-x-auto border border-borderGray rounded-xl bg-panelBg"><table class="w-full text-center border-collapse"><tr class="bg-darkBg border-b border-borderGray text-gray-400 font-bold uppercase"><th class="p-2">Seq</th><th>Chainage From</th><th>Chainage To</th><th>Length</th><th>Width (m)</th><th>Avg Width</th><th>Thickness (m)</th><th class="text-right pr-4 text-blue-400">Yield Output</th></tr><tbody id="excel-rows-body" class="divide-y divide-borderGray font-mono"></tbody></table></div>
                     </div>
                 `; buildExcelRowsMatrixHTML();
@@ -280,68 +322,58 @@
             else if (currentTab === "materials") {
                 container.innerHTML = `
                     <div class="space-y-4">
-                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📦 Inventory Storage Hub Pipeline</h3></div>
+                        <h3 class="text-sm font-bold text-white uppercase tracking-wider">📦 Inventory Hub (Godown)</h3>
                         <table class="w-full text-left bg-panelBg border border-borderGray rounded-xl"><tr class="bg-darkBg border-b border-borderGray text-gray-400 font-bold uppercase"><th class="p-2">Godown</th><th>Material</th><th class="text-right pr-4">Stock</th></tr>${dbStockBook.map(s=>`<tr><td class="p-2 text-gray-400">${s.godown_name}</td><td class="p-2 text-white font-bold">${s.item}</td><td class="p-2 text-right text-blue-400 font-bold font-mono pr-4">${s.qty} ${s.unit}</td></tr>`).join('')}</table>
                     </div>
                 `;
             }
 
+            else if (currentTab === "machinery") {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <h3 class="text-sm font-bold text-white uppercase tracking-wider">⚙️ Machinery Assets Fleet</h3>
+                        <table class="w-full text-left bg-panelBg border border-borderGray rounded-xl"><tr class="bg-darkBg border-b border-borderGray text-gray-400 font-bold uppercase"><th class="p-2">Machine</th><th>Location</th><th>Status</th></tr>${dbMachinery.map(m=>`<tr><td class="p-2 text-white font-bold">${m.name}</td><td class="p-2 text-gray-400">${m.location}</td><td class="p-2 text-emerald-400 font-bold">${m.status}</td></tr>`).join('')}</table>
+                    </div>
+                `;
+            }
+
             else if (currentTab === "geo-viewer") {
-                container.innerHTML = `<div class="space-y-4"><div id="vantage-live-map" class="w-full h-[450px] bg-darkBg border border-borderGray rounded-xl shadow-inner z-10"></div></div>`;
+                container.innerHTML = `<div id="vantage-live-map" class="w-full h-[450px] bg-darkBg border border-borderGray rounded-xl z-10"></div>`;
                 setTimeout(renderLeafletMapLayer, 100);
             }
 
             else if (currentTab === "staff-tracking") {
-                container.innerHTML = `<div class="space-y-4"><div id="vantage-staff-map" class="w-full h-[450px] bg-darkBg border border-borderGray rounded-xl shadow-inner z-10"></div></div>`;
+                container.innerHTML = `<div id="vantage-staff-map" class="w-full h-[450px] bg-darkBg border border-borderGray rounded-xl z-10"></div>`;
                 setTimeout(renderLeafletRadarLayer, 100);
             }
         }
 
-        // --- 5. NATIVE HTML5 REAL-TIME WEBCAM INTERFACE ENGINE ---
+        // --- 5. NATIVE WEBCAM CONTROLLERS ---
         async function startLiveCameraInterface() {
-            lockedLatitude = null;
-            lockedLongitude = null;
-            capturedImageBase64 = null;
+            lockedLatitude = null; lockedLongitude = null; capturedImageBase64 = null;
             openModal('cam-mod');
-
             const videoElement = document.getElementById('webcam-preview');
             const snappedPreview = document.getElementById('snapped-photo-preview');
             const statusBadge = document.getElementById('gps-lock-badge');
-            const actionBtn = document.getElementById('snap-action-btn');
             const submitBtn = document.getElementById('submit-vault-btn');
 
-            snappedPreview.classList.add('hidden');
-            statusBadge.classList.add('hidden');
+            snappedPreview.classList.add('hidden'); statusBadge.classList.add('hidden');
             submitBtn.disabled = true;
             submitBtn.className = "w-full bg-gray-700 text-gray-400 font-bold py-2.5 rounded uppercase tracking-wider cursor-not-allowed";
-            actionBtn.innerHTML = "🎯 Capture Photo & GPS Coordinates";
 
             try {
-                // environment choose karne par mobile ka back (rear) camera automatically trigger hoga
-                cameraStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: { ideal: "environment" } },
-                    audio: false
-                });
+                cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
                 videoElement.srcObject = cameraStream;
             } catch (err) {
-                // Fallback for laptops/front cams
                 try {
                     cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
                     videoElement.srcObject = cameraStream;
-                } catch (e) {
-                    alert("Camera Error: Please verify hardware connection and site permissions.");
-                }
+                } catch (e) { alert("Camera Error: Please verify permissions."); }
             }
         }
 
-        function closeLiveCameraInterface() {
-            if (cameraStream) {
-                cameraStream.getTracks().forEach(track => track.stop());
-            }
-            closeModal('cam-mod');
-        }
+        function closeLiveCameraInterface() { if (cameraStream) { cameraStream.getTracks().forEach(track => track.stop()); } closeModal('cam-mod'); }
 
-        // --- 6. SINGLE CLICK SNAPSHOT + SATELLITE POSITION METRIC LOCK ---
         function captureSnapshotAndGPS() {
             const video = document.getElementById('webcam-preview');
             const canvas = document.getElementById('hidden-photo-canvas');
@@ -350,80 +382,45 @@
             const submitBtn = document.getElementById('submit-vault-btn');
 
             if (!video || !canvas) return;
-
-            // Step A: Snap Video Resolution Image Data Buffer
-            canvas.width = video.videoWidth || 640;
-            canvas.height = video.videoHeight || 480;
-            const context = canvas.getContext('2d');
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            canvas.width = video.videoWidth || 640; canvas.height = video.videoHeight || 480;
+            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
             
             capturedImageBase64 = canvas.toDataURL('image/jpeg', 0.85);
-            imgPreview.src = capturedImageBase64;
-            imgPreview.classList.remove('hidden');
-
-            // Step B: Instant GPS Lock Extraction
-            statusBadge.innerHTML = "📡 Extracting Precise GPS Coordinates Vector...";
-            statusBadge.classList.remove('hidden');
+            imgPreview.src = capturedImageBase64; imgPreview.classList.remove('hidden');
+            statusBadge.innerHTML = "📡 Extracting GPS Coordinates Vector..."; statusBadge.classList.remove('hidden');
 
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((position) => {
-                    lockedLatitude = position.coords.latitude;
-                    lockedLongitude = position.coords.longitude;
-                    
-                    statusBadge.innerHTML = `🔒 Live Geotag Frame Locked!<br><span class="text-white font-bold">Lat: ${lockedLatitude.toFixed(6)} | Lng: ${lockedLongitude.toFixed(6)}</span>`;
-                    statusBadge.className = "text-center p-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-[10px] rounded-lg";
-                    
-                    // Unlock the cloud post button safely
+                    lockedLatitude = position.coords.latitude; lockedLongitude = position.coords.longitude;
+                    statusBadge.innerHTML = `🔒 Live Geotag Locked!<br>Lat: ${lockedLatitude.toFixed(6)} | Lng: ${lockedLongitude.toFixed(6)}`;
                     submitBtn.disabled = false;
                     submitBtn.className = "w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded uppercase tracking-wider transition-colors shadow-md";
-                }, (err) => {
-                    // Privacy fallback values
-                    lockedLatitude = 24.5854;
-                    lockedLongitude = 73.7125;
-                    statusBadge.innerHTML = `🔒 Locked (Default Office Vector):<br>24.5854, 73.7125`;
-                    
+                }, () => {
+                    lockedLatitude = 24.5854; lockedLongitude = 73.7125;
+                    statusBadge.innerHTML = `🔒 Locked Office Vector: 24.5854, 73.7125`;
                     submitBtn.disabled = false;
                     submitBtn.className = "w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded uppercase tracking-wider transition-colors shadow-md";
                 }, { enableHighAccuracy: true, timeout: 6000 });
-            } else {
-                alert("Hardware Missing: Geolocation chip not found.");
             }
         }
 
-        // --- 7. DATABASE INTEGRATION FOR GEOTAGGED PHOTO ---
         async function executePhotoVaultSubmit(e) {
             e.preventDefault();
-            if (!capturedImageBase64 || lockedLatitude === null) {
-                alert("Error: Capture data points first using the green button.");
-                return;
-            }
-
-            const projName = document.getElementById('cam-proj').value;
             const payload = [{
-                project_name: projName,
+                project_name: document.getElementById('cam-proj').value,
                 timestamp: new Date().toISOString().replace('T',' ').split('.')[0],
-                lat: lockedLatitude,
-                lng: lockedLongitude,
-                image_data: capturedImageBase64
+                lat: lockedLatitude, lng: lockedLongitude, image_data: capturedImageBase64
             }];
-            
             const response = await fetch(`${SUPABASE_REST_URL}/site_photos`, { method: "POST", headers: cloudHeaders, body: JSON.stringify(payload) });
-            if(response.ok) {
-                alert("📸 Success: Live photograph captured and saved with synchronized GPS vectors!");
-                closeLiveCameraInterface();
-                initializeSecurityGatekeeper();
-            } else {
-                alert("Network Sync Error saving to cloud.");
-            }
+            if(response.ok) { alert("📸 Success: Live photo with GPS saved!"); closeLiveCameraInterface(); initializeSecurityGatekeeper(); }
         }
 
-        // --- 8. STRUCTURAL MAP LAYER RENDERING CONTROLLERS ---
-        function renderLeafletMapLayer() { let mContainer = document.getElementById('vantage-live-map'); if (!mContainer) return; let mObj = L.map('vantage-live-map').setView([24.5854, 73.7125], 9); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mObj); dbProjects.forEach(p => { if (p.lat) L.marker([p.lat, p.lng]).addTo(mObj); }); }
-        function renderLeafletRadarLayer() { let rContainer = document.getElementById('vantage-staff-map'); if (!rContainer) return; activeMapObj = L.map('vantage-staff-map').setView([24.5854, 73.7125], 9); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(activeMapObj); dbStaff.forEach(s => { if (s.lat) L.marker([s.lat, s.lng]).addTo(activeMapObj); }); }
+        // --- 6. LEAFLET AND MATRICES ---
+        function renderLeafletMapLayer() { let m = document.getElementById('vantage-live-map'); if (!m) return; let mo = L.map('vantage-live-map').setView([24.5854, 73.7125], 9); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mo); dbProjects.forEach(p => { if (p.lat) L.marker([p.lat, p.lng]).addTo(mo); }); }
+        function renderLeafletRadarLayer() { let r = document.getElementById('vantage-staff-map'); if (!r) return; let ro = L.map('vantage-staff-map').setView([24.5854, 73.7125], 9); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(ro); dbStaff.forEach(s => { if (s.lat) L.marker([s.lat, s.lng]).addTo(ro); }); }
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-        // --- 9. EXCEL MULTI-ROW MATRIX SHEET ENGINE ---
         function buildExcelRowsMatrixHTML() {
             const body = document.getElementById('excel-rows-body'); if(!body) return;
             body.innerHTML = activeExcelRows.map((row, index) => {
@@ -432,7 +429,6 @@
                 let avgW = Number(row.width || 0); if (index > 0) { avgW = (Number(row.width || 0) + Number(activeExcelRows[index - 1].width || 0)) / 2; }
                 let yld = 0; const thick = row.thickness ? Number(row.thickness) : 0;
                 if (row.formula === 'Multiply') { yld = thick > 0 ? (len * avgW * thick) : (len * avgW); }
-                activeExcelRows[index].computedLength = len; activeExcelRows[index].computedAvgWidth = avgW; activeExcelRows[index].yieldResult = yld;
                 return `<tr class="hover:bg-panelBg/40 text-center"><td class="p-2 border-r border-borderGray">${index+1}</td><td class="p-0 border-r border-borderGray"><input type="text" oninput="updateExcelCell(${index},'chainageFrom',this.value)" value="${row.chainageFrom}" class="w-full bg-transparent text-center focus:outline-none"></td><td class="p-0 border-r border-borderGray"><input type="text" oninput="updateExcelCell(${index},'chainageTo',this.value)" value="${row.chainageTo}" class="w-full bg-transparent text-center focus:outline-none"></td><td class="p-2 border-r border-borderGray font-bold text-gray-400">${len} m</td><td class="p-0 border-r border-borderGray"><input type="number" oninput="updateExcelCell(${index},'width',this.value)" value="${row.width}" class="w-full bg-transparent text-center font-bold focus:outline-none"></td><td class="p-2 border-r border-borderGray text-orange-400 font-bold">${avgW.toFixed(3)} m</td><td class="p-0 border-r border-borderGray"><input type="number" oninput="updateExcelCell(${index},'thickness',this.value)" value="${row.thickness}" placeholder="[m]" class="w-full bg-transparent text-center focus:outline-none text-emerald-400 font-bold"></td><td class="p-2 text-right text-blue-400 font-bold pr-4">${thick > 0 ? `${yld.toFixed(3)} m³` : `${yld.toFixed(2)} m²`}</td></tr>`;
             }).join('');
         }
