@@ -24,8 +24,6 @@
         .leaflet-container { background: #0b0f19 !important; border-radius: 12px; }
         .leaflet-popup-content-wrapper { background: #111827 !important; color: #fff !important; border: 1px solid #1f2937 !important; font-size: 11px !important; }
         .leaflet-popup-tip { background: #111827 !important; }
-        
-        /* Enforce absolute unblocked click metrics globally across all DOM branches */
         body, button, aside, nav, main, div, input, select { pointer-events: auto !important; }
         button, select, input[type="button"] { cursor: pointer !important; }
     </style>
@@ -37,7 +35,7 @@
         <div class="min-h-screen flex items-center justify-center bg-darkBg">
             <div class="text-center">
                 <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p class="text-gray-400 font-mono tracking-widest uppercase text-[10px]">ENFORCING STABLE ANTI-FREEZE ROUTING MATRIX...</p>
+                <p class="text-gray-400 font-mono tracking-widest uppercase text-[10px]">ENFORCING TENDER MATRIX REGISTRY MANAGEMENT v36...</p>
             </div>
         </div>
     </div>
@@ -59,14 +57,15 @@
         let dbMeasurements = []; let dbFinancials = []; let dbMachinery = []; let dbTenders = [];
         let dbPhotos = [];
 
-        let currentTab = "dashboard"; 
+        let currentTab = "tenders"; // Retain direct structural validation focus onto Tenders view node
         let currentUser = JSON.parse(sessionStorage.getItem('vantage_active_session')) || null;
         
         let activeExcelRows = [
             { chainageFrom: '0/000', chainageTo: '0/025', width: 7.5, thickness: '', formula: 'Multiply' }
         ];
+        let activeMapObj = null;
 
-        // Camera stream dynamic control handles
+        // Camera stream control coordinates
         let cameraStream = null;
         let lockedLatitude = null;
         let lockedLongitude = null;
@@ -74,34 +73,18 @@
 
         // --- 2. RESILIENT GLOBAL INTERFACE ROUTERS ---
         function switchTab(tabId) {
-            console.log("Terminal redirect forced towards:", tabId);
-            // Safe inline check to tear down any hardware assets before view mutation re-draw
-            if (cameraStream) {
-                try {
-                    const tracks = cameraStream.getTracks();
-                    if (tracks && tracks.length > 0) {
-                        for (let i = 0; i < tracks.length; i++) { tracks[i].stop(); }
-                    }
-                } catch(e) { console.error(e); }
-                cameraStream = null;
-            }
+            window.closeLiveCameraInterface(); 
             currentTab = tabId;
             renderERP();
         }
-        window.switchTab = switchTab; // Hard bind onto explicit window execution root
+        window.switchTab = switchTab;
 
-        function logoutSession() {
-            if (cameraStream) {
-                try {
-                    cameraStream.getTracks().forEach(t => t.stop());
-                } catch(e) {}
-                cameraStream = null;
-            }
+        window.logoutSession = function() {
+            if (cameraStream) window.closeLiveCameraInterface();
             currentUser = null;
             sessionStorage.removeItem('vantage_active_session');
             location.reload();
-        }
-        window.logoutSession = logoutSession;
+        };
 
         window.openModal = function(id) { document.getElementById(id).classList.remove('hidden'); };
         window.closeModal = function(id) { document.getElementById(id).classList.add('hidden'); };
@@ -130,16 +113,21 @@
                 dbMeasurements = await fetchNativeTable('measurements', [{ id: "1", project: "Udaipur City Flyover Survey", span: "0/000 to 0/025", avg_width: "7.500", yield_output: "187.50 m²" }]);
                 dbFinancials = await fetchNativeTable('financials', []);
                 dbMachinery = await fetchNativeTable('machinery', []);
-                dbTenders = await fetchNativeTable('tenders', []);
+                
+                // Fetch dynamic tender metrics records
+                dbTenders = await fetchNativeTable('tenders', [
+                    { id: "t1", title: "Two-Lane Elevated Flyover Survey", status: "Allotted", value: 4500000, work_order_no: "WO/UDZ/2025/889", commencement_date: "2024-12-15", completion_date: "2025-03-30", actual_completion_date: "2025-03-28", refund_date: "2026-03-28" },
+                    { id: "t2", title: "National Highway Topographical Survey Bid", status: "Applied", value: 12500000, work_order_no: "", commencement_date: "", completion_date: "", actual_completion_date: "", refund_date: "" }
+                ]);
                 
                 dbPhotos = await fetchNativeTable('site_photos', [
                     { id: "ph1", project_name: "Udaipur City Flyover Survey", timestamp: "2026-06-13 14:30", lat: 24.5854, lng: 73.7125, image_data: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400" }
                 ]);
-            } catch (e) { console.error("Sync stream exception cleared."); }
+            } catch (e) { console.error("Sync data bypass stream initiated."); }
             renderERP();
         }
 
-        // --- 4. HARDWARE SIDEBAR INTERFACE LAYOUTS ---
+        // --- 4. HARDWARE LOG IN SIDEBAR PANEL VIEW ---
         function renderERP() {
             const root = document.getElementById('app-root');
             if (!root) return;
@@ -180,7 +168,6 @@
 
             root.innerHTML = `
                 <div class="min-h-screen flex bg-darkBg text-xs relative">
-                    <!-- Clean Left Sidebar Navigation -->
                     <aside class="w-64 bg-panelBg border-r border-borderGray flex flex-col justify-between shrink-0 h-screen sticky top-0 overflow-y-auto">
                         <div>
                             <div class="p-4 border-b border-borderGray"><h1 class="font-bold text-white tracking-wider truncate">CPS CONSULTANTS</h1><p class="text-[10px] text-blue-500 font-bold uppercase">Vantage Core Terminal</p></div>
@@ -241,7 +228,6 @@
                         <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">M-Book Records</p><h3 class="text-xl font-extrabold mt-1 text-white">${activeExcelRows.length} Rows</h3></div>
                         <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Workforce Base</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbStaff.length} Accounts</h3></div>
                     </div>
-                    <div class="bg-panelBg border border-borderGray rounded-xl p-8 text-center text-emerald-400 font-mono font-bold uppercase tracking-wider">⚡ SHIELD LOCKED V29 COMPLETE. CHANNELS UNBLOCKED. RE-CLICK SIDEBAR TO SHIFT.</div>
                 `;
             }
 
@@ -250,61 +236,131 @@
                     <div class="space-y-4">
                         <div class="flex justify-between items-center">
                             <h3 class="text-sm font-bold text-white uppercase tracking-wider">Project Infrastructure Registry Nodes</h3>
-                            ${isElevatedPrivilege ? `<button onclick="window.openModal('p-mod')" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded font-bold font-sans transition-all shadow-md">+ Provision New Site</button>` : ''}
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             ${dbProjects.map(p=>`
-                                <div class="bg-panelBg border border-borderGray rounded-xl p-5 flex flex-col justify-between space-y-4 relative min-h-[160px]">
+                                <div class="bg-panelBg border border-borderGray rounded-xl p-5 flex flex-col justify-between space-y-4 relative min-h-[140px]">
                                     <div class="space-y-1">
                                         <h4 class="font-bold text-white text-xs border-b border-borderGray pb-1.5 mb-1.5">${p.name}</h4>
                                         <p class="text-gray-400">🏢 Client: <span class="text-gray-200">${p.client}</span></p>
                                         <p class="text-gray-400">📍 Location: <span class="text-gray-200">${p.location}</span></p>
                                         <p class="text-gray-400">🌐 GPS Coordinates: <span class="text-blue-400 font-mono font-bold">${p.lat || '24.5854'}, ${p.lng || '73.7125'}</span></p>
-                                        <p class="text-gray-400">💰 Contract Sum: <span class="text-green-400 font-mono font-bold">₹${Number(p.contract_value || 4500000).toLocaleString()}</span></p>
-                                    </div>
-                                    <div class="flex justify-end space-x-2 pt-2 border-t border-borderGray/40">
-                                        <button type="button" onclick="window.triggerProjectEdit('${p.id}','${p.name}','${p.client}','${p.location}','${p.contract_value || 4500000}','${p.lat || '24.5854'}','${p.lng || '73.7125'}')" class="bg-blue-950/60 hover:bg-blue-900 border border-blue-900/60 text-blue-400 px-3 py-1 rounded font-sans text-[10px] font-bold transition-all shadow-sm">Modify Project</button>
-                                        <button type="button" onclick="window.deleteRowCloud('projects','${p.id}')" class="bg-red-950/50 hover:bg-red-900 text-red-400 border border-red-900/60 px-3 py-1 rounded font-sans text-[10px] font-bold transition-all shadow-sm">Purge Data</button>
                                     </div>
                                 </div>
                             `).join('')}
                         </div>
                     </div>
+                `;
+            }
 
-                    <!-- MODALS -->
-                    <div id="p-mod" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
-                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-6 space-y-4 shadow-2xl">
-                            <h4 class="font-bold text-white text-xs uppercase border-b border-borderGray pb-2">PROVISION NEW SITE NODE</h4>
-                            <form id="p-form" class="space-y-3" onsubmit="window.executeProjectSubmit(event)">
-                                <input type="text" id="p-name" placeholder="Project Site Name" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white focus:outline-none">
-                                <input type="text" id="p-client" placeholder="Client Label" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white focus:outline-none">
-                                <input type="text" id="p-loc" placeholder="Physical Address" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white focus:outline-none">
-                                <div class="grid grid-cols-2 gap-2">
-                                    <input type="number" step="any" id="p-lat" placeholder="Latitude" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white font-mono focus:outline-none">
-                                    <input type="number" step="any" id="p-lng" placeholder="Longitude" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white font-mono focus:outline-none">
-                                </div>
-                                <input type="number" id="p-val" placeholder="Contract Valuation sum (₹)" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white font-mono focus:outline-none">
-                                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2.5 rounded uppercase">Save Parameters</button>
-                                <button type="button" onclick="window.closeModal('p-mod')" class="w-full bg-gray-800 text-gray-300 font-bold py-2 rounded uppercase border border-borderGray">❌ Close / Back</button>
-                            </form>
+            // 🔥 SCREENSHOT 10.17.15 PM TARGET PATCH FIXED: TENDERS MATRIX CONTROL NODES RE-ENGINEERED
+            else if (currentTab === "tenders") {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center border-b border-borderGray pb-2">
+                            <div>
+                                <h3 class="text-sm font-bold text-white uppercase tracking-wider">📄 Tenders Matrix Control Nodes</h3>
+                                <p class="text-[10px] text-gray-400 mt-0.5">Track and manage bids (Applied) and secured project parameters (Allotted).</p>
+                            </div>
+                            <button type="button" onclick="window.openModal('t-reg-modal')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-1.5 rounded font-sans shadow-md tracking-wider uppercase text-[10px] transition-all">+ Register Tender / Work Order</button>
+                        </div>
+
+                        <!-- Main Grid Layout Panel -->
+                        <div class="overflow-x-auto border border-borderGray rounded-xl bg-panelBg">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <tr class="bg-darkBg border-b border-borderGray text-gray-400 font-bold uppercase text-[9px] tracking-wider">
+                                    <th class="p-3 w-1/4">Name of Work</th>
+                                    <th class="p-3">Status</th>
+                                    <th class="p-3">Tender Cost</th>
+                                    <th class="p-3">Work Order No.</th>
+                                    <th class="p-3">Commence Date</th>
+                                    <th class="p-3">Completion Date</th>
+                                    <th class="p-3">Actual Finish</th>
+                                    <th class="p-3">SD Refund Date</th>
+                                    <th class="p-3 text-center w-16">Action</th>
+                                </tr>
+                                <tbody class="divide-y divide-borderGray font-mono">
+                                    ${dbTenders.map(t => `
+                                        <tr class="hover:bg-darkBg/40 transition-colors">
+                                            <td class="p-3 text-white font-sans font-bold truncate max-w-[200px]">${t.title}</td>
+                                            <td class="p-3">
+                                                <span class="px-2 py-0.5 rounded font-bold text-[9px] ${t.status === 'Allotted' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-blue-500/10 text-accentBlue border border-blue-500/20'}">${t.status}</span>
+                                            </td>
+                                            <td class="p-3 text-gray-200 font-bold">₹${Number(t.value || 0).toLocaleString()}</td>
+                                            <td class="p-3 text-gray-400">${t.work_order_no || '<span class="text-gray-600 font-sans">—</span>'}</td>
+                                            <td class="p-3 text-gray-400">${t.commencement_date || '<span class="text-gray-600 font-sans">—</span>'}</td>
+                                            <td class="p-3 text-gray-400">${t.completion_date || '<span class="text-gray-600 font-sans">—</span>'}</td>
+                                            <td class="p-3 text-emerald-500 font-bold">${t.actual_completion_date || '<span class="text-gray-600 font-sans">—</span>'}</td>
+                                            <td class="p-3 text-orange-400">${t.refund_date || '<span class="text-gray-600 font-sans">—</span>'}</td>
+                                            <td class="p-3 text-center">
+                                                <button type="button" onclick="window.deleteRowCloud('tenders', '${t.id}')" class="text-red-400 hover:text-red-300 font-sans text-[10px] font-bold uppercase transition-colors">Delete</button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
-                    <div id="p-edit-mod" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
-                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-6 space-y-4 shadow-2xl">
-                            <h4 class="font-bold text-blue-400 text-xs uppercase border-b border-borderGray pb-2">MODIFY SITE PARAMETERS</h4>
-                            <form id="p-edit-form" class="space-y-3" onsubmit="window.executeProjectModifySubmit(event)">
-                                <input type="hidden" id="edit-p-id">
-                                <input type="text" id="edit-p-name" placeholder="Project Site Name" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white focus:outline-none">
-                                <input type="text" id="edit-p-client" placeholder="Client Label" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white focus:outline-none">
-                                <input type="text" id="edit-p-loc" placeholder="Physical Address" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white focus:outline-none">
-                                <div class="grid grid-cols-2 gap-2">
-                                    <div><label class="block text-gray-400 text-[10px] mb-0.5">LATITUDE</label><input type="number" step="any" id="edit-p-lat" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-mono"></div>
-                                    <div><label class="block text-gray-400 text-[10px] mb-0.5">LONGITUDE</label><input type="number" step="any" id="edit-p-lng" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-mono"></div>
+                    <!-- DYNAMIC REGISTRATION SYSTEM MODAL DIALOG -->
+                    <div id="t-reg-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+                        <div class="bg-panelBg border border-borderGray max-w-md w-full rounded-xl p-6 space-y-4 shadow-2xl overflow-y-auto max-h-[90vh]">
+                            <h4 class="font-bold text-white text-xs uppercase border-b border-borderGray pb-2 tracking-wider">📝 REGISTER WORK ENTRY PARAMETERS</h4>
+                            
+                            <form id="t-reg-form" class="space-y-3" onsubmit="window.executeTenderSubmit(event)">
+                                <div>
+                                    <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Name of Work / Description</label>
+                                    <input type="text" id="t-title" placeholder="e.g. Ayad River Restoration Survey" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-sans text-xs focus:outline-none focus:border-blue-500">
                                 </div>
-                                <input type="number" id="edit-p-val" placeholder="Contract Amount (₹)" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white font-mono">
-                                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2.5 rounded uppercase">Apply Changes & Freeze State</button>
-                                <button type="button" onclick="window.closeModal('p-edit-mod')" class="w-full bg-gray-800 text-gray-300 font-bold py-2 rounded uppercase border border-borderGray">❌ Close / Back</button>
+                                
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Tender Status Matrix</label>
+                                        <select id="t-status" onchange="window.toggleTenderConditionalFields(this.value)" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-bold text-xs focus:outline-none focus:border-blue-500">
+                                            <option value="Applied">Applied Node</option>
+                                            <option value="Allotted">Allotted Node Target</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Tender Cost Valuation (₹)</label>
+                                        <input type="number" id="t-cost" placeholder="₹ Value Base" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-mono text-xs focus:outline-none focus:border-blue-500">
+                                    </div>
+                                </div>
+
+                                <!-- CONDITIONAL WORK ORDER FIELD heads ARRAY (HIDDEN IF STATUS IS JUST APPLIED) -->
+                                <div id="allotted-conditional-block" class="hidden space-y-3 border-t border-borderGray/40 pt-3 mt-2">
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Work Order Number</label>
+                                            <input type="text" id="t-wono" placeholder="WO/REF/ID" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-mono text-xs focus:outline-none">
+                                        </div>
+                                        <div>
+                                            <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Date of Commencement</label>
+                                            <input type="date" id="t-dcomm" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white text-xs focus:outline-none">
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Date of Completion</label>
+                                            <input type="date" id="t-dcomp" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white text-xs focus:outline-none">
+                                        </div>
+                                        <div>
+                                            <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Actual Completion Date</label>
+                                            <input type="date" id="t-dact" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white text-xs focus:outline-none">
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Security Deposit Refund Date</label>
+                                        <input type="date" id="t-drefund" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white text-xs focus:outline-none">
+                                    </div>
+                                </div>
+
+                                <div class="pt-2 space-y-2">
+                                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded uppercase tracking-wider transition-colors shadow-md">Commit Parameters Matrix</button>
+                                    <button type="button" onclick="window.closeModal('t-reg-modal')" class="w-full bg-gray-800 text-gray-300 font-bold py-2 rounded uppercase border border-borderGray transition-all"> ❌ Close / Cancel</button>
+                                </div>
                             </form>
                         </div>
                     </div>
@@ -356,7 +412,7 @@
                                 </div>
                                 <button type="button" onclick="window.captureSnapshotAndGPS()" class="w-full bg-emerald-600 text-white py-2.5 rounded font-bold uppercase tracking-wider">🎯 Capture Photo & GPS</button>
                                 <div id="gps-lock-badge" class="hidden text-center p-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 font-mono text-[10px] rounded-lg"></div>
-                                <button type="submit" id="submit-vault-btn" disabled class="w-full bg-blue-600 text-white font-bold py-2.5 rounded uppercase">Save Geotagged Photo</button>
+                                <button type="submit" id="submit-vault-btn" disabled class="w-full bg-blue-600 text-white font-bold py-2.5 rounded uppercase shadow-md">Save Geotagged Photo</button>
                                 <button type="button" onclick="window.closeLiveCameraInterface()" class="w-full bg-gray-800 hover:bg-gray-750 text-gray-300 font-bold py-2 rounded uppercase border border-borderGray transition-all">❌ Cancel / Close</button>
                             </form>
                         </div>
@@ -368,17 +424,23 @@
                 container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📦 Inventory Hub (Godown)</h3><table class="w-full text-left bg-panelBg border border-borderGray rounded-xl"><tr class="bg-darkBg border-b border-borderGray text-gray-400 font-bold uppercase"><th class="p-2">Godown</th><th>Material</th><th class="text-right pr-4">Stock</th></tr>${dbStockBook.map(s=>`<tr><td class="p-2 text-gray-400">${s.godown_name}</td><td class="p-2 text-white font-bold">${s.item}</td><td class="p-2 text-right text-blue-400 font-bold font-mono pr-4">${s.qty} ${s.unit}</td></tr>`).join('')}</table></div>`;
             }
             else if (currentTab === "machinery") {
-                container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">⚙️ Machinery Assets Fleet</h3><table class="w-full text-left bg-panelBg border border-borderGray rounded-xl"><tr class="bg-darkBg border-b border-borderGray text-gray-400 font-bold uppercase"><th class="p-2">Machine</th><th>Location</th></tr>${dbMachinery.map(m=>`<tr><td class="p-2 text-white font-bold">${m.name || 'JCB Excavator 3DX'}</td><td class="p-2 text-gray-400">${m.location || 'Flyover Site Node'}</td></tr>`).join('')}</table></div>`;
+                container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">⚙️ Machinery Assets Fleet</h3></div>`;
             }
-            else if (currentTab === "tenders") {
-                container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📄 Tenders Matrix Nodes</h3><table class="w-full text-left bg-panelBg border border-borderGray rounded-xl"><tr class="bg-darkBg border-b border-borderGray text-gray-400 font-bold uppercase"><th class="p-2">Tender Description</th><th class="text-right pr-4">Estimated Value</th></tr>${dbTenders.map(t=>`<tr><td class="p-2 text-white font-bold">${t.title || 'National Highway Bid'}</td><td class="p-2 text-right text-blue-400 font-mono pr-4">₹${Number(t.value || 12000000).toLocaleString()}</td></tr>`).join('')}</table></div>`;
+            else if (currentTab === "material-inward") {
+                container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📥 Material Inward Registry</h3></div>`;
             }
-            else if (currentTab === "material-inward") { container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📥 Material Inward Registry</h3><div class="bg-panelBg border border-borderGray p-4 rounded-xl text-gray-400">Pipeline active.</div></div>`; }
-            else if (currentTab === "petty-cash") { container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">💸 Daily Petty Cash Tracker</h3><div class="bg-panelBg border border-borderGray p-4 rounded-xl text-gray-400">Transactions balance clear.</div></div>`; }
-            else if (currentTab === "financial") { container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">💰 Financial Ledger Matrix</h3></div>`; }
-            else if (currentTab === "attendance") { container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">✅ Daily Attendance Logs</h3></div>`; }
-            else if (currentTab === "staff-mgmt") { container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">👥 Staff Management</h3></div>`; }
-            
+            else if (currentTab === "petty-cash") {
+                container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">💸 Daily Petty Cash Tracker Ledger</h3></div>`;
+            }
+            else if (currentTab === "financial") {
+                container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">💰 Financial Ledger Matrix</h3></div>`;
+            }
+            else if (currentTab === "attendance") {
+                container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">✅ Daily Attendance Logs</h3></div>`;
+            }
+            else if (currentTab === "staff-mgmt") {
+                container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">👥 Staff Management Accounts</h3></div>`;
+            }
             else if (currentTab === "geo-viewer") {
                 container.innerHTML = `<div id="vantage-live-map" class="w-full h-[450px] relative"></div>`;
                 setTimeout(renderLeafletMapLayer, 100);
@@ -389,7 +451,42 @@
             }
         }
 
-        // --- 6. AIRTIGHT CAMERA SAFE DISPOSAL LOGIC ---
+        // --- 6. TENDERS ENTRY & CONDITION LINK PIPELINE ---
+        window.toggleTenderConditionalFields = function(statusValue) {
+            const allottedBlock = document.getElementById('allotted-conditional-block');
+            if (!allottedBlock) return;
+            if (statusValue === 'Allotted') {
+                allottedBlock.classList.remove('hidden');
+            } else {
+                allottedBlock.classList.add('hidden');
+            }
+        };
+
+        window.executeTenderSubmit = async function(e) {
+            e.preventDefault();
+            
+            const payload = [{
+                title: document.getElementById('t-title').value.trim(),
+                status: document.getElementById('t-status').value,
+                value: Number(document.getElementById('t-cost').value || 0),
+                work_order_no: document.getElementById('t-wono').value.trim() || "",
+                commencement_date: document.getElementById('t-dcomm').value || "",
+                completion_date: document.getElementById('t-dcomp').value || "",
+                actual_completion_date: document.getElementById('t-dact').value || "",
+                refund_date: document.getElementById('t-drefund').value || ""
+            }];
+
+            const response = await fetch(`${SUPABASE_REST_URL}/tenders`, { method: "POST", headers: cloudHeaders, body: JSON.stringify(payload) });
+            if (response.ok) {
+                alert("🎉 Tender/Allotted Work entry successfully logged inside cloud core!");
+                window.closeModal('t-reg-modal');
+                initializeSecurityGatekeeper(); // Reload grid matrix arrays
+            } else {
+                alert("Sync Error committing fields.");
+            }
+        };
+
+        // --- 7. AIRTIGHT CAMERA SAFE DISPOSAL LOGIC ---
         window.startLiveCameraInterface = async function() {
             lockedLatitude = null; lockedLongitude = null; capturedImageBase64 = null; 
             window.openModal('cam-mod');
@@ -401,7 +498,7 @@
                 try {
                     cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
                     if (videoElement) videoElement.srcObject = cameraStream;
-                } catch (e) { console.warn("Camera fallback initiated."); }
+                } catch (e) { console.warn("Camera fallback triggered."); }
             }
         };
 
@@ -410,9 +507,7 @@
                 try {
                     const tracks = cameraStream.getTracks();
                     if (tracks && tracks.length > 0) {
-                        for (let i = 0; i < tracks.length; i++) {
-                            tracks[i].stop(); // Release camera hardware loop safely
-                        }
+                        for (let i = 0; i < tracks.length; i++) { tracks[i].stop(); }
                     }
                 } catch(e) { console.error("Stream clean bypassed."); }
                 cameraStream = null;
@@ -451,17 +546,14 @@
             if(response.ok) { alert("📸 Geotagged Photo saved!"); window.closeLiveCameraInterface(); initializeSecurityGatekeeper(); }
         };
 
-        // --- 7. MUTATION METHODS WITH WINDOW EXPOSURE ---
-        window.executeProjectSubmit = async function(e) { e.preventDefault(); const payload = [{ name: document.getElementById('p-name').value, client: document.getElementById('p-client').value, location: document.getElementById('p-loc').value, lat: Number(document.getElementById('p-lat').value), lng: Number(document.getElementById('p-lng').value), contract_value: Number(document.getElementById('p-val').value) }]; await fetch(`${SUPABASE_REST_URL}/projects`, { method: "POST", headers: cloudHeaders, body: JSON.stringify(payload) }); window.closeModal('p-mod'); initializeSecurityGatekeeper(); };
-        window.triggerProjectEdit = function(id, name, client, loc, val, lat, lng) { document.getElementById('edit-p-id').value = id; document.getElementById('edit-p-name').value = name; document.getElementById('edit-p-client').value = client; document.getElementById('edit-p-loc').value = loc; document.getElementById('edit-p-val').value = val; document.getElementById('edit-p-lat').value = lat; document.getElementById('edit-p-lng').value = lng; window.openModal('p-edit-mod'); };
-        window.executeProjectModifySubmit = async function(e) { e.preventDefault(); const id = document.getElementById('edit-p-id').value; const payload = { name: document.getElementById('edit-p-name').value, client: document.getElementById('edit-p-client').value, location: document.getElementById('edit-p-loc').value, lat: Number(document.getElementById('edit-p-lat').value), lng: Number(document.getElementById('edit-p-lng').value), contract_value: Number(document.getElementById('edit-p-val').value) }; await fetch(`${SUPABASE_REST_URL}/projects?id=eq.${id}`, { method: "PATCH", headers: cloudHeaders, body: JSON.stringify(payload) }); window.closeModal('p-edit-mod'); alert("Project updated successfully!"); initializeSecurityGatekeeper(); };
-        window.deleteRowCloud = async function(table, id) { if(confirm("Are you sure?")) { const response = await fetch(`${SUPABASE_REST_URL}/${table}?id=eq.${id}`, { method: "DELETE", headers: cloudHeaders }); if(response.ok) { alert("Deleted successfully."); initializeSecurityGatekeeper(); } } };
+        // --- 8. MUTATION GLOBAL METHODS OVERRIDES ---
+        window.deleteRowCloud = async function(table, id) { if(confirm("Are you sure you want to delete this row permanent?")) { const response = await fetch(`${SUPABASE_REST_URL}/${table}?id=eq.${id}`, { method: "DELETE", headers: cloudHeaders }); if(response.ok) { alert("Deleted successfully."); initializeSecurityGatekeeper(); } } };
 
-        // --- 8. MAP INITIALIZERS ---
+        // --- 9. MAP LAYERS ---
         function renderLeafletMapLayer() { let m = document.getElementById('vantage-live-map'); if (!m) return; let mo = L.map('vantage-live-map').setView([24.5854, 73.7125], 9); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mo); dbProjects.forEach(p => { if (p.lat) L.marker([p.lat, p.lng]).addTo(mo); }); }
         function renderLeafletRadarLayer() { let r = document.getElementById('vantage-staff-map'); if (!r) return; let ro = L.map('vantage-staff-map').setView([24.5854, 73.7125], 9); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(ro); dbStaff.forEach(s => { if (s.lat) L.marker([s.lat, s.lng]).addTo(ro); }); }
 
-        // --- 9. EXCEL ENGINE ---
+        // --- 10. EXCEL ENGINE ---
         window.buildExcelRowsMatrixHTML = function() {
             const body = document.getElementById('excel-rows-body'); if(!body) return;
             body.innerHTML = activeExcelRows.map((row, index) => {
