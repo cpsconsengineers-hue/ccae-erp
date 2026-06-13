@@ -31,7 +31,7 @@
         <div class="min-h-screen flex items-center justify-center bg-darkBg">
             <div class="text-center">
                 <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p class="text-gray-400 font-mono tracking-widest uppercase text-[10px]">REPAIRING NAV SYSTEM & CLICK CONTROLS...</p>
+                <p class="text-gray-400 font-mono tracking-widest uppercase text-[10px]">UNFREEZING NAVIGATION INTERFACE MODULES v25...</p>
             </div>
         </div>
     </div>
@@ -53,7 +53,7 @@
         let dbMeasurements = []; let dbFinancials = []; let dbMachinery = []; let dbTenders = [];
         let dbPhotos = [];
 
-        let currentTab = "dashboard"; // Defaults back to dashboard on crash recovery
+        let currentTab = "dashboard"; // Safely default back to landing base node
         let currentUser = JSON.parse(sessionStorage.getItem('vantage_active_session')) || null;
         
         let activeExcelRows = [
@@ -61,23 +61,24 @@
         ];
         let activeMapObj = null;
 
-        // Camera stream variables
+        // Camera stream configuration hooks
         let cameraStream = null;
         let lockedLatitude = null;
         let lockedLongitude = null;
         let capturedImageBase64 = null;
 
-        // --- 2. GLOBAL ROUTER INJECTIONS (FIXED CLICK BINDING) ---
-        function switchTab(t) { 
-            closeLiveCameraInterface(); // Clean camera channels
-            currentTab = t; 
+        // --- 2. INSTANT UNBLOCKED ROUTER SYSTEM ---
+        function switchTab(tabId) { 
+            closeLiveCameraInterface(); // Clean active hardware allocations instantly
+            currentTab = tabId; 
             renderERP(); 
         }
 
-        function logoutSession() {
-            sessionStorage.removeItem('vantage_active_session');
-            currentUser = null;
-            renderERP();
+        function logoutSession() { 
+            closeLiveCameraInterface();
+            currentUser = null; 
+            sessionStorage.removeItem('vantage_active_session'); 
+            location.reload(); 
         }
 
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
@@ -112,11 +113,11 @@
                 dbPhotos = await fetchNativeTable('site_photos', [
                     { id: "ph1", project_name: "Udaipur City Flyover Survey", timestamp: "2026-06-13 14:30", lat: 24.5854, lng: 73.7125, image_data: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400" }
                 ]);
-            } catch (e) { console.error("Sync stack failure bypassed."); }
+            } catch (e) { console.error("Sync barrier bypassed cleanly."); }
             renderERP();
         }
 
-        // --- 4. HARDWARE SIDEBAR INTERFACE STRUCTURE ---
+        // --- 4. HARDWARE LOG IN GATEWAY MAP LAYER ---
         function renderERP() {
             const root = document.getElementById('app-root');
             
@@ -173,12 +174,16 @@
                                 
                                 <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest px-3 pt-2">Human Capital & Assets</p>
                                 <button onclick="switchTab('materials')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'materials' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">📦 Inventory Hub (Godown)</button>
+                                <button onclick="switchTab('material-inward')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'material-inward' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">📥 Material Inward Challan Registry</button>
                                 <button onclick="switchTab('machinery')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'machinery' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">⚙️ Machinery Assets Fleet</button>
+                                <button onclick="switchTab('attendance')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'attendance' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">✅ Daily Attendance</button>
                                 
                                 ${isElevatedPrivilege ? `
                                 <div class="pt-2 border-t border-borderGray/40 space-y-0.5">
-                                    <p class="text-[9px] font-bold text-red-400 uppercase tracking-widest px-3">Central Command</p>
+                                    <p class="text-[9px] font-bold text-red-500 uppercase tracking-widest px-3">Central Command & Audit</p>
+                                    <button onclick="switchTab('financial')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'financial' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">💰 Financial Ledger Matrix</button>
                                     <button onclick="switchTab('petty-cash')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'petty-cash' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">💸 Daily Petty Cash Tracker</button>
+                                    <button onclick="switchTab('staff-mgmt')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'staff-mgmt' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">👥 Staff Management</button>
                                 </div>
                                 ` : ''}
                             </nav>
@@ -207,9 +212,9 @@
             if (currentTab === "dashboard") {
                 container.innerHTML = `
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Active Projects</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbProjects.length} Sites</h3></div>
+                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Active Sites</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbProjects.length} Sites</h3></div>
                         <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Warehouse Units</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbGodowns.length} Godowns</h3></div>
-                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">M-Book Records</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbMeasurements.length} Rows</h3></div>
+                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">M-Book Records</p><h3 class="text-xl font-extrabold mt-1 text-white">${activeExcelRows.length} Rows</h3></div>
                         <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Workforce Base</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbStaff.length} Accounts</h3></div>
                     </div>
                 `;
@@ -219,8 +224,8 @@
                 container.innerHTML = `
                     <div class="space-y-4">
                         <div class="flex justify-between items-center">
-                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Project Infrastructure Registry</h3>
-                            ${isElevatedPrivilege ? `<button onclick="openModal('p-mod')" class="bg-blue-600 text-white px-3 py-1.5 rounded font-bold">+ Provision New Site</button>` : ''}
+                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Project Infrastructure Registry Nodes</h3>
+                            ${isElevatedPrivilege ? `<button onclick="openModal('p-mod')" class="bg-blue-600 text-white px-3 py-1.5 rounded font-bold font-sans">+ Provision New Site</button>` : ''}
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             ${dbProjects.map(p=>`
@@ -228,8 +233,14 @@
                                     <h4 class="font-bold text-white text-xs border-b border-borderGray pb-1.5 mb-1">${p.name}</h4>
                                     <p class="text-gray-400">🏢 Client: <span class="text-gray-200">${p.client}</span></p>
                                     <p class="text-gray-400">📍 Location: <span class="text-gray-200">${p.location}</span></p>
-                                    <p class="text-gray-400">🌐 GPS: <span class="text-blue-400 font-mono font-bold">${p.lat || '24.5854'}, ${p.lng || '73.7125'}</span></p>
-                                    <p class="text-gray-400">💰 Value: <span class="text-green-400 font-mono font-bold">₹${Number(p.contract_value || 4500000).toLocaleString()}</span></p>
+                                    <p class="text-gray-400">🌐 GPS Coordinates: <span class="text-blue-400 font-mono font-bold">${p.lat || '24.5854'}, ${p.lng || '73.7125'}</span></p>
+                                    <p class="text-gray-400">💰 Contract Sum: <span class="text-green-400 font-mono font-bold">₹${Number(p.contract_value || 4500000).toLocaleString()}</span></p>
+                                    
+                                    ${isElevatedPrivilege ? `
+                                    <div class="absolute bottom-4 right-4 flex space-x-2">
+                                        <button onclick="triggerProjectEdit('${p.id}','${p.name}','${p.client}','${p.location}','${p.contract_value || 4500000}','${p.lat || '24.5854'}','${p.lng || '73.7125'}')" class="bg-blue-950/60 hover:bg-blue-900/80 text-blue-400 border border-blue-900/60 px-2 py-0.5 rounded font-mono text-[9px] transition-colors">Modify Project</button>
+                                        <button onclick="deleteRowCloud('projects','${p.id}')" class="bg-red-950/50 hover:bg-red-900/80 text-red-400 border border-red-900/60 px-2 py-0.5 rounded font-mono text-[9px] transition-colors">Purge Data</button>
+                                    </div>` : ''}
                                 </div>
                             `).join('')}
                         </div>
@@ -244,13 +255,14 @@
                             <h3 class="text-sm font-bold text-white uppercase tracking-wider">📷 SITE PHOTO UPDATES MODULE</h3>
                             <button onclick="startLiveCameraInterface()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-1.5 rounded transition-colors shadow-md">📷 Click GPS Photo</button>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="photo-gallery-grid">
                             ${dbPhotos.map(ph=>`
-                                <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden p-3 space-y-2">
+                                <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden p-3 space-y-2 relative">
                                     <img src="${ph.image_data}" class="w-full h-40 object-cover rounded-lg bg-darkBg border border-borderGray">
                                     <div class="font-mono text-[10px] text-gray-400 space-y-0.5">
-                                        <p class="text-white font-bold font-sans text-xs truncate">📍 ${ph.project_name}</p>
-                                        <p>📅 ${ph.timestamp}</p>
+                                        <p class="text-white font-bold font-sans text-xs truncate">📍 Project: ${ph.project_name}</p>
+                                        <p>📅 Timestamp: ${ph.timestamp}</p>
+                                        <p class="text-emerald-400 font-bold">🌐 Coords: ${Number(ph.lat || 24.5854).toFixed(6)}, ${Number(ph.lng || 73.7125).toFixed(6)}</p>
                                     </div>
                                 </div>
                             `).join('')}
@@ -267,9 +279,11 @@
                                     <canvas id="hidden-photo-canvas" class="hidden"></canvas>
                                     <img id="snapped-photo-preview" class="absolute inset-0 w-full h-full object-cover hidden z-10">
                                 </div>
-                                <button type="button" id="snap-action-btn" onclick="captureSnapshotAndGPS()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded font-bold uppercase tracking-wider">🎯 Capture Photo & GPS</button>
-                                <div id="gps-lock-badge" class="hidden text-center p-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 font-mono text-[10px] rounded-lg"></div>
-                                <button type="submit" id="submit-vault-btn" disabled class="w-full bg-gray-700 text-gray-400 font-bold py-2.5 rounded uppercase cursor-not-allowed">Save Geotagged Photo</button>
+                                <div class="space-y-2">
+                                    <button type="button" id="snap-action-btn" onclick="captureSnapshotAndGPS()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded font-bold uppercase tracking-wider transition-all">🎯 Capture Photo & GPS Coordinates</button>
+                                    <div id="gps-lock-badge" class="hidden text-center p-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 font-mono text-[10px] rounded-lg"></div>
+                                </div>
+                                <button type="submit" id="submit-vault-btn" disabled class="w-full bg-blue-600 text-white font-bold py-2.5 rounded uppercase shadow-md">Save Geotagged Photo</button>
                                 <button type="button" onclick="closeLiveCameraInterface()" class="w-full bg-gray-800 hover:bg-gray-750 text-gray-300 font-bold py-2 rounded uppercase border border-borderGray">❌ Cancel / Close</button>
                             </form>
                         </div>
@@ -281,10 +295,10 @@
                 container.innerHTML = `
                     <div class="space-y-4">
                         <div class="flex justify-between items-center border-b border-borderGray pb-2">
-                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">📐 Advanced M-Book Grid</h3>
-                            <button onclick="addExcelRow()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-1.5 rounded shadow-md uppercase">+ Add New Entry Row</button>
+                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">📐 Advanced Multi-Row Excel M-Book Grid</h3>
+                            <button onclick="addExcelRow()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-1.5 rounded transition-all shadow-md uppercase tracking-wider">+ Add New Row</button>
                         </div>
-                        <div class="overflow-x-auto border border-borderGray rounded-xl bg-panelBg"><table class="w-full text-center border-collapse text-xs"><tr class="bg-darkBg border-b border-borderGray text-gray-400 font-bold uppercase text-[10px]"><th class="p-3 w-12 border-r border-borderGray">Seq</th><th class="p-3 border-r border-borderGray">Chainage From</th><th class="p-3 border-r border-borderGray">Chainage To</th><th class="p-3 border-r border-borderGray">Length</th><th class="p-3 border-r border-borderGray">Width (m)</th><th>Avg Width</th><th class="p-3 border-r border-borderGray">Thickness (m)</th><th class="p-3 text-blue-400">Yield Output</th></tr><tbody id="excel-rows-body" class="divide-y divide-borderGray font-mono"></tbody></table></div>
+                        <div class="overflow-x-auto border border-borderGray rounded-xl bg-panelBg"><table class="w-full text-center border-collapse text-xs"><tr class="bg-darkBg border-b border-borderGray text-gray-400 font-bold uppercase text-[10px]"><th class="p-3 w-12 border-r border-borderGray">Seq</th><th class="p-3 border-r border-borderGray">Chainage From</th><th class="p-3 border-r border-borderGray">Chainage To</th><th class="p-3 border-r border-borderGray">Length</th><th class="p-3 border-r border-borderGray">Width (m)</th><th>Avg Width</th><th class="p-3 border-r border-borderGray">Thickness (m)</th><th class="p-3 text-blue-400">Yield Output</th><th class="p-3 text-red-400 w-20">Actions</th></tr><tbody id="excel-rows-body" class="divide-y divide-borderGray font-mono"></tbody></table></div>
                     </div>
                 `; buildExcelRowsMatrixHTML();
             }
@@ -311,9 +325,16 @@
                 container.innerHTML = `
                     <div class="space-y-4">
                         <h3 class="text-sm font-bold text-white uppercase tracking-wider">📄 Tenders Matrix Nodes</h3>
-                        <div class="bg-panelBg border border-borderGray rounded-xl p-4"><p class="text-gray-400">No active tender submissions detected in stream.</p></div>
+                        <div class="bg-panelBg border border-borderGray rounded-xl p-4">
+                            <table class="w-full text-left"><tr class="text-gray-400 border-b border-borderGray pb-2"><th>Tender Title</th><th>Value</th></tr>
+                                ${dbTenders.map(t=>`<tr><td class="py-2 text-white font-bold">${t.title}</td><td class="font-mono text-blue-400">₹${t.value.toLocaleString()}</td></tr>`).join('')}
+                            </table>
+                        </div>
                     </div>
                 `;
+            }
+            else if (currentTab === "material-inward") {
+                container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📥 Material Inward Challan Registry</h3></div>`;
             }
             else if (currentTab === "petty-cash") {
                 container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">💸 Daily Petty Cash Tracker</h3></div>`;
@@ -328,29 +349,39 @@
             }
         }
 
-        // --- 6. CAMERA LIFECYCLE ---
+        // --- 6. WEBCAM INTERFACE MECHANISM (FIXED BRACE CRASH) ---
         async function startLiveCameraInterface() {
             lockedLatitude = null; lockedLongitude = null; capturedImageBase64 = null; 
             openModal('cam-mod');
             const videoElement = document.getElementById('webcam-preview'); 
             try {
                 cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
-                videoElement.srcObject = cameraStream;
+                if (videoElement) videoElement.srcObject = cameraStream;
             } catch (err) {
                 try {
                     cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-                    videoElement.srcObject = cameraStream;
-                } catch (e) { alert("Camera Access Mismatch."); }
+                    if (videoElement) videoElement.srcObject = cameraStream;
+                } catch (e) { alert("Camera Permission Access Denied."); }
             }
         }
 
+        // 🔥 SPIKE FIX: SAFELY TERM AND CLOSE WEBCAM WITHOUT KILLING DOC ROOT EXECUTIONS
         function closeLiveCameraInterface() { 
             if (cameraStream) { 
-                cameraStream.getTracks().forEach(t => t.stop()); 
+                try {
+                    const tracks = cameraStream.getTracks();
+                    if (tracks && tracks.length > 0) {
+                        for (let i = 0; i < tracks.length; i++) {
+                            tracks[i].stop(); // Exact proper array indexing loop execution
+                        }
+                    }
+                } catch(err) { console.error("Stream clean exception bypassed."); }
                 cameraStream = null;
             } 
             closeModal('cam-mod'); 
         }
+
+        function stopLiveCameraStream() { closeLiveCameraInterface(); }
 
         function captureSnapshotAndGPS() {
             const video = document.getElementById('webcam-preview'); 
@@ -363,18 +394,18 @@
             canvas.width = video.videoWidth || 640; canvas.height = video.videoHeight || 480;
             canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
             capturedImageBase64 = canvas.toDataURL('image/jpeg', 0.85); 
-            imgPreview.src = capturedImageBase64; imgPreview.classList.remove('hidden');
-            
-            statusBadge.innerHTML = "📡 Locking Satellite Vector Grid..."; statusBadge.classList.remove('hidden');
+            if (imgPreview) { imgPreview.src = capturedImageBase64; imgPreview.classList.remove('hidden'); }
+            if (statusBadge) { statusBadge.innerHTML = "📡 Extracting GPS Coordinates..."; statusBadge.classList.remove('hidden'); }
+
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((pos) => {
-                    lockedLatitude = pos.coords.latitude; lockedLongitude = pos.coords.longitude;
-                    statusBadge.innerHTML = `🔒 Locked! Lat: ${lockedLatitude.toFixed(6)} | Lng: ${lockedLongitude.toFixed(6)}`;
-                    submitBtn.disabled = false; submitBtn.className = "w-full bg-blue-600 text-white font-bold py-2.5 rounded";
+                navigator.geolocation.getCurrentPosition((position) => {
+                    lockedLatitude = position.coords.latitude; lockedLongitude = position.coords.longitude;
+                    if (statusBadge) statusBadge.innerHTML = `Locked: ${lockedLatitude.toFixed(6)}, ${lockedLongitude.toFixed(6)}`;
+                    if (submitBtn) { submitBtn.disabled = false; submitBtn.className = "w-full bg-blue-600 text-white font-bold py-2.5 rounded shadow-md"; }
                 }, () => {
                     lockedLatitude = 24.5854; lockedLongitude = 73.7125;
-                    statusBadge.innerHTML = `🔒 Default Grid Locked`;
-                    submitBtn.disabled = false; submitBtn.className = "w-full bg-blue-600 text-white font-bold py-2.5 rounded";
+                    if (statusBadge) statusBadge.innerHTML = `Locked Office: 24.5854, 73.7125`;
+                    if (submitBtn) { submitBtn.disabled = false; submitBtn.className = "w-full bg-blue-600 text-white font-bold py-2.5 rounded shadow-md"; }
                 });
             }
         }
@@ -383,12 +414,13 @@
             e.preventDefault();
             const payload = { project_name: document.getElementById('cam-proj').value, timestamp: new Date().toISOString().replace('T',' ').split('.')[0], lat: lockedLatitude || 24.5854, lng: lockedLongitude || 73.7125, image_data: capturedImageBase64 };
             const response = await fetch(`${SUPABASE_REST_URL}/site_photos`, { method: "POST", headers: cloudHeaders, body: JSON.stringify(payload) });
-            if(response.ok) { alert("📸 Photo saved successfully!"); closeLiveCameraInterface(); initializeSecurityGatekeeper(); }
+            if(response.ok) { alert("📸 Geotagged Photo saved!"); closeLiveCameraInterface(); initializeSecurityGatekeeper(); }
         }
 
-        // --- 7. MAPS ---
+        // --- 7. EXTERNAL CONNECTIONS ---
         function renderLeafletMapLayer() { let m = document.getElementById('vantage-live-map'); if (!m) return; let mo = L.map('vantage-live-map').setView([24.5854, 73.7125], 9); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mo); dbProjects.forEach(p => { if (p.lat) L.marker([p.lat, p.lng]).addTo(mo); }); }
         function renderLeafletRadarLayer() { let r = document.getElementById('vantage-staff-map'); if (!r) return; let ro = L.map('vantage-staff-map').setView([24.5854, 73.7125], 9); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(ro); dbStaff.forEach(s => { if (s.lat) L.marker([s.lat, s.lng]).addTo(ro); }); }
+        async function deleteRowCloud(table, id) { if(confirm("Are you sure?")) { const response = await fetch(`${SUPABASE_REST_URL}/${table}?id=eq.${id}`, { method: "DELETE", headers: cloudHeaders }); if(response.ok) { alert("Deleted."); initializeSecurityGatekeeper(); } } }
 
         // --- 8. EXCEL MULTI-ROW MATRIX SHEET ENGINE ---
         function buildExcelRowsMatrixHTML() {
@@ -397,7 +429,7 @@
                 let len = 0; const cFrom = parseChainage(row.chainageFrom); const cTo = parseChainage(row.chainageTo);
                 if (!isNaN(cFrom) && !isNaN(cTo)) { len = Math.abs(cTo - cFrom); }
                 let avgW = Number(row.width || 0); if (index > 0) { avgW = (Number(row.width || 0) + Number(activeExcelRows[index - 1].width || 0)) / 2; }
-                return `<tr class="hover:bg-panelBg/40 text-center"><td class="p-2 border-r border-borderGray text-gray-400 font-bold">${index+1}</td><td class="p-0 border-r border-borderGray"><input type="text" oninput="updateExcelCell(${index},'chainageFrom',this.value)" value="${row.chainageFrom}" class="w-full bg-transparent text-center focus:outline-none"></td><td class="p-0 border-r border-borderGray"><input type="text" oninput="updateExcelCell(${index},'chainageTo',this.value)" value="${row.chainageTo}" class="w-full bg-transparent text-center focus:outline-none"></td><td class="p-2 border-r border-borderGray font-bold text-gray-400">${len} m</td><td class="p-0 border-r border-borderGray"><input type="number" oninput="updateExcelCell(${index},'width',this.value)" value="${row.width}" class="w-full bg-transparent text-center font-bold focus:outline-none"></td><td class="p-2 border-r border-borderGray text-orange-400 font-bold">${avgW.toFixed(3)} m</td><td class="p-0 border-r border-borderGray"><input type="number" oninput="updateExcelCell(${index},'thickness',this.value)" value="${row.thickness}" class="w-full bg-transparent text-center focus:outline-none text-emerald-400 font-bold"></td><td class="p-2 text-right text-blue-400 font-bold pr-4">${row.thickness ? `${(len * avgW * Number(row.thickness)).toFixed(3)} m³` : `${(len * avgW).toFixed(2)} m²`}</td></tr>`;
+                return `<tr class="hover:bg-panelBg/40 text-center"><td class="p-2 border-r border-borderGray text-gray-400 font-bold">${index+1}</td><td class="p-0 border-r border-borderGray"><input type="text" oninput="updateExcelCell(${index},'chainageFrom',this.value)" value="${row.chainageFrom}" class="w-full bg-transparent text-center focus:outline-none"></td><td class="p-0 border-r border-borderGray"><input type="text" oninput="updateExcelCell(${index},'chainageTo',this.value)" value="${row.chainageTo}" class="w-full bg-transparent text-center focus:outline-none"></td><td class="p-2 border-r border-borderGray font-bold text-gray-400">${len} m</td><td class="p-0 border-r border-borderGray"><input type="number" oninput="updateExcelCell(${index},'width',this.value)" value="${row.width}" class="w-full bg-transparent text-center font-bold focus:outline-none"></td><td class="p-2 border-r border-borderGray text-orange-400 font-bold">${avgW.toFixed(3)} m</td><td class="p-0 border-r border-borderGray"><input type="number" oninput="updateExcelCell(${index},'thickness',this.value)" value="${row.thickness}" class="w-full bg-transparent text-center focus:outline-none text-emerald-400 font-bold"></td><td class="p-2 text-right text-blue-400 font-bold pr-4">${row.thickness ? `${(len * avgW * Number(row.thickness)).toFixed(3)} m³` : `${(len * avgW).toFixed(2)} m²`}</td><td class="p-1"><button type="button" onclick="activeExcelRows.splice(${index},1); buildExcelRowsMatrixHTML();" class="bg-red-950/40 text-red-400 font-bold text-[10px] px-2 py-0.5 rounded">Purge</button></td></tr>`;
             }).join('');
         }
         function updateExcelCell(idx, field, val) { activeExcelRows[idx][field] = val; buildExcelRowsMatrixHTML(); }
