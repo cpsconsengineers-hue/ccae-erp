@@ -6,7 +6,6 @@
     <title>CPS Consultants & Engineers - Vantage Command Center</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Leaflet.js Interactive Mapping Assets -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -22,6 +21,7 @@
     </script>
     <style>
         .leaflet-container { background: #0b0f19 !important; border-radius: 8px; }
+        .leaflet-popup-content-wrapper { background: #111827 !important; color: #fff !important; border: 1px solid #1f2937 !important; font-size: 11px !important; }
         body, button, aside, nav, main, div, input, select, table, td, th { pointer-events: auto !important; }
         button, select, input { cursor: pointer !important; }
     </style>
@@ -32,7 +32,7 @@
         <div class="min-h-screen flex items-center justify-center bg-darkBg">
             <div class="text-center">
                 <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p class="text-gray-400 font-mono tracking-widest uppercase text-[10px]">UPGRADING BILLING MATRIX GRID TO IMAGE TWO SCHEMA v42...</p>
+                <p class="text-gray-400 font-mono tracking-widest uppercase text-[10px]">UPGRADING DOUBLE ENTRY BOOKKEEPING MATRIX v43...</p>
             </div>
         </div>
     </div>
@@ -49,23 +49,20 @@
             "Prefer": "return=representation"
         };
 
+        // Complete Standalone Tables Storage Buffers
         let dbProjects = []; let dbStaff = []; let dbGodowns = []; let dbStockBook = []; 
         let dbMeasurements = []; let dbTenders = []; let dbPhotos = []; let dbMachinery = [];
         let dbAttendance = []; let dbTelemetry = []; let dbPettyCash = [];
         let dbSubcontractors = []; let dbLedger = []; let dbInvoices = [];
 
-        let currentTab = "billing"; // Keep instant validation focused on Billing tab
+        let currentTab = "financial"; // Set temporary interface validation focus node directly onto Ledger Tab
         let currentUser = JSON.parse(sessionStorage.getItem('vantage_active_session')) || null;
         let activeExcelRows = [{ chainageFrom: '0/000', chainageTo: '0/025', width: 7.5, thickness: '' }];
         
         let cameraStream = null;
         let localCapturedSelfie = null;
         let livePunchCoordinates = null;
-
-        // Dynamic State for Image Two Billing Matrix
-        let activeInvoiceRows = [
-            { item: "Dismantling of existing residential structure on labor basis", qty: 700, unit: "Sqf", price: 110, discount: 0, tax: 0 }
-        ];
+        let activeInvoiceRows = [{ item: "Dismantling of existing residential structure on labor basis", qty: 700, unit: "Sqf", price: 110, discount: 0, tax: 0 }];
 
         // --- 2. ANTI-FREEZE SYSTEM ROUTERS ---
         function switchTab(tabId) {
@@ -85,7 +82,7 @@
         window.openModal = function(id) { document.getElementById(id).classList.remove('hidden'); };
         window.closeModal = function(id) { document.getElementById(id).classList.add('hidden'); };
 
-        // --- 3. DATABASE HARVESTER PIPELINE ---
+        // --- 3. REST NETWORK HARVESTER CONSOLE ---
         async function fetchNativeTable(endpoint, fallbackMockData) {
             try {
                 const response = await fetch(`${SUPABASE_REST_URL}/${endpoint}?select=*`, { method: "GET", headers: cloudHeaders });
@@ -102,7 +99,8 @@
                     { id: 's2', name: 'Rahul Accountant', role: 'Accountant', pass: 'CPSAC' }
                 ]);
                 dbProjects = await fetchNativeTable('projects', [
-                    { id: "1", name: "Udaipur City Flyover Survey", client: "Udaipur Authority", location: "Udaipur", contract_value: 4500000, lat: 24.5854, lng: 73.7125 }
+                    { id: "1", name: "Udaipur City Flyover Survey", client: "Udaipur Authority", location: "Udaipur", contract_value: 4500000 },
+                    { id: "2", name: "Residential Complex Construction", client: "Geeta Sharma Ji", location: "Sarada, Salumber", contract_value: 7500000 }
                 ]);
                 dbGodowns = await fetchNativeTable('godowns', [{ id: "g1", name: "Udaipur Central Godown" }]);
                 dbStockBook = await fetchNativeTable('stock_book', [{ id: "st1", godown_name: "Udaipur Central Godown", item: "53 Grade Cement", qty: 500, unit: "Bags" }]);
@@ -113,18 +111,18 @@
                 dbTelemetry = await fetchNativeTable('telemetry_history', []);
                 dbPettyCash = await fetchNativeTable('petty_cash', []);
                 dbSubcontractors = await fetchNativeTable('subcontractors', []);
-                dbLedger = await fetchNativeTable('financial_ledger', []);
+                dbInvoices = await fetchNativeTable('billing_invoices', []);
                 dbMachinery = await fetchNativeTable('machinery', []);
                 
-                // Fetch Billing Invoice Logs
-                dbInvoices = await fetchNativeTable('billing_invoices', [
-                    { id: "inv1", client_or_sub: "Client Valuation Bill", name: "Geeta Sharma Ji", bill_amount: 770000, invoice_no: "CPS/SL/12", date: "2026-03-31" }
+                // Fetch financial ledger logs with project mapping contexts
+                dbLedger = await fetchNativeTable('financial_ledger', [
+                    { id: "l1", type: "Inward_Income", party_or_staff: "Udaipur Authority", amount: 1500000, payment_mode: "Bank RTGS / NEFT Transfer", date: "2026-06-01", project_context: "Udaipur City Flyover Survey" }
                 ]);
             } catch (e) { console.error("Database stack setup loaded."); }
             renderERP();
         }
 
-        // --- 4. ERP COMMAND LAYOUT INTERFACE ---
+        // --- 4. SYSTEM INTERFACE LAYOUTS ---
         function renderERP() {
             const root = document.getElementById('app-root');
             if (!root) return;
@@ -173,7 +171,7 @@
                                 <button type="button" onclick="window.switchTab('petty-cash')" class="w-full block text-left px-3 py-2 rounded ${currentTab === 'petty-cash' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800'}">💸 Petty Cash Expense Logs</button>
 
                                 ${isAdminOrAccountant ? `
-                                <p class="text-[9px] font-bold text-red-400 uppercase tracking-widest px-3 pt-3">Command Restrict Nodes</p>
+                                <p class="text-[9px] font-bold text-red-400 uppercase tracking-widest px-3 pt-3">Central Command Nodes</p>
                                 <button type="button" onclick="window.switchTab('lifecycle')" class="w-full block text-left px-3 py-2 rounded ${currentTab === 'lifecycle' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800'}">🏢 Lifecycle Projects</button>
                                 <button type="button" onclick="window.switchTab('tenders')" class="w-full block text-left px-3 py-2 rounded ${currentTab === 'tenders' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800'}">📄 Tenders Matrix Nodes</button>
                                 <button type="button" onclick="window.switchTab('billing')" class="w-full block text-left px-3 py-2 rounded ${currentTab === 'billing' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800'}">🧾 Client & Sub Invoices</button>
@@ -185,7 +183,7 @@
                         </div>
                         <div class="p-4 border-t border-borderGray bg-darkBg/40 shrink-0">
                             <p class="text-white font-bold truncate">👤 ${currentUser.name}</p>
-                            <p class="text-[9px] text-emerald-400 font-mono font-bold uppercase">${currentUser.role}</p>
+                            <p class="text-[9px] text-emerald-400 uppercase font-mono font-bold">${currentUser.role}</p>
                             <button type="button" onclick="window.logoutSession()" class="w-full bg-gray-800 text-gray-400 py-1.5 rounded font-bold border border-borderGray uppercase text-[10px] mt-2">🔒 LOGOUT</button>
                         </div>
                     </aside>
@@ -195,47 +193,52 @@
             renderTabContent();
         }
 
-        // --- 5. VIEW COMPILER LAYOUTS ---
+        // --- 5. DATA RENDERING SWITCH SYSTEM ---
         function renderTabContent() {
             const container = document.getElementById('tab-content-window');
             if(!container) return;
 
             if (currentTab === "dashboard") {
-                container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-6 text-center text-emerald-400 font-mono font-bold uppercase tracking-wider">⚡ VANTAGE MATRIX OPERATIONAL. SYSTEM UNFREEZED.</div>`;
+                container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-6 text-center text-emerald-400 font-mono font-bold uppercase tracking-wider text-xs">⚡ COMMAND CENTER ACTIVE. INTEGRATION SHIELD LOCK.</div>`;
             }
 
             else if (currentTab === "lifecycle") {
                 container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">Project Infrastructure Registry</h3><div class="grid grid-cols-2 gap-4">${dbProjects.map(p=>`<div class="bg-panelBg border border-borderGray p-4 rounded-xl"><h4 class="font-bold text-white mb-2">${p.name}</h4><p class="text-gray-400">Client: ${p.client}</p></div>`).join('')}</div></div>`;
             }
 
-            else if (currentTab === "measurements") {
-                container.innerHTML = `<div class="p-4 text-gray-400 font-mono">Measurements loop complete.</div>`;
-            }
-
-            // --- 🧾 IMAGE ONE -> EXTENDED DYNAMIC GRID OF IMAGE TWO UPGRADE ---
-            else if (currentTab === "billing") {
+            // --- 💰 UPGRADED FINANCIAL LEDGER WITH LIFECYCLE PROJECTS DROPDOWN MATRIX ---
+            else if (currentTab === "financial") {
                 container.innerHTML = `
-                    <div class="space-y-6">
+                    <div class="space-y-4">
                         <div class="flex justify-between items-center border-b border-borderGray pb-2">
                             <div>
-                                <h3 class="text-sm font-bold text-white uppercase tracking-wider">🧾 Client Valuation & Subcontractor Invoice Sheets Matrix</h3>
-                                <p class="text-[10px] text-gray-400 mt-0.5">Itemized Multi-Row Sale Grid Architecture integrated directly as seen on image two.</p>
+                                <h3 class="text-sm font-bold text-white uppercase tracking-wider">💰 Financial Ledger Double Entry Book Matrix</h3>
+                                <p class="text-[10px] text-gray-400 mt-0.5">Post and monitor site-wise asset flows against specific project nodes.</p>
                             </div>
-                            <button type="button" onclick="window.openModal('invoice-extraction-modal')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-1.5 rounded uppercase text-[10px] shadow-md tracking-wider">+ Extract New Invoice Sheet</button>
+                            <button type="button" onclick="window.openModal('ledger-modal-v43')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-1.5 rounded font-sans uppercase text-[10px] shadow-md tracking-wider">+ Post Ledger Entry</button>
                         </div>
 
-                        <!-- Historical Saved Invoices Grid -->
                         <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden">
                             <table class="w-full text-left border-collapse text-xs">
                                 <thead>
-                                    <tr class="bg-darkBg border-b border-borderGray text-gray-400 uppercase text-[9px] tracking-wider font-bold">
-                                        <th class="p-3">Invoice Type</th><th class="p-3">Customer / Billing Name</th><th class="p-3">Invoice Number</th><th class="p-3">Invoice Date</th><th class="p-3 text-right pr-4">Total Amount Valuation</th>
+                                    <tr class="bg-darkBg border-b border-borderGray text-gray-400 font-bold uppercase text-[9px] tracking-wider">
+                                        <th class="p-3">Type Segment</th>
+                                        <th class="p-3">Project Site Context</th>
+                                        <th class="p-3">Party Name / Resource</th>
+                                        <th class="p-3">Book Valuation Amount</th>
+                                        <th class="p-3">Mode of Transfer</th>
+                                        <th class="p-3">Date Registered</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-borderGray font-mono text-gray-300">
-                                    ${dbInvoices.map(b => `
-                                        <tr class="hover:bg-darkBg/30">
-                                            <td class="p-3 font-sans text-white">${b.client_or_sub}</td><td class="p-3 font-sans font-bold text-blue-400">${b.name}</td><td class="p-3">${b.invoice_no}</td><td class="p-3">${b.date}</td><td class="p-3 text-right pr-4 text-emerald-400 font-bold">₹${Number(b.bill_amount).toLocaleString()}</td>
+                                    ${dbLedger.map(l => `
+                                        <tr class="hover:bg-darkBg/30 transition-colors">
+                                            <td class="p-3"><span class="px-2 py-0.5 rounded text-[9px] font-bold ${l.type === 'Inward_Income' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}">${l.type}</span></td>
+                                            <td class="p-3 font-sans text-blue-400 font-bold">${l.project_context || 'General Head Hub'}</td>
+                                            <td class="p-3 font-sans text-white font-medium">${l.party_or_staff}</td>
+                                            <td class="p-3 text-white font-bold">₹${Number(l.amount).toLocaleString()}</td>
+                                            <td class="p-3 text-gray-400">${l.payment_mode}</td>
+                                            <td class="p-3 text-gray-500">${l.date}</td>
                                         </tr>
                                     `).join('')}
                                 </tbody>
@@ -243,236 +246,102 @@
                         </div>
                     </div>
 
-                    <!-- 📦 FULL RE-ENGINEERED INVOICE EXTRACTION PORTAL (IMAGE ONE CONVERTED TO IMAGE TWO MATRICES) -->
-                    <div id="invoice-extraction-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
-                        <div class="bg-panelBg border border-borderGray max-w-5xl w-full rounded-xl p-6 space-y-6 shadow-2xl overflow-y-auto max-h-[92vh]">
-                            
-                            <!-- Header Frame -->
-                            <div class="border-b border-borderGray pb-3 flex justify-between items-center">
-                                <div class="flex items-center space-x-2">
-                                    <span class="text-lg">🧾</span>
-                                    <h4 class="font-bold text-white text-xs uppercase tracking-wider">INVOICE EXTRACTION PORTAL</h4>
-                                </div>
-                                <span class="text-[10px] text-blue-400 font-mono">[ STATUS: COMPILING ACTIVE INVOICE GRID ]</span>
+                    <div id="ledger-modal-v43" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 space-y-4 shadow-2xl">
+                            <div class="border-b border-borderGray pb-2 flex items-center space-x-1.5">
+                                <span class="text-sm">💰</span>
+                                <h4 class="font-bold text-white uppercase tracking-wider text-xs">POST DOUBLE ENTRY RECORD</h4>
                             </div>
+                            
+                            <form onsubmit="window.submitLedgerEntryRow(event)" class="space-y-3">
+                                <div>
+                                    <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Transaction Category</label>
+                                    <select id="l-type" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white text-xs font-bold focus:border-blue-500 focus:outline-none">
+                                        <option value="Inward_Income">Inward Income Received from Client</option>
+                                        <option value="Outward_Expense">Outward Expense Disbursed to Party/Staff</option>
+                                    </select>
+                                </div>
 
-                            <form onsubmit="window.executeMasterInvoiceSave(event)" class="space-y-6">
-                                <!-- Top Row Metadata Segment (Party Details) -->
-                                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-darkBg/40 border border-borderGray p-4 rounded-xl">
+                                <div>
+                                    <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Select Project Context (Work Scope Mapping) *</label>
+                                    <select id="l-project-context" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-bold text-xs focus:border-blue-500 focus:outline-none">
+                                        <option value="General Corporate Office">General Office / Non-Project Context</option>
+                                        ${dbProjects.map(p => `<option value="${p.name}">${p.name}</option>`).join('')}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Party / Staff Target Account Name</label>
+                                    <input type="text" id="l-party" required placeholder="Enter contractor or account label..." class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-sans text-xs focus:border-blue-500 focus:outline-none">
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-2">
                                     <div>
-                                        <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Invoice Type Segment</label>
-                                        <select id="inv-type" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white text-xs font-bold focus:border-blue-500 focus:outline-none">
-                                            <option value="Client Valuation Bill">Client Valuation Bill</option>
-                                            <option value="Subcontractor Claim Invoice">Subcontractor Claim Invoice</option>
+                                        <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Amount Valuation (₹)</label>
+                                        <input type="number" id="l-amt" required placeholder="₹ Valuation" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-mono text-xs focus:border-blue-500 focus:outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Mode of Payment</label>
+                                        <select id="l-mode" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white text-xs font-medium focus:border-blue-500 focus:outline-none">
+                                            <option value="Bank RTGS / NEFT Transfer">Bank RTGS / NEFT</option>
+                                            <option value="Petty Account Liquid Cash">Petty Account Cash</option>
+                                            <option value="UPI Node Account Transfer">UPI Transfer</option>
                                         </select>
                                     </div>
-                                    <div>
-                                        <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Customer / Party Name *</label>
-                                        <input type="text" id="inv-party" required placeholder="e.g. Geeta Sharma" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-sans text-xs focus:border-blue-500 focus:outline-none">
-                                    </div>
-                                    <div>
-                                        <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Invoice Number Prefix / ID</label>
-                                        <input type="text" id="inv-no" required placeholder="e.g. CPS/SL/12" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-mono text-xs focus:border-blue-500 focus:outline-none">
-                                    </div>
-                                    <div>
-                                        <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Invoice Statement Date</label>
-                                        <input type="date" id="inv-date" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white text-xs focus:border-blue-500 focus:outline-none">
-                                    </div>
-                                    <div class="md:col-span-2">
-                                        <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Billing Address</label>
-                                        <textarea id="inv-addr" placeholder="e.g. SAYPURA, SARADA" rows="1" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white focus:outline-none text-xs font-sans"></textarea>
-                                    </div>
-                                    <div class="md:col-span-2">
-                                        <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Shipping Address (Optional)</label>
-                                        <textarea id="inv-ship" placeholder="Shipping destination address context" rows="1" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white focus:outline-none text-xs font-sans"></textarea>
-                                    </div>
                                 </div>
 
-                                <!-- Center Row: Dynamic Item Grid Input (IMAGE TWO SCHEMA REPLICATED) -->
-                                <div class="space-y-2">
-                                    <div class="flex justify-between items-center">
-                                        <h5 class="text-orange-400 uppercase font-bold text-[9px] tracking-widest">📋 Itemized Valuation Row Breakup Matrix</h5>
-                                    </div>
-                                    <div class="overflow-x-auto border border-borderGray rounded-xl bg-darkBg/20">
-                                        <table class="w-full text-center border-collapse text-xs">
-                                            <thead>
-                                                <tr class="bg-darkBg text-gray-400 font-bold uppercase text-[9px] border-b border-borderGray">
-                                                    <th class="p-2 w-10">#</th>
-                                                    <th class="p-2 text-left">Item Description</th>
-                                                    <th class="p-2 w-20">Qty</th>
-                                                    <th class="p-2 w-24">Unit</th>
-                                                    <th class="p-2 w-28">Price / Unit</th>
-                                                    <th class="p-2 w-20">Discount (%)</th>
-                                                    <th class="p-2 w-20">Tax (%)</th>
-                                                    <th class="p-2 text-right pr-4 w-32">Amount Sum</th>
-                                                    <th class="p-2 w-12"></th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="invoice-items-tbody" class="divide-y divide-borderGray/40">
-                                                <!-- Dynamic Rows Injected Here via window.buildInvoiceGridRowsHTML -->
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <button type="button" onclick="window.addNewInvoiceItemRow()" class="bg-gray-800 hover:bg-gray-700 text-blue-400 font-bold px-4 py-2 border border-borderGray rounded text-[10px] uppercase tracking-wider transition-all">+ Add New Entry Row</button>
-                                </div>
-
-                                <!-- Bottom Row Calculation Abstract Panel -->
-                                <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-darkBg/60 border border-borderGray p-4 rounded-xl">
-                                    <div class="text-gray-400 font-sans italic text-[11px] mb-3 md:border-none">
-                                        * Note: Grand totals are recursively tracked with automated currency formatting layers.
-                                    </div>
-                                    <div class="w-full md:w-64 space-y-2 text-right">
-                                        <div class="flex justify-between items-center text-gray-400">
-                                            <span class="uppercase font-bold text-[9px]">Calculated Base Total:</span>
-                                            <span id="bill-base-lbl" class="font-mono text-white font-bold">₹0.00</span>
-                                        </div>
-                                        <div class="flex justify-between items-center text-gray-400 border-b border-borderGray/40 pb-2">
-                                            <span class="uppercase font-bold text-[9px]">Deductions / Discount:</span>
-                                            <span id="bill-disc-lbl" class="font-mono text-red-400 font-bold">₹0.00</span>
-                                        </div>
-                                        <div class="flex justify-between items-center text-xs pt-1">
-                                            <span class="uppercase font-extrabold text-white text-[10px] tracking-wider">Grand Net Payable:</span>
-                                            <span id="bill-grand-lbl" class="font-mono text-emerald-400 font-extrabold text-sm">₹0.00</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Action Triggers -->
-                                <div class="flex space-x-2 pt-2">
-                                    <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded uppercase font-sans text-[10px] tracking-widest transition-colors shadow-lg">COMMIT INVOICE SHEET</button>
-                                    <button type="button" onclick="window.closeModal('invoice-extraction-modal')" class="bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold px-6 py-3 rounded uppercase border border-borderGray text-[10px]">Cancel / Close</button>
+                                <div class="pt-2 space-y-2">
+                                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded uppercase tracking-widest text-[10px] transition-colors shadow-md">COMMIT LEDGER POSTING</button>
+                                    <button type="button" onclick="window.closeModal('ledger-modal-v43')" class="w-full bg-gray-800 text-gray-300 py-2 rounded text-[10px] uppercase font-bold border border-borderGray transition-all">Cancel</button>
                                 </div>
                             </form>
                         </div>
                     </div>
                 `;
-                // Build dynamic rows inside compiler panel instantly
-                window.buildInvoiceGridRowsHTML();
             }
-
-            else if (currentTab === "attendance") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Daily Attendance</h3>`; }
-            else if (currentTab === "materials") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Inventory Hub</h3>`; }
-            else if (currentTab === "material-inward") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Inward Registry</h3>`; }
-            else if (currentTab === "machinery") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Machinery Assets Fleet</h3>`; }
-            else if (currentTab === "tenders") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Tenders Matrix Nodes</h3>`; }
-            else if (currentTab === "geo-viewer") { container.innerHTML = `<div id="vantage-live-map" class="w-full h-[450px]"></div>`; setTimeout(renderLeafletMapLayer, 100); }
-            else if (currentTab === "staff-tracking") { container.innerHTML = `<div id="vantage-staff-map" class="w-full h-[450px]"></div>`; setTimeout(renderLeafletRadarLayer, 100); }
+            
+            else if (currentTab === "tenders") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">📄 Tenders Matrix Nodes</h3>`; }
+            else if (currentTab === "measurements") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">📐 Measurement Sheets</h3>`; }
+            else if (currentTab === "site-photos") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">📷 Site Photo Updates</h3>`; }
+            else if (currentTab === "materials") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">📦 Inventory Hub</h3>`; }
+            else if (currentTab === "material-inward") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">📥 Material Inward Registry</h3>`; }
+            else if (currentTab === "attendance") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">✅ Daily Attendance Logs</h3>`; }
+            else if (currentTab === "machinery") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Machinery Fleet</h3>`; }
+            else if (currentTab === "petty-cash") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Petty Cash Logs</h3>`; }
+            else if (currentTab === "billing") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Billing Section</h3>`; }
+            else if (currentTab === "subcontractors") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Subcontractors Registry</h3>`; }
+            else if (currentTab === "staff-mgmt") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Staff Management</h3>`; }
         }
 
-        // --- 6. 📋 IMAGE TWO SPECIFIC DYNAMIC MULTI-ROW MATRIX ROW LOGIC ---
-        window.buildInvoiceGridRowsHTML = function() {
-            const tbody = document.getElementById('invoice-items-tbody');
-            if(!tbody) return;
-
-            let grossBaseSum = 0;
-            let totalDiscountSum = 0;
-
-            tbody.innerHTML = activeInvoiceRows.map((row, index) => {
-                // Dynamic cell cost evaluations
-                const rowQty = Number(row.qty || 0);
-                const rowPrice = Number(row.price || 0);
-                const rowDiscPct = Number(row.discount || 0);
-                const rowTaxPct = Number(row.tax || 0);
-
-                const rawAmount = rowQty * rowPrice;
-                const discountDeduction = rawAmount * (rowDiscPct / 100);
-                const netAfterDiscount = rawAmount - discountDeduction;
-                const taxAddition = netAfterDiscount * (rowTaxPct / 100);
-                const finalRowAmount = netAfterDiscount + taxAddition;
-
-                grossBaseSum += rawAmount;
-                totalDiscountSum += discountDeduction;
-
-                return `
-                    <tr class="hover:bg-darkBg/40 transition-colors">
-                        <td class="p-2 border-r border-borderGray/40 text-gray-500 font-bold">${index + 1}</td>
-                        <td class="p-0 border-r border-borderGray/40">
-                            <input type="text" oninput="window.updateInvoiceRowCell(${index}, 'item', this.value)" value="${row.item}" placeholder="Enter specific description..." required class="w-full bg-transparent px-2 py-2.5 focus:outline-none text-left font-sans text-white text-xs font-medium">
-                        </td>
-                        <td class="p-0 border-r border-borderGray/40">
-                            <input type="number" oninput="window.updateInvoiceRowCell(${index}, 'qty', this.value)" value="${row.qty}" required class="w-full bg-transparent p-2 text-center font-mono text-white focus:outline-none">
-                        </td>
-                        <td class="p-0 border-r border-borderGray/40">
-                            <select onchange="window.updateInvoiceRowCell(${index}, 'unit', this.value)" class="w-full bg-transparent p-2 text-center focus:outline-none font-bold text-gray-300">
-                                <option value="Sqf" ${row.unit==='Sqf'?'selected':''}>Sqf</option>
-                                <option value="Cum" ${row.unit==='Cum'?'selected':''}>Cum</option>
-                                <option value="Sqm" ${row.unit==='Sqm'?'selected':''}>Sqm</option>
-                                <option value="Tons" ${row.unit==='Tons'?'selected':''}>Tons</option>
-                                <option value="Nos" ${row.unit==='Nos'?'selected':''}>Nos</option>
-                            </select>
-                        </td>
-                        <td class="p-0 border-r border-borderGray/40">
-                            <input type="number" oninput="window.updateInvoiceRowCell(${index}, 'price', this.value)" value="${row.price}" required class="w-full bg-transparent p-2 text-center font-mono text-blue-400 font-bold focus:outline-none">
-                        </td>
-                        <td class="p-0 border-r border-borderGray/40">
-                            <input type="number" oninput="window.updateInvoiceRowCell(${index}, 'discount', this.value)" value="${row.discount}" class="w-full bg-transparent p-2 text-center font-mono text-red-400 focus:outline-none" placeholder="0">
-                        </td>
-                        <td class="p-0 border-r border-borderGray/40">
-                            <input type="number" oninput="window.updateInvoiceRowCell(${index}, 'tax', this.value)" value="${row.tax}" class="w-full bg-transparent p-2 text-center font-mono text-orange-400 focus:outline-none" placeholder="0">
-                        </td>
-                        <td class="p-2 border-r border-borderGray/40 text-right pr-4 text-white font-bold font-mono">
-                            ₹${finalRowAmount.toFixed(2)}
-                        </td>
-                        <td class="p-1">
-                            <button type="button" onclick="activeInvoiceRows.splice(${index}, 1); window.buildInvoiceGridRowsHTML();" class="text-red-500 hover:text-red-400 text-[10px] px-2 font-bold font-sans uppercase">Purge</button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-
-            // Update abstract matrix summaries labels
-            const grandTotalSum = grossBaseSum - totalDiscountSum;
-            document.getElementById('bill-base-lbl').innerText = "₹" + grossBaseSum.toLocaleString(undefined, {minimumFractionDigits: 2});
-            document.getElementById('bill-disc-lbl').innerText = "₹" + totalDiscountSum.toLocaleString(undefined, {minimumFractionDigits: 2});
-            document.getElementById('bill-grand-lbl').innerText = "₹" + grandTotalSum.toLocaleString(undefined, {minimumFractionDigits: 2});
-        };
-
-        window.updateInvoiceRowCell = function(index, field, value) {
-            activeInvoiceRows[index][field] = (field === 'item' || field === 'unit') ? value : Number(value || 0);
-            window.buildInvoiceGridRowsHTML();
-        };
-
-        window.addNewInvoiceItemRow = function() {
-            activeInvoiceRows.push({ item: "", qty: 1, unit: "Sqf", price: 0, discount: 0, tax: 0 });
-            window.buildInvoiceGridRowsHTML();
-        };
-
-        window.executeMasterInvoiceSave = async function(e) {
+        // --- 6. FORM TRANSACTION MATRIX PROCESSORS ---
+        window.submitLedgerEntryRow = async function(e) {
             e.preventDefault();
             
-            // Recalculate ultimate aggregate value
-            let finalBillAmount = 0;
-            activeInvoiceRows.forEach(row => {
-                const netRow = (row.qty * row.price) - ((row.qty * row.price) * ((row.discount || 0) / 100));
-                finalBillAmount += netRow + (netRow * ((row.tax || 0) / 100));
-            });
+            const payload = [{
+                type: document.getElementById('l-type').value,
+                project_context: document.getElementById('l-project-context').value,
+                party_or_staff: document.getElementById('l-party').value.trim(),
+                amount: Number(document.getElementById('l-amt').value || 0),
+                payment_mode: document.getElementById('l-mode').value,
+                date: new Date().toISOString().split('T')[0]
+            }];
 
-            const payload = {
-                client_or_sub: document.getElementById('inv-type').value,
-                name: document.getElementById('inv-party').value.trim(),
-                invoice_no: document.getElementById('inv-no').value.trim(),
-                date: document.getElementById('inv-date').value,
-                bill_amount: Math.round(finalBillAmount)
-            };
-
-            const response = await fetch(`${SUPABASE_REST_URL}/billing_invoices`, { 
+            const response = await fetch(`${SUPABASE_REST_URL}/financial_ledger`, { 
                 method: "POST", 
                 headers: cloudHeaders, 
-                body: JSON.stringify([payload]) 
+                body: JSON.stringify(payload) 
             });
 
             if (response.ok) {
-                alert("🎉 Success: Invoice Entry successfully stored inside cloud nodes!");
-                window.closeModal('invoice-extraction-modal');
-                // Reset defaults back
-                activeInvoiceRows = [{ item: "Dismantling of existing residential structure on labor basis", qty: 700, unit: "Sqf", price: 110, discount: 0, tax: 0 }];
-                initializeSecurityGatekeeper(); // Refresh layout views
+                alert("🎉 Success: Entry committed inside Ledger database with Project tag assignment!");
+                window.closeModal('ledger-modal-v43');
+                initializeSecurityGatekeeper(); // Refresh row views
             } else {
-                alert("Database transmission failed code error.");
+                alert("Database transmission line sync failure.");
             }
         };
 
-        // --- 7. HARDWARE STREAM AND DISPOSAL DRIVERS ---
+        // --- 7. CLEAN HARDWARE STREAMS CLEAR CLOSURES ---
         window.closeLiveCameraInterface = function() { 
             if (cameraStream) { 
                 try {
@@ -484,7 +353,6 @@
 
         function renderLeafletMapLayer() { let m = document.getElementById('vantage-live-map'); if (!m) return; let mo = L.map('vantage-live-map').setView([24.5854, 73.7125], 9); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mo); dbProjects.forEach(p => { if (p.lat) L.marker([p.lat, p.lng]).addTo(mo); }); }
         function renderLeafletRadarLayer() { let r = document.getElementById('vantage-staff-map'); if (!r) return; let ro = L.map('vantage-staff-map').setView([24.5854, 73.7125], 9); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(ro); dbStaff.forEach(s => { if (s.lat) L.marker([s.lat, s.lng]).addTo(ro); }); }
-        window.buildExcelRowsMatrixHTML = function() { const body = document.getElementById('excel-rows-body'); if(!body) return; body.innerHTML = activeExcelRows.map((row, index) => `<tr class="text-center"><td class="p-2 border-r border-borderGray text-gray-500">${index+1}</td><td class="p-0 border-r border-borderGray"><input type="text" value="${row.chainageFrom}" class="w-full bg-transparent text-center focus:outline-none"></td><td class="p-0 border-r border-borderGray"><input type="text" value="${row.chainageTo}" class="w-full bg-transparent text-center focus:outline-none"></td><td class="p-2 border-r border-borderGray text-gray-400">25 m</td><td class="p-0 border-r border-borderGray"><input type="number" value="${row.width}" class="w-full bg-transparent text-center focus:outline-none"></td><td class="p-2 border-r border-borderGray text-orange-400 font-bold">7.500 m</td><td class="p-0 border-r border-borderGray"><input type="number" placeholder="[m]" class="w-full bg-transparent text-center focus:outline-none"></td><td class="p-2 text-right text-blue-400 font-bold pr-4">187.50 m²</td></tr>`).join(''); };
 
         initializeSecurityGatekeeper();
     </script>
