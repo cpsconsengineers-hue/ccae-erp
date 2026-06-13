@@ -45,7 +45,7 @@
                         <div class="grid grid-cols-4 gap-4">
                             <input type="text" id="m-name" placeholder="Item Name" class="bg-gray-900 p-2 rounded text-sm">
                             <input type="number" id="m-qty" placeholder="Quantity" class="bg-gray-900 p-2 rounded text-sm">
-                            <input type="text" id="m-unit" placeholder="Unit" class="bg-gray-900 p-2 rounded text-sm">
+                            <input type="text" id="m-unit" placeholder="Unit (Bag/MT/Cft)" class="bg-gray-900 p-2 rounded text-sm">
                             <button onclick="addStock()" class="bg-blue-600 p-2 rounded font-bold text-sm">ADD TO STOCK</button>
                         </div>
                     </div>
@@ -55,38 +55,24 @@
                     </div>
                     <table class="w-full text-left text-sm border-collapse">
                         <thead class="text-gray-500 uppercase border-b border-gray-800">
-                            <tr><th class="p-2">Sr.</th><th>Item</th><th>Qty</th><th>Site/Godown</th><th>Status</th></tr>
+                            <tr><th class="p-2">Sr.</th><th>Item</th><th>Qty</th><th>Site/Godown</th><th>Transfer Log</th><th>Actions</th></tr>
                         </thead>
                         <tbody id="inventory-list"></tbody>
                     </table>
                 </div>`;
             } else if (name === 'Live Projects') {
-                area.innerHTML = `<div class="bg-gray-900 p-6 rounded border border-gray-800">
-                    <div class="grid grid-cols-2 gap-4">
-                        <input type="text" id="p-name" placeholder="Name of Work" class="bg-gray-900 p-2 rounded">
-                        <input type="text" id="p-client" placeholder="Name of Client" class="bg-gray-900 p-2 rounded">
-                        <input type="text" id="p-lat" placeholder="Lat" class="bg-gray-900 p-2 rounded">
-                        <input type="text" id="p-lng" placeholder="Lng" class="bg-gray-900 p-2 rounded">
-                        <button onclick="saveProject()" class="col-span-2 bg-blue-600 p-2 rounded font-bold">SUBMIT PROJECT</button>
-                    </div>
-                </div>`;
+                area.innerHTML = `<div class="bg-gray-900 p-6 rounded border border-gray-800">...Project Form Code...</div>`;
             } else {
                 area.innerHTML = `<div class="p-10 bg-gray-900 border border-gray-800 rounded text-center text-gray-400">Workspace for ${name} initialized...</div>`;
             }
         }
 
-        // --- INVENTORY LOGIC ---
+        // Logic Functions
         function addStock() { alert("Stock Entry recorded!"); }
         function transferMaterial(mode) { 
             navigator.geolocation.getCurrentPosition((pos) => {
                 alert(mode.toUpperCase() + " verified at " + pos.coords.latitude.toFixed(4));
             }, () => alert("GPS Required!"));
-        }
-
-        // --- PROJECT LOGIC ---
-        function saveProject() {
-            if(!document.getElementById('p-lat').value) { alert("❌ GPS Coordinates are mandatory!"); return; }
-            alert("Project Saved!");
         }
 
         function logout() { location.reload(); }
