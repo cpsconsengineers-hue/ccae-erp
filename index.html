@@ -2,63 +2,51 @@
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CPS Consultants - Vantage Terminal</title>
+    <title>CPS Vantage - Final Stable Core</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body, button, aside, nav, main, div, input, select { pointer-events: auto !important; }
-        button { cursor: pointer !important; }
+        /* Force pointer events on all sidebar buttons to prevent freezing */
+        button { pointer-events: auto !important; cursor: pointer !important; }
+        .tab-content { display: none; }
+        .tab-active { display: block !important; }
     </style>
 </head>
-<body class="bg-[#0b0f19] text-gray-100 font-sans text-xs">
-    <div id="app-root" class="min-h-screen"></div>
+<body class="bg-[#0b0f19] text-gray-200 text-xs">
+    <div id="app" class="flex">
+        <aside class="w-64 bg-[#111827] h-screen border-r border-[#1f2937] p-4 fixed">
+            <h1 class="text-white font-bold mb-6">CPS CONSULTANTS</h1>
+            <nav id="sidebar-nav" class="space-y-1"></nav>
+        </aside>
+        <main class="ml-64 p-8 w-full" id="content-area"></main>
+    </div>
 
     <script>
-        // State Management - Data persist rahega
-        let state = {
-            currentTab: 'dashboard',
-            db: { projects: [], tenders: [], staff: [], stock: [], ledger: [], invoices: [], sub: [] },
-            user: JSON.parse(sessionStorage.getItem('vantage_active_session')) || null
+        const tabs = [
+            { id: 'dashboard', label: '📊 Dashboard' },
+            { id: 'lifecycle', label: '🏢 Lifecycle Projects' },
+            { id: 'measurements', label: '📐 M-Book Sheets' },
+            { id: 'site-photos', label: '📷 Site Photos' },
+            { id: 'materials', label: '📦 Inventory Hub' },
+            { id: 'tenders', label: '📄 Tenders Matrix' },
+            { id: 'billing', label: '🧾 Billing Invoices' },
+            { id: 'subcontractors', label: '👥 Subcontractor Masters' },
+            { id: 'financial', label: '💰 Financial Ledger' },
+            { id: 'staff-mgmt', label: '👥 Staff Management' }
+        ];
+
+        function renderNav() {
+            const nav = document.getElementById('sidebar-nav');
+            nav.innerHTML = tabs.map(t => `<button onclick="showTab('${t.id}')" class="w-full text-left p-2 rounded hover:bg-blue-600">${t.label}</button>`).join('');
+        }
+
+        window.showTab = (tabId) => {
+            const content = document.getElementById('content-area');
+            content.innerHTML = `<h2 class="text-2xl font-bold mb-4">${tabId.replace(/-/g, ' ').toUpperCase()}</h2><div id="module-data">Active Content Module...</div>`;
+            // Add specific rendering logic for each module here
         };
 
-        const renderSidebar = () => {
-            const isAdmin = state.user?.role === 'Master Admin' || state.user?.name === 'Manoj Singh';
-            return `
-                <aside class="w-64 bg-[#111827] h-screen fixed left-0 top-0 border-r border-[#1f2937] overflow-y-auto">
-                    <div class="p-4 border-b border-[#1f2937]"><h1 class="font-bold text-white">CPS CONSULTANTS</h1></div>
-                    <nav class="p-3 space-y-1">
-                        ${['Dashboard','Geospatial Viewer','Measurement Sheets','Site Photo Updates','Inventory Hub','Material Inward','Daily Attendance','Machinery Fleet','Petty Cash Logs'].map(t => `<button onclick="window.router('${t.toLowerCase().replace(/ /g,'-')}')" class="w-full text-left p-2 rounded hover:bg-blue-600">${t}</button>`).join('')}
-                        ${isAdmin ? `<p class="pt-4 text-red-400 font-bold uppercase text-[9px]">Command Nodes</p>` + 
-                        ['Lifecycle Projects','Tenders Matrix Nodes','Client & Sub Invoices','Subcontractor Masters','Financial Ledger Matrix','Staff Management'].map(t => `<button onclick="window.router('${t.toLowerCase().replace(/ /g,'-')}')" class="w-full text-left p-2 rounded hover:bg-red-600">${t}</button>`).join('') : ''}
-                    </nav>
-                </aside>
-            `;
-        };
-
-        window.router = (tab) => {
-            state.currentTab = tab;
-            renderApp();
-        };
-
-        const renderApp = () => {
-            const root = document.getElementById('app-root');
-            if(!state.user) {
-                root.innerHTML = `<div class="flex h-screen items-center justify-center"><form onsubmit="window.login(event)" class="bg-[#111827] p-8 rounded-xl border border-[#1f2937] w-80"><input id="u" placeholder="User" class="w-full bg-black p-2 mb-2 rounded"><input id="p" type="password" placeholder="Pass" class="w-full bg-black p-2 mb-4 rounded"><button class="w-full bg-blue-600 p-2 rounded">Login</button></form></div>`;
-                return;
-            }
-            root.innerHTML = `<div class="flex">${renderSidebar()}<main class="ml-64 p-6 w-full" id="content">${state.currentTab.toUpperCase()} MODULE ACTIVE</main></div>`;
-        };
-
-        window.login = (e) => {
-            e.preventDefault();
-            const u = document.getElementById('u').value;
-            // Simplified Login for testing
-            state.user = { name: u, role: 'Master Admin' };
-            sessionStorage.setItem('vantage_active_session', JSON.stringify(state.user));
-            renderApp();
-        };
-
-        renderApp();
+        renderNav();
+        window.showTab('dashboard');
     </script>
 </body>
 </html>
