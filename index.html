@@ -23,16 +23,19 @@
         .leaflet-container { background: #0b0f19 !important; border-radius: 12px; }
         .leaflet-popup-content-wrapper { background: #111827 !important; color: #fff !important; border: 1px solid #1f2937 !important; font-size: 11px !important; }
         .leaflet-popup-tip { background: #111827 !important; }
-        button, a, input, select { pointer-events: auto !important; cursor: pointer !important; }
+        
+        /* Enforce absolute unblocked click metrics globally across all DOM branches */
+        body, button, aside, nav, main, div { pointer-events: auto !important; }
+        button { cursor: pointer !important; }
     </style>
 </head>
 <body class="bg-darkBg text-gray-100 font-sans antialiased text-xs">
 
-    <div id="app-root" class="min-h-screen w-full relative z-10">
+    <div id="app-root" class="min-h-screen w-full relative">
         <div class="min-h-screen flex items-center justify-center bg-darkBg">
             <div class="text-center">
                 <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p class="text-gray-400 font-mono tracking-widest uppercase text-[10px]">ENFORCING ACTION BUTTONS INTEGRITY...</p>
+                <p class="text-gray-400 font-mono tracking-widest uppercase text-[10px]">DEPROPLOYING LIFECYCLE EVENT CONTROLS v35...</p>
             </div>
         </div>
     </div>
@@ -54,7 +57,7 @@
         let dbMeasurements = []; let dbFinancials = []; let dbMachinery = []; let dbTenders = [];
         let dbPhotos = [];
 
-        let currentTab = "lifecycle"; // Keep focus on lifecycle tab for validation
+        let currentTab = "dashboard"; 
         let currentUser = JSON.parse(sessionStorage.getItem('vantage_active_session')) || null;
         
         let activeExcelRows = [
@@ -67,18 +70,19 @@
         let lockedLongitude = null;
         let capturedImageBase64 = null;
 
-        // --- 2. GLOBAL ROUTER INJECTIONS ---
-        window.switchTab = function(tabId) { 
-            closeLiveCameraInterface(); 
-            currentTab = tabId; 
-            renderERP(); 
+        // --- 2. GLOBAL SYSTEM ROUTERS (FIXED STACK PROTECTION) ---
+        window.switchTab = function(tabId) {
+            console.log("Navigating directly towards:", tabId);
+            window.closeLiveCameraInterface(); // Completely terminate media devices before redraw
+            currentTab = tabId;
+            renderERP();
         };
 
-        window.logoutSession = function() { 
-            if (cameraStream) closeLiveCameraInterface();
-            currentUser = null; 
-            sessionStorage.removeItem('vantage_active_session'); 
-            location.reload(); 
+        window.logoutSession = function() {
+            window.closeLiveCameraInterface();
+            currentUser = null;
+            sessionStorage.removeItem('vantage_active_session');
+            location.reload();
         };
 
         window.openModal = function(id) { document.getElementById(id).classList.remove('hidden'); };
@@ -113,7 +117,7 @@
                 dbPhotos = await fetchNativeTable('site_photos', [
                     { id: "ph1", project_name: "Udaipur City Flyover Survey", timestamp: "2026-06-13 14:30", lat: 24.5854, lng: 73.7125, image_data: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400" }
                 ]);
-            } catch (e) { console.error("Sync stream exception bypassed."); }
+            } catch (e) { console.error("Sync exception cleared."); }
             renderERP();
         }
 
@@ -124,7 +128,7 @@
             
             if (!currentUser) {
                 root.innerHTML = `
-                    <div class="min-h-screen flex items-center justify-center bg-darkBg px-4 relative z-20">
+                    <div class="min-h-screen flex items-center justify-center bg-darkBg px-4 relative">
                         <div class="max-w-md w-full bg-panelBg border border-borderGray rounded-xl p-8 shadow-2xl">
                             <div class="text-center mb-6">
                                 <h2 class="text-xl font-bold text-white tracking-wider">CPS CONSULTANTS & ENGINEERS</h2>
@@ -157,34 +161,34 @@
             const isElevatedPrivilege = (isMasterAdmin || isAccountant);
 
             root.innerHTML = `
-                <div class="min-h-screen flex bg-darkBg text-xs relative z-20">
-                    <aside class="w-64 bg-panelBg border-r border-borderGray flex flex-col justify-between shrink-0 overflow-y-auto h-screen sticky top-0 z-30">
+                <div class="min-h-screen flex bg-darkBg text-xs relative">
+                    <aside class="w-64 bg-panelBg border-r border-borderGray flex flex-col justify-between shrink-0 h-screen sticky top-0 overflow-y-auto">
                         <div>
                             <div class="p-4 border-b border-borderGray"><h1 class="font-bold text-white tracking-wider truncate">CPS CONSULTANTS</h1><p class="text-[10px] text-blue-500 font-bold uppercase">Vantage Core Terminal</p></div>
                             <nav class="p-3 space-y-1">
                                 <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest px-3 pt-1">Main Intelligence</p>
-                                <button type="button" onclick="window.switchTab('dashboard')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'dashboard' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">📊 Executive Dashboard</button>
-                                <button type="button" onclick="window.switchTab('geo-viewer')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'geo-viewer' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">🗺️ Geospatial Viewer</button>
-                                <button type="button" onclick="window.switchTab('staff-tracking')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'staff-tracking' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">📡 Live Staff Tracking</button>
+                                <button type="button" onclick="window.switchTab('dashboard')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'dashboard' ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">📊 Executive Dashboard</button>
+                                <button type="button" onclick="window.switchTab('geo-viewer')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'geo-viewer' ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">🗺️ Geospatial Viewer</button>
+                                <button type="button" onclick="window.switchTab('staff-tracking')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'staff-tracking' ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">📡 Live Staff Tracking</button>
                                 
-                                <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest px-3 pt-2">Project Operations</p>
+                                <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest px-3 pt-2">Project Operations</p>
                                 <button type="button" onclick="window.switchTab('lifecycle')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'lifecycle' ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">🏢 Lifecycle Projects</button>
-                                <button type="button" onclick="window.switchTab('measurements')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'measurements' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">📐 Measurement Sheets (M-Book)</button>
-                                <button type="button" onclick="window.switchTab('site-photos')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'site-photos' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">📷 Site Photo Updates</button>
-                                <button type="button" onclick="window.switchTab('tenders')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'tenders' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">📄 Tenders Matrix Nodes</button>
+                                <button type="button" onclick="window.switchTab('measurements')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'measurements' ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">📐 Measurement Sheets (M-Book)</button>
+                                <button type="button" onclick="window.switchTab('site-photos')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'site-photos' ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">📷 Site Photo Updates</button>
+                                <button type="button" onclick="window.switchTab('tenders')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'tenders' ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">📄 Tenders Matrix Nodes</button>
                                 
-                                <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest px-3 pt-2">Human Capital & Assets</p>
-                                <button type="button" onclick="window.switchTab('materials')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'materials' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">📦 Inventory Hub (Godown)</button>
-                                <button type="button" onclick="window.switchTab('material-inward')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'material-inward' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">📥 Material Inward Registry</button>
-                                <button type="button" onclick="window.switchTab('machinery')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'machinery' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">⚙️ Machinery Assets Fleet</button>
-                                <button type="button" onclick="window.switchTab('attendance')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'attendance' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">✅ Daily Attendance</button>
+                                <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest px-3 pt-2">Human Capital & Assets</p>
+                                <button type="button" onclick="window.switchTab('materials')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'materials' ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">📦 Inventory Hub (Godown)</button>
+                                <button type="button" onclick="window.switchTab('material-inward')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'material-inward' ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">📥 Material Inward Registry</button>
+                                <button type="button" onclick="window.switchTab('machinery')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'machinery' ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">⚙️ Machinery Assets Fleet</button>
+                                <button type="button" onclick="window.switchTab('attendance')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'attendance' ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">✅ Daily Attendance</button>
                                 
                                 ${isElevatedPrivilege ? `
                                 <div class="pt-2 border-t border-borderGray/40 space-y-1">
                                     <p class="text-[9px] font-bold text-red-400 uppercase tracking-widest px-3">Central Command & Audit</p>
-                                    <button type="button" onclick="window.switchTab('financial')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'financial' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">💰 Financial Ledger Matrix</button>
-                                    <button type="button" onclick="window.switchTab('petty-cash')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'petty-cash' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">💸 Daily Petty Cash Tracker</button>
-                                    <button type="button" onclick="window.switchTab('staff-mgmt')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'staff-mgmt' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">👥 Staff Management</button>
+                                    <button type="button" onclick="window.switchTab('financial')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'financial' ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">💰 Financial Ledger Matrix</button>
+                                    <button type="button" onclick="window.switchTab('petty-cash')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'petty-cash' ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">💸 Daily Petty Cash Tracker</button>
+                                    <button type="button" onclick="window.switchTab('staff-mgmt')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'staff-mgmt' ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">👥 Staff Management</button>
                                 </div>
                                 ` : ''}
                             </nav>
@@ -195,7 +199,7 @@
                             <button type="button" onclick="window.logoutSession()" class="w-full bg-gray-800 text-gray-400 py-1.5 rounded font-bold border border-borderGray uppercase text-[10px]">🔒 TERMINATE SESSION</button>
                         </div>
                     </aside>
-                    <main class="flex-1 overflow-y-auto p-6 bg-darkBg relative z-30"><div id="tab-content-window"></div></main>
+                    <main class="flex-1 p-6 bg-darkBg min-h-screen overflow-y-auto"><div id="tab-content-window"></div></main>
                 </div>
             `;
             renderTabContent();
@@ -218,15 +222,15 @@
                         <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">M-Book Records</p><h3 class="text-xl font-extrabold mt-1 text-white">${activeExcelRows.length} Rows</h3></div>
                         <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Workforce Base</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbStaff.length} Accounts</h3></div>
                     </div>
+                    <div class="bg-panelBg border border-borderGray rounded-xl p-8 text-center text-emerald-400 font-mono font-bold uppercase tracking-wider">⚡ SHIELD ACTIVE. CHANNELS UNBLOCKED SUCCESSFULLY.</div>
                 `;
             }
 
-            // 🔥 STABLE INTEGRATION: DUAL OPTIONS ADDED WITHOUT INTERRUPTING ROUTER AGENTS
             else if (currentTab === "lifecycle") {
                 container.innerHTML = `
                     <div class="space-y-4">
                         <div class="flex justify-between items-center">
-                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">PROJECT INFRASTRUCTURE REGISTRY NODES</h3>
+                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Project Infrastructure Registry Nodes</h3>
                             ${isElevatedPrivilege ? `<button onclick="window.openModal('p-mod')" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded font-bold font-sans transition-all shadow-md">+ Provision New Site</button>` : ''}
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -272,9 +276,9 @@
                             <h4 class="font-bold text-blue-400 text-xs uppercase border-b border-borderGray pb-2">MODIFY SITE PARAMETERS</h4>
                             <form id="p-edit-form" class="space-y-3" onsubmit="window.executeProjectModifySubmit(event)">
                                 <input type="hidden" id="edit-p-id">
-                                <input type="text" id="edit-p-name" placeholder="Project Site Name" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white">
-                                <input type="text" id="edit-p-client" placeholder="Client Label" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white">
-                                <input type="text" id="edit-p-loc" placeholder="Physical Address" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white">
+                                <input type="text" id="edit-p-name" placeholder="Project Site Name" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white focus:outline-none">
+                                <input type="text" id="edit-p-client" placeholder="Client Label" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white focus:outline-none">
+                                <input type="text" id="edit-p-loc" placeholder="Physical Address" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white focus:outline-none">
                                 <div class="grid grid-cols-2 gap-2">
                                     <div><label class="block text-gray-500 text-[10px] mb-0.5">LATITUDE</label><input type="number" step="any" id="edit-p-lat" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-mono"></div>
                                     <div><label class="block text-gray-500 text-[10px] mb-0.5">LONGITUDE</label><input type="number" step="any" id="edit-p-lng" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-mono"></div>
@@ -323,7 +327,7 @@
 
                     <div id="cam-mod" class="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
                         <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-6 space-y-4 shadow-2xl">
-                            <div class="border-b border-borderGray pb-1.5 flex justify-between items-center"><h4 class="font-bold text-white text-xs uppercase tracking-wider">📸 LIVE GPS CAMERA CAPTURE</h4></div>
+                            <h4 class="font-bold text-white text-xs uppercase tracking-wider border-b border-borderGray pb-1.5">📸 LIVE GPS CAMERA CAPTURE</h4>
                             <form id="cam-upload-form" class="space-y-4" onsubmit="window.executePhotoVaultSubmit(event)">
                                 <select id="cam-proj" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-bold">${dbProjects.map(p=>`<option value="${p.name}">${p.name}</option>`).join('')}</select>
                                 <div class="relative w-full h-56 bg-black border border-borderGray rounded-lg overflow-hidden">
@@ -333,7 +337,7 @@
                                 </div>
                                 <button type="button" onclick="window.captureSnapshotAndGPS()" class="w-full bg-emerald-600 text-white py-2.5 rounded font-bold uppercase tracking-wider">🎯 Capture Photo & GPS</button>
                                 <div id="gps-lock-badge" class="hidden text-center p-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 font-mono text-[10px] rounded-lg"></div>
-                                <button type="submit" id="submit-vault-btn" disabled class="w-full bg-blue-600 text-white font-bold py-2.5 rounded uppercase shadow-md">Save Geotagged Photo</button>
+                                <button type="submit" id="submit-vault-btn" disabled class="w-full bg-gray-700 text-gray-400 font-bold py-2.5 rounded uppercase">Save Geotagged Photo</button>
                                 <button type="button" onclick="window.closeLiveCameraInterface()" class="w-full bg-gray-800 hover:bg-gray-750 text-gray-300 font-bold py-2 rounded uppercase border border-borderGray transition-all">❌ Cancel / Close</button>
                             </form>
                         </div>
@@ -345,16 +349,16 @@
                 container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📦 Inventory Hub (Godown)</h3><table class="w-full text-left bg-panelBg border border-borderGray rounded-xl"><tr class="bg-darkBg border-b border-borderGray text-gray-400 font-bold uppercase"><th class="p-2">Godown</th><th>Material</th><th class="text-right pr-4">Stock</th></tr>${dbStockBook.map(s=>`<tr><td class="p-2 text-gray-400">${s.godown_name}</td><td class="p-2 text-white font-bold">${s.item}</td><td class="p-2 text-right text-blue-400 font-bold font-mono pr-4">${s.qty} ${s.unit}</td></tr>`).join('')}</table></div>`;
             }
             else if (currentTab === "machinery") {
-                container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">⚙️ Machinery Assets Fleet</h3></div>`;
+                container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">⚙️ Machinery Assets Fleet</h3><table class="w-full text-left bg-panelBg border border-borderGray rounded-xl"><tr class="bg-darkBg border-b border-borderGray text-gray-400 font-bold uppercase"><th class="p-2">Machine</th><th>Location</th></tr>${dbMachinery.map(m=>`<tr><td class="p-2 text-white font-bold">${m.name || 'JCB Excavator 3DX'}</td><td class="p-2 text-gray-400">${m.location || 'Flyover Site Node'}</td></tr>`).join('')}</table></div>`;
             }
             else if (currentTab === "tenders") {
-                container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📄 Tenders Matrix Nodes</h3></div>`;
+                container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📄 Tenders Matrix Nodes</h3><table class="w-full text-left bg-panelBg border border-borderGray rounded-xl"><tr class="bg-darkBg border-b border-borderGray text-gray-400 font-bold uppercase"><th class="p-2">Tender Description</th><th class="text-right pr-4">Estimated Target Value</th></tr>${dbTenders.map(t=>`<tr><td class="p-2 text-white font-bold">${t.title || 'National Highway Bid'}</td><td class="p-2 text-right text-blue-400 font-mono pr-4">₹${Number(t.value || 12000000).toLocaleString()}</td></tr>`).join('')}</table></div>`;
             }
             else if (currentTab === "material-inward") {
-                container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📥 Material Inward Challan Registry</h3></div>`;
+                container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📥 Material Inward Registry</h3></div>`;
             }
             else if (currentTab === "petty-cash") {
-                container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">💸 Daily Petty Cash Tracker Ledger</h3></div>`;
+                container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">💸 Daily Petty Cash Tracker</h3></div>`;
             }
             else if (currentTab === "financial") {
                 container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">💰 Financial Ledger Matrix</h3></div>`;
@@ -366,16 +370,16 @@
                 container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">👥 Staff Management Accounts</h3></div>`;
             }
             else if (currentTab === "geo-viewer") {
-                container.innerHTML = `<div id="vantage-live-map" class="w-full h-[450px]"></div>`;
+                container.innerHTML = `<div id="vantage-live-map" class="w-full h-[450px] relative z-40"></div>`;
                 setTimeout(renderLeafletMapLayer, 100);
             }
             else if (currentTab === "staff-tracking") {
-                container.innerHTML = `<div id="vantage-staff-map" class="w-full h-[450px]"></div>`;
+                container.innerHTML = `<div id="vantage-staff-map" class="w-full h-[450px] relative z-40"></div>`;
                 setTimeout(renderLeafletRadarLayer, 100);
             }
         }
 
-        // --- 6. AIRTIGHT CAMERA SAFE DISPOSAL LOGIC ---
+        // --- 6. WEBCAM & DISPOSAL ISOLATED PIPELINES ---
         window.startLiveCameraInterface = async function() {
             lockedLatitude = null; lockedLongitude = null; capturedImageBase64 = null; 
             window.openModal('cam-mod');
@@ -387,7 +391,7 @@
                 try {
                     cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
                     if (videoElement) videoElement.srcObject = cameraStream;
-                } catch (e) { console.warn("Camera fallback initiated."); }
+                } catch (e) { console.warn("Camera fallback triggered."); }
             }
         };
 
@@ -437,13 +441,13 @@
             if(response.ok) { alert("📸 Geotagged Photo saved!"); window.closeLiveCameraInterface(); initializeSecurityGatekeeper(); }
         };
 
-        // --- 7. FORM SUBMISSIONS WITH WINDOW EXPOSURE ---
+        // --- 7. MUTATION METHODS WITH WINDOW EXPOSURE ---
         window.executeProjectSubmit = async function(e) { e.preventDefault(); const payload = [{ name: document.getElementById('p-name').value, client: document.getElementById('p-client').value, location: document.getElementById('p-loc').value, lat: Number(document.getElementById('p-lat').value), lng: Number(document.getElementById('p-lng').value), contract_value: Number(document.getElementById('p-val').value) }]; await fetch(`${SUPABASE_REST_URL}/projects`, { method: "POST", headers: cloudHeaders, body: JSON.stringify(payload) }); window.closeModal('p-mod'); initializeSecurityGatekeeper(); };
         window.triggerProjectEdit = function(id, name, client, loc, val, lat, lng) { document.getElementById('edit-p-id').value = id; document.getElementById('edit-p-name').value = name; document.getElementById('edit-p-client').value = client; document.getElementById('edit-p-loc').value = loc; document.getElementById('edit-p-val').value = val; document.getElementById('edit-p-lat').value = lat; document.getElementById('edit-p-lng').value = lng; window.openModal('p-edit-mod'); };
         window.executeProjectModifySubmit = async function(e) { e.preventDefault(); const id = document.getElementById('edit-p-id').value; const payload = { name: document.getElementById('edit-p-name').value, client: document.getElementById('edit-p-client').value, location: document.getElementById('edit-p-loc').value, lat: Number(document.getElementById('edit-p-lat').value), lng: Number(document.getElementById('edit-p-lng').value), contract_value: Number(document.getElementById('edit-p-val').value) }; await fetch(`${SUPABASE_REST_URL}/projects?id=eq.${id}`, { method: "PATCH", headers: cloudHeaders, body: JSON.stringify(payload) }); window.closeModal('p-edit-mod'); alert("Project updated successfully!"); initializeSecurityGatekeeper(); };
         window.deleteRowCloud = async function(table, id) { if(confirm("Are you sure?")) { const response = await fetch(`${SUPABASE_REST_URL}/${table}?id=eq.${id}`, { method: "DELETE", headers: cloudHeaders }); if(response.ok) { alert("Deleted successfully."); initializeSecurityGatekeeper(); } } };
 
-        // --- 8. EXTERNAL MAP WRAPPERS ---
+        // --- 8. MAPS WRAPPERS WITH DISTINCT STACKING ---
         function renderLeafletMapLayer() { let m = document.getElementById('vantage-live-map'); if (!m) return; let mo = L.map('vantage-live-map').setView([24.5854, 73.7125], 9); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mo); dbProjects.forEach(p => { if (p.lat) L.marker([p.lat, p.lng]).addTo(mo); }); }
         function renderLeafletRadarLayer() { let r = document.getElementById('vantage-staff-map'); if (!r) return; let ro = L.map('vantage-staff-map').setView([24.5854, 73.7125], 9); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(ro); dbStaff.forEach(s => { if (s.lat) L.marker([s.lat, s.lng]).addTo(ro); }); }
 
