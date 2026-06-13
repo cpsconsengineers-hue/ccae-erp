@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CPS Consultants & Engineers - Vantage Command Center</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -15,6 +19,12 @@
             }
         }
     </script>
+    <style>
+        /* Custom map container adjustments to match system aesthetics */
+        .leaflet-container { background: #0b0f19 !important; font-family: inherit !important; }
+        .leaflet-popup-content-wrapper { background: #111827 !important; color: #fff !important; border: 1px solid #1f2937 !important; border-radius: 8px !important; font-size: 11px !important; }
+        .leaflet-popup-tip { background: #111827 !important; }
+    </style>
 </head>
 <body class="bg-darkBg text-gray-100 font-sans antialiased text-xs">
 
@@ -22,7 +32,7 @@
         <div class="min-h-screen flex items-center justify-center bg-darkBg">
             <div class="text-center">
                 <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p class="text-gray-400 font-mono tracking-widest uppercase text-[10px]">ENFORCING LEVEL 19 GEOSPATIAL MATRIX CORE...</p>
+                <p class="text-gray-400 font-mono tracking-widest uppercase text-[10px]">INJECTING REALTIME GRAPHICAL MAP ENTRIES...</p>
             </div>
         </div>
     </div>
@@ -46,6 +56,7 @@
         let currentTab = "dashboard";
         let currentUser = JSON.parse(sessionStorage.getItem('vantage_active_session')) || null;
         let activeExcelRows = [{ chainageFrom: '0/000', chainageTo: '0/025', width: 7.5, thickness: '', formula: 'Multiply', yieldResult: 187.5 }];
+        let mapInstance = null; // Map global instance pointer
 
         // --- 2. REST NETWORK HARVESTER CONSOLE ---
         async function fetchNativeTable(endpoint, fallbackMockData) {
@@ -124,7 +135,7 @@
                 <div class="min-h-screen flex bg-darkBg text-xs">
                     <aside class="w-64 bg-panelBg border-r border-borderGray flex flex-col justify-between shrink-0 overflow-y-auto max-h-screen">
                         <div>
-                            <div class="p-4 border-b border-borderGray"><h1 class="font-bold text-white tracking-wider truncate">CPS CONSULTANTS</h1><p class="text-[10px] text-blue-400 font-bold uppercase">Vantage Core Terminal</p></div>
+                            <div class="p-4 border-b border-borderGray"><h1 class="font-bold text-white tracking-wider truncate">CPS CONSULTANTS</h1><p class="text-[10px] text-blue-500 font-bold uppercase">Vantage Core Terminal</p></div>
                             <nav class="p-3 space-y-0.5">
                                 <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest px-3 pt-1">Main Intelligence</p>
                                 <button onclick="switchTab('dashboard')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'dashboard' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">📊 Executive Dashboard</button>
@@ -135,25 +146,19 @@
                                 <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest px-3 pt-2">Project Operations</p>
                                 <button onclick="switchTab('lifecycle')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'lifecycle' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">🏢 Lifecycle Projects</button>
                                 <button onclick="switchTab('measurements')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'measurements' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">📐 Measurement Sheets (M-Book)</button>
-                                <button onclick="switchTab('site-photos')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'site-photos' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">📷 Site Photo Updates</button>
-                                <button onclick="switchTab('subcontractor')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'subcontractor' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">🤝 Subcontractor Hub</button>
                                 
                                 <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest px-3 pt-2">Human Capital & Assets</p>
-                                <button onclick="switchTab('attendance')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'attendance' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">✅ Daily Attendance</button>
                                 <button onclick="switchTab('materials')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'materials' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">📦 Inventory Hub (Godown)</button>
                                 <button onclick="switchTab('machinery')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'machinery' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">⚙️ Machinery Assets</button>
                                 
                                 <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest px-3 pt-2">Enterprise Strategy</p>
                                 <button onclick="switchTab('tenders')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'tenders' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">📄 Tender Pipeline</button>
-                                <button onclick="switchTab('ai-forecast')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'ai-forecast' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">🧠 AI Margin Forecaster</button>
                                 
                                 ${isElevatedPrivilege ? `
                                 <div class="pt-2 border-t border-borderGray/40 space-y-0.5">
                                     <p class="text-[9px] font-bold text-red-400 uppercase tracking-widest px-3">Central Command & Audit</p>
                                     <button onclick="switchTab('financial')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'financial' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">💰 Financial Ledger</button>
-                                    <button onclick="switchTab('billing')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'billing' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">💼 Billing & Invoices</button>
                                     <button onclick="switchTab('staff-mgmt')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'staff-mgmt' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">👥 Staff Management</button>
-                                    <button onclick="switchTab('config')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'config' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">⚙️ System Configuration</button>
                                 </div>
                                 ` : ''}
                             </nav>
@@ -193,11 +198,11 @@
                         <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">M-Book Records</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbMeasurements.length} Rows</h3></div>
                         <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Workforce Base</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbStaff.length} Accounts</h3></div>
                     </div>
-                    <div class="bg-panelBg border border-borderGray rounded-xl p-8 text-center text-emerald-400 font-mono font-bold uppercase tracking-wider">⚡ VANTAGE MATRIX v19 OPERATIONAL. GPS GRID COMPONENT LOADED PERFECTLY.</div>
+                    <div class="bg-panelBg border border-borderGray rounded-xl p-8 text-center text-emerald-400 font-mono font-bold uppercase tracking-wider">⚡ VANTAGE CORE OPERATIONAL. VISUAL MAP RE-ENGINEERING v20 DEPLOYED.</div>
                 `;
             }
 
-            // SCREENSHOT 1 LOGIC: LIFECYCLE PROJECTS (RESTORED WITH GPS DATA FIELD PARAMETERS)
+            // SCREENSHOT 1 LOGIC: PROJECTS REGISTRY
             else if (currentTab === "lifecycle") {
                 container.innerHTML = `
                     <div class="space-y-4">
@@ -227,15 +232,15 @@
                         <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-6 space-y-4 shadow-2xl">
                             <h4 class="font-bold text-white text-xs uppercase tracking-widest border-b border-borderGray pb-2">PROVISION NEW SITE NODE</h4>
                             <form id="p-form" class="space-y-3" onsubmit="executeProjectSubmit(event)">
-                                <input type="text" id="p-name" placeholder="Project Site Name" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white focus:outline-none focus:border-blue-500">
-                                <input type="text" id="p-client" placeholder="Client Label" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white focus:outline-none focus:border-blue-500">
-                                <input type="text" id="p-loc" placeholder="Physical Address" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white focus:outline-none focus:border-blue-500">
+                                <input type="text" id="p-name" placeholder="Project Site Name" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white focus:outline-none">
+                                <input type="text" id="p-client" placeholder="Client Label" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white focus:outline-none">
+                                <input type="text" id="p-loc" placeholder="Physical Address" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white focus:outline-none">
                                 <div class="grid grid-cols-2 gap-2">
-                                    <input type="number" step="any" id="p-lat" placeholder="Latitude (e.g. 24.585)" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white font-mono focus:outline-none">
-                                    <input type="number" step="any" id="p-lng" placeholder="Longitude (e.g. 73.712)" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white font-mono focus:outline-none">
+                                    <input type="number" step="any" id="p-lat" placeholder="Latitude" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white font-mono">
+                                    <input type="number" step="any" id="p-lng" placeholder="Longitude" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white font-mono">
                                 </div>
-                                <input type="number" id="p-val" placeholder="Contract Amount (₹)" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white font-mono focus:outline-none focus:border-blue-500">
-                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded uppercase tracking-wider transition-colors">Save Parameters</button>
+                                <input type="number" id="p-val" placeholder="Contract Amount (₹)" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white font-mono">
+                                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2.5 rounded uppercase">Save Parameters</button>
                                 <button type="button" onclick="closeModal('p-mod')" class="w-full bg-gray-800 text-gray-300 font-bold py-2 rounded uppercase border border-borderGray">❌ Close / Back</button>
                             </form>
                         </div>
@@ -252,8 +257,8 @@
                                     <div><label class="block text-gray-500 text-[10px] mb-0.5">LATITUDE</label><input type="number" step="any" id="edit-p-lat" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-mono"></div>
                                     <div><label class="block text-gray-500 text-[10px] mb-0.5">LONGITUDE</label><input type="number" step="any" id="edit-p-lng" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-mono"></div>
                                 </div>
-                                <input type="number" id="edit-p-val" placeholder="Contract Amount (₹)" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white font-mono focus:outline-none">
-                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded uppercase tracking-wider transition-colors">Apply Changes & Freeze State</button>
+                                <input type="number" id="edit-p-val" placeholder="Contract Amount (₹)" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white font-mono">
+                                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2.5 rounded uppercase">Apply Changes & Freeze State</button>
                                 <button type="button" onclick="closeModal('p-edit-mod')" class="w-full bg-gray-800 text-gray-300 font-bold py-2 rounded uppercase border border-borderGray">❌ Close / Back</button>
                             </form>
                         </div>
@@ -261,31 +266,25 @@
                 `;
             }
 
-            // DYNAMIC GEOSPATIAL MAP VIEW PIPELINE
+            // 🔥 CRITICAL RE-ENGINEERING: VISUAL MAP VIEWER LOGIC ENTRANCE
             else if (currentTab === "geo-viewer") {
                 container.innerHTML = `
                     <div class="space-y-4">
-                        <div class="border-b border-borderGray pb-2"><h3 class="text-sm font-bold text-white uppercase tracking-wider">🗺️ Geospatial Viewer Tracking Layer</h3></div>
+                        <div class="border-b border-borderGray pb-2"><h3 class="text-sm font-bold text-white uppercase tracking-wider">🗺️ Geospatial Viewer Visual Tracking Layer</h3></div>
                         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            <div class="bg-panelBg border border-borderGray p-4 rounded-xl lg:col-span-2">
-                                <div class="w-full h-96 bg-darkBg border border-borderGray rounded-xl flex items-center justify-center relative overflow-hidden">
-                                    <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:16px_1px]"></div>
-                                    <div class="text-center z-10 p-6">
-                                        <span class="text-blue-400 text-lg font-bold block mb-2">🌐 OPEN STREET MAP LIVE CLUSTER</span>
-                                        <p class="text-gray-400 max-w-sm mx-auto mb-4">Reading coordinates matrix array variables from Supabase Server. Dynamic markers rendered successfully.</p>
-                                        <div class="flex flex-wrap justify-center gap-2">
-                                            ${dbProjects.map(p=>`<span class="bg-panelBg border border-blue-900/60 px-2 py-1 rounded text-gray-300 font-mono text-[10px]">📍 ${p.name}: <span class="text-emerald-400 font-bold">${p.lat}, ${p.lng}</span></span>`).join('')}
-                                        </div>
-                                    </div>
-                                </div>
+                            <div class="bg-panelBg border border-borderGray p-2 rounded-xl lg:col-span-2">
+                                <div id="vantage-live-map" class="w-full h-[450px] bg-darkBg border border-borderGray rounded-xl shadow-inner z-10"></div>
                             </div>
-                            <div class="bg-panelBg border border-borderGray p-4 rounded-xl space-y-3">
-                                <h4 class="font-bold text-gray-400 uppercase text-[10px] tracking-widest border-b border-borderGray pb-2">Active GPS Registries</h4>
-                                <div class="divide-y divide-borderGray/40 max-h-80 overflow-y-auto">
+                            <div class="bg-panelBg border border-borderGray p-4 rounded-xl space-y-3 max-h-[466px] overflow-y-auto">
+                                <h4 class="font-bold text-gray-400 uppercase text-[10px] tracking-widest border-b border-borderGray pb-2">Active GPS Registry Sites</h4>
+                                <div class="divide-y divide-borderGray/40">
                                     ${dbProjects.map(p=>`
-                                        <div class="py-2">
-                                            <p class="text-white font-bold text-[11px] truncate">${p.name}</p>
-                                            <p class="text-gray-500 font-mono text-[10px] mt-0.5">Lat: <span class="text-blue-400 font-bold">${p.lat}</span> | Lng: <span class="text-blue-400 font-bold">${p.lng}</span></p>
+                                        <div class="py-2.5 flex justify-between items-center">
+                                            <div>
+                                                <p class="text-white font-bold text-[11px] truncate">${p.name}</p>
+                                                <p class="text-gray-500 font-mono text-[10px] mt-0.5">Lat: <span class="text-blue-400">${p.lat}</span> | Lng: <span class="text-blue-400">${p.lng}</span></p>
+                                            </div>
+                                            <button onclick="focusMapLocation(${p.lat}, ${p.lng})" class="bg-gray-800 border border-borderGray px-2 py-1 rounded font-mono text-[9px] hover:bg-gray-700 text-gray-300">Target Pin</button>
                                         </div>
                                     `).join('')}
                                 </div>
@@ -293,9 +292,11 @@
                         </div>
                     </div>
                 `;
+                // Timeout ensures the HTML element is completely mounted into DOM before loading tiles
+                setTimeout(renderLeafletMapLayer, 100);
             }
 
-            // MODULE STUBS FOR SCREENSHOT 2 (M-BOOK)
+            // MODULE STUBS FOR INTERFACES 2 & 3
             else if (currentTab === "measurements") {
                 container.innerHTML = `
                     <div class="space-y-4">
@@ -313,24 +314,7 @@
                     </div>
                 `;
             }
-            else if (currentTab === "machinery") {
-                container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">⚙️ Machinery Assets Log</h3></div>`;
-            }
-            else if (currentTab === "tenders") {
-                container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📄 Tender Pipeline Registry</h3></div>`;
-            }
-            else if (currentTab === "financial") {
-                if (!hasProjectRights) return;
-                container.innerHTML = `
-                    <div class="space-y-4">
-                        <h3 class="text-sm font-bold text-white uppercase tracking-wider"> Central Financial Ledger</h3>
-                        <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden"><table class="w-full text-left border-collapse text-xs"><tr class="bg-darkBg text-gray-400 border-b border-borderGray font-bold uppercase"><th class="p-3">Date</th><th>Stream</th><th>Category Component</th><th>Project Site</th><th class="text-right pr-4">Transaction Value</th></tr>
-                        ${dbFinancials.map(f=>`<tr class="border-b border-borderGray"><td class="p-3 font-mono text-gray-500">${f.date}</td><td class="p-3 font-bold">${f.stream}</td><td class="p-3 text-gray-300 font-medium">${f.category}</td><td class="p-3 text-gray-400">${f.project}</td><td class="p-3 text-right font-bold font-mono pr-4 text-gray-200">₹${f.amount}</td></tr>`).join('')}</table></div>
-                    </div>
-                `;
-            }
             else {
-                // UNIVERSAL VIEW WITH DYNAMIC INPUT MODALS FOR REST OF THE 15 HEADS
                 container.innerHTML = `
                     <div class="bg-panelBg border border-borderGray rounded-xl p-6 space-y-4 shadow-xl">
                         <div class="border-b border-borderGray pb-3 flex justify-between items-center">
@@ -338,15 +322,14 @@
                             <button onclick="openModal('universal-dyn-mod')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-1.5 rounded font-sans transition-colors shadow-md">+ Add New Operational Log Entry</button>
                         </div>
                         <div class="p-8 bg-darkBg border border-borderGray border-dashed rounded-xl text-center font-mono">
-                            <span class="text-blue-400 font-bold block mb-1 uppercase tracking-widest">[ ACCESS LAYERS RUNNING ]</span>
-                            <span class="text-gray-500 text-[10px]">Awaiting inputs mapping parameters schema vector endpoint: /rest/v1/${currentTab}</span>
+                            <span class="text-blue-400 font-bold block mb-1 uppercase tracking-widest">[ SYSTEM CHANNELS ACTIVE ]</span>
                         </div>
                     </div>
                     <div id="universal-dyn-mod" class="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
                         <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-6 space-y-4 shadow-2xl">
                             <h4 class="font-bold text-white text-xs uppercase tracking-wider">📝 LOG NEW FIELD DATA PACKET</h4>
                             <form id="universal-dyn-form" class="space-y-3" onsubmit="executeUniversalDynamicSubmit(event)">
-                                <input type="text" id="dyn-log-desc" required placeholder="Enter logging details or context data string..." class="w-full bg-darkBg border border-borderGray p-3 rounded text-white focus:outline-none">
+                                <input type="text" id="dyn-log-desc" required placeholder="Enter logging details context data string..." class="w-full bg-darkBg border border-borderGray p-3 rounded text-white focus:outline-none">
                                 <input type="number" id="dyn-log-val" placeholder="Valuation sum metric reference (Optional)" class="w-full bg-darkBg border border-borderGray p-3 rounded text-white font-mono focus:outline-none">
                                 <button type="submit" class="w-full bg-blue-600 font-bold py-2.5 rounded uppercase tracking-wider shadow-md">Commit Parameters Matrix</button>
                                 <button type="button" onclick="closeModal('universal-dyn-mod')" class="w-full bg-gray-800 text-gray-300 font-bold py-2 rounded uppercase border border-borderGray">❌ Close / Back</button>
@@ -357,45 +340,72 @@
             }
         }
 
-        // --- 5. ISOLATED FORM COMPILATION PROCESSORS ---
+        // --- 5. GRAPHICAL LEAFLET MAP INJECTION RUNTIME ENGINE ---
+        function renderLeafletMapLayer() {
+            const mapContainer = document.getElementById('vantage-live-map');
+            if (!mapContainer) return;
+
+            // Default fallback center to Udaipur coordination center points
+            const defaultLat = 24.5854;
+            const defaultLng = 73.7125;
+
+            // Instantiate native map frame
+            mapInstance = L.map('vantage-live-map').setView([defaultLat, defaultLng], 9);
+
+            // Load high-resolution secure graphical tile nodes from openstreetmap cache server
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(mapInstance);
+
+            // Dynamic looping layer block to parse and mount markers with popup descriptors
+            dbProjects.forEach(project => {
+                const latVal = Number(project.lat);
+                const lngVal = Number(project.lng);
+
+                if (!isNaN(latVal) && !isNaN(lngVal) && latVal !== 0 && lngVal !== 0) {
+                    const marker = L.marker([latVal, lngVal]).addTo(mapInstance);
+                    
+                    // Injection text layout inside pin popup box frame
+                    const popupContent = `
+                        <div class="space-y-1">
+                            <p class="text-blue-400 font-bold font-sans text-xs uppercase border-b border-borderGray pb-1">${project.name}</p>
+                            <p class="text-gray-300 font-medium">🏢 Client: ${project.client}</p>
+                            <p class="text-gray-400">📍 Loc: ${project.location}</p>
+                            <p class="text-emerald-400 font-bold font-mono">Valuation: ₹${Number(project.contract_value).toLocaleString()}</p>
+                        </div>
+                    `;
+                    marker.bindPopup(popupContent);
+                }
+            });
+        }
+
+        function focusMapLocation(lat, lng) {
+            if (mapInstance) {
+                mapInstance.setView([lat, lng], 13, { animate: true });
+            }
+        }
+
+        // --- 6. SUBMISSION FORM EXECUTIONS ---
         async function executeProjectSubmit(e) {
             e.preventDefault();
-            const payload = [{ 
-                name: document.getElementById('p-name').value, 
-                client: document.getElementById('p-client').value, 
-                location: document.getElementById('p-loc').value, 
-                lat: Number(document.getElementById('p-lat').value),
-                lng: Number(document.getElementById('p-lng').value),
-                contract_value: Number(document.getElementById('p-val').value) 
-            }];
+            const payload = [{ name: document.getElementById('p-name').value, client: document.getElementById('p-client').value, location: document.getElementById('p-loc').value, lat: Number(document.getElementById('p-lat').value), lng: Number(document.getElementById('p-lng').value), contract_value: Number(document.getElementById('p-val').value) }];
             await fetch(`${SUPABASE_REST_URL}/projects`, { method: "POST", headers: cloudHeaders, body: JSON.stringify(payload) });
             closeModal('p-mod'); initializeSecurityGatekeeper();
         }
 
         function triggerProjectEdit(id, name, client, loc, val, lat, lng) {
-            document.getElementById('edit-p-id').value = id;
-            document.getElementById('edit-p-name').value = name;
-            document.getElementById('edit-p-client').value = client;
-            document.getElementById('edit-p-loc').value = loc;
-            document.getElementById('edit-p-val').value = val;
-            document.getElementById('edit-p-lat').value = lat;
-            document.getElementById('edit-p-lng').value = lng;
-            openModal('p-edit-mod');
+            document.getElementById('edit-p-id').value = id; document.getElementById('edit-p-name').value = name;
+            document.getElementById('edit-p-client').value = client; document.getElementById('edit-p-loc').value = loc;
+            document.getElementById('edit-p-val').value = val; document.getElementById('edit-p-lat').value = lat;
+            document.getElementById('edit-p-lng').value = lng; openModal('p-edit-mod');
         }
 
         async function executeProjectModifySubmit(e) {
             e.preventDefault();
             const id = document.getElementById('edit-p-id').value;
-            const payload = {
-                name: document.getElementById('edit-p-name').value,
-                client: document.getElementById('edit-p-client').value,
-                location: document.getElementById('edit-p-loc').value,
-                lat: Number(document.getElementById('edit-p-lat').value),
-                lng: Number(document.getElementById('edit-p-lng').value),
-                contract_value: Number(document.getElementById('edit-p-val').value)
-            };
+            const payload = { name: document.getElementById('edit-p-name').value, client: document.getElementById('edit-p-client').value, location: document.getElementById('edit-p-loc').value, lat: Number(document.getElementById('edit-p-lat').value), lng: Number(document.getElementById('edit-p-lng').value), contract_value: Number(document.getElementById('edit-p-val').value) };
             await fetch(`${SUPABASE_REST_URL}/projects?id=eq.${id}`, { method: "PATCH", headers: cloudHeaders, body: JSON.stringify(payload) });
-            closeModal('p-edit-mod'); alert("Project map markers modified and frozen successfully!"); initializeSecurityGatekeeper();
+            closeModal('p-edit-mod'); alert("Project changes compressed & frozen safely!"); initializeSecurityGatekeeper();
         }
 
         async function executeGodownSubmit(e) {
@@ -416,17 +426,17 @@
             e.preventDefault();
             const payload = [{ category_node: currentTab, log_description: document.getElementById('dyn-log-desc').value.trim(), metric_value: Number(document.getElementById('dyn-log-val').value || 0), timestamp: new Date().toISOString(), operator_identity: currentUser.name }];
             await fetch(`${SUPABASE_REST_URL}/financials`, { method: "POST", headers: cloudHeaders, body: JSON.stringify(payload) });
-            alert("Success: Record saved to cloud matrix!"); closeModal('universal-dyn-mod'); initializeSecurityGatekeeper();
+            alert("Record entry updated!"); closeModal('universal-dyn-mod'); initializeSecurityGatekeeper();
         }
 
         async function deleteRowCloud(table, id) {
-            if(confirm("Purge Record?")) {
+            if(confirm("Purge Entry Permanently?")) {
                 const response = await fetch(`${SUPABASE_REST_URL}/${table}?id=eq.${id}`, { method: "DELETE", headers: cloudHeaders });
-                if(response.ok) { alert("Data purged successfully."); initializeSecurityGatekeeper(); }
+                if(response.ok) { alert("Data lines purged."); initializeSecurityGatekeeper(); }
             }
         }
 
-        // --- 6. EXCEL SHEET COMPILER ENGINE SYSTEMS ---
+        // --- 7. EXCEL MULTI-ROW MATRIX SHEET ENGINE ---
         function buildExcelRowsMatrixHTML() {
             const body = document.getElementById('excel-rows-body'); if(!body) return;
             body.innerHTML = activeExcelRows.map((row, index) => {
@@ -436,7 +446,7 @@
                 let yld = 0; const thick = row.thickness ? Number(row.thickness) : 0;
                 if (row.formula === 'Multiply') { yld = thick > 0 ? (len * avgW * thick) : (len * avgW); }
                 activeExcelRows[index].computedLength = len; activeExcelRows[index].computedAvgWidth = avgW; activeExcelRows[index].yieldResult = yld;
-                return `<tr class="hover:bg-panelBg/40 text-center"><td class="p-2 border-r border-borderGray">${index+1}</td><td class="p-0 border-r border-borderGray"><input type="text" oninput="updateExcelCell(${index},'chainageFrom',this.value)" value="${row.chainageFrom}" class="w-full bg-transparent text-center text-white focus:outline-none"></td><td class="p-0 border-r border-borderGray"><input type="text" oninput="updateExcelCell(${index},'chainageTo',this.value)" value="${row.chainageTo}" class="w-full bg-transparent text-center text-white focus:outline-none"></td><td class="p-2 border-r border-borderGray font-bold text-gray-400">${len} m</td><td class="p-0 border-r border-borderGray"><input type="number" oninput="updateExcelCell(${index},'width',this.value)" value="${row.width}" class="w-full bg-transparent text-center font-bold focus:outline-none"></td><td class="p-2 border-r border-borderGray text-orange-400 font-bold">${avgW.toFixed(3)} m</td><td class="p-0 border-r border-borderGray"><input type="number" oninput="updateExcelCell(${index},'thickness',this.value)" value="${row.thickness}" placeholder="[m]" class="w-full bg-transparent text-center focus:outline-none text-emerald-400 font-bold"></td><td class="p-2 text-right text-blue-400 font-bold pr-4">${thick > 0 ? `${yld.toFixed(3)} m³` : `${yld.toFixed(2)} m²`}</td></tr>`;
+                return `<tr class="hover:bg-panelBg/40 text-center"><td class="p-2 border-r border-borderGray">${index+1}</td><td class="p-0 border-r border-borderGray"><input type="text" oninput="updateExcelCell(${index},'chainageFrom',this.value)" value="${row.chainageFrom}" class="w-full bg-transparent text-center focus:outline-none"></td><td class="p-0 border-r border-borderGray"><input type="text" oninput="updateExcelCell(${index},'chainageTo',this.value)" value="${row.chainageTo}" class="w-full bg-transparent text-center focus:outline-none"></td><td class="p-2 border-r border-borderGray font-bold text-gray-400">${len} m</td><td class="p-0 border-r border-borderGray"><input type="number" oninput="updateExcelCell(${index},'width',this.value)" value="${row.width}" class="w-full bg-transparent text-center font-bold focus:outline-none"></td><td class="p-2 border-r border-borderGray text-orange-400 font-bold">${avgW.toFixed(3)} m</td><td class="p-0 border-r border-borderGray"><input type="number" oninput="updateExcelCell(${index},'thickness',this.value)" value="${row.thickness}" placeholder="[m]" class="w-full bg-transparent text-center focus:outline-none text-emerald-400 font-bold"></td><td class="p-2 text-right text-blue-400 font-bold pr-4">${thick > 0 ? `${yld.toFixed(3)} m³` : `${yld.toFixed(2)} m²`}</td></tr>`;
             }).join('');
         }
         function updateExcelCell(idx, field, val) { activeExcelRows[idx][field] = val; buildExcelRowsMatrixHTML(); }
@@ -445,6 +455,7 @@
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
+        // Start Up Framework Instantly
         initializeSecurityGatekeeper();
     </script>
 </body>
