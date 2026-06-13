@@ -11,28 +11,22 @@
     <aside class="w-64 bg-gray-900 border-r border-gray-800 p-4 flex flex-col">
         <h1 class="text-blue-500 font-bold mb-6 text-lg">CPS COMMAND CENTER</h1>
         <div id="nav-menu" class="space-y-1 flex-grow overflow-y-auto"></div>
-        
         <div class="mt-4 pt-4 border-t border-gray-800">
             <p class="text-[10px] text-gray-500 uppercase">Logged in as:</p>
-            <p id="user-profile" class="text-sm font-bold text-blue-400 mb-3 uppercase">Manoj Singh </p>
+            <p id="user-profile" class="text-sm font-bold text-blue-400 mb-3 uppercase">Manoj Singh Rao</p>
             <button onclick="logout()" class="w-full bg-red-900/20 text-red-500 text-xs py-2 rounded border border-red-900 hover:bg-red-900 transition">TERMINATE SESSION</button>
             <div class="mt-4 text-[10px] text-gray-500">SYSTEM STATUS: <span class="text-green-500 font-bold">HEALTHY</span></div>
         </div>
     </aside>
 
     <!-- WORKSPACE -->
-    <main class="flex-1 p-8 overflow-y-auto">
-        <div id="workspace-content">
-            <h2 id="workspace-title" class="text-2xl font-bold mb-8 text-white">EXECUTIVE DASHBOARD</h2>
-            
-            <div id="op-widgets" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10"></div>
-            
-            <h2 id="admin-title" class="text-sm uppercase text-red-500 mb-4 tracking-widest hidden">Restricted Modules (Admin Only)</h2>
-            <div id="admin-widgets" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
-        </div>
+    <main class="flex-1 p-8 overflow-y-auto" id="workspace">
+        <h2 id="workspace-title" class="text-2xl font-bold mb-8 text-white">EXECUTIVE DASHBOARD</h2>
+        <div id="content-area"></div>
     </main>
 
     <script>
+        const role = 'Master Admin'; // Role variable
         const modules = [
             { name: 'Live Projects', type: 'op' }, { name: 'Site Photos', type: 'op' }, 
             { name: 'Inventory Hub', type: 'op' }, { name: 'Attendance', type: 'op' },
@@ -46,37 +40,40 @@
 
         function loadModule(name) {
             document.getElementById('workspace-title').innerText = name + " WORKSPACE";
-            document.getElementById('op-widgets').innerHTML = `<div class="col-span-3 p-10 bg-gray-900 border border-gray-800 rounded text-center text-gray-400">Database connection active for ${name}...</div>`;
-            document.getElementById('admin-widgets').innerHTML = '';
-            document.getElementById('admin-title').classList.add('hidden');
+            const area = document.getElementById('content-area');
+            
+            if (name === 'Live Projects') {
+                area.innerHTML = `
+                <div class="bg-black p-6 rounded border border-blue-900 mb-8">
+                    <h3 class="text-blue-400 font-bold mb-4">+ NEW PROJECT ENTRY (Admin Only)</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <input type="text" placeholder="Name of Work" class="bg-gray-900 p-2 rounded">
+                        <input type="text" placeholder="Name of Client" class="bg-gray-900 p-2 rounded">
+                        <input type="date" placeholder="Commencement Date" class="bg-gray-900 p-2 rounded">
+                        <input type="date" id="p-comp" placeholder="Date of Completion" class="bg-gray-900 p-2 rounded">
+                        <input type="number" placeholder="Project Cost" class="bg-gray-900 p-2 rounded">
+                        <input type="number" id="p-dlp" placeholder="DLP Period (Years)" class="bg-gray-900 p-2 rounded">
+                        <input type="text" id="p-lat" placeholder="Latitude (Compulsory)" class="bg-gray-900 p-2 rounded border border-red-500">
+                        <input type="text" id="p-lng" placeholder="Longitude (Compulsory)" class="bg-gray-900 p-2 rounded border border-red-500">
+                        <button onclick="saveProject()" class="col-span-2 bg-blue-600 p-2 rounded font-bold">SUBMIT PROJECT</button>
+                    </div>
+                </div>`;
+            } else {
+                area.innerHTML = `<div class="p-10 bg-gray-900 border border-gray-800 rounded text-center text-gray-400">Loading ${name} data...</div>`;
+            }
         }
 
-        function logout() {
-            alert("Session Terminated.");
-            location.reload();
+        function saveProject() {
+            const lat = document.getElementById('p-lat').value;
+            const lng = document.getElementById('p-lng').value;
+            if(!lat || !lng) { alert("❌ GPS Coordinates are mandatory!"); return; }
+            alert("Project Entry Saved Successfully!");
         }
 
         function initApp() {
-            const role = 'Master Admin'; // Role identification
             const navMenu = document.getElementById('nav-menu');
-            const opContainer = document.getElementById('op-widgets');
-            const adminContainer = document.getElementById('admin-widgets');
-            const adminTitle = document.getElementById('admin-title');
-
             modules.forEach(m => {
                 navMenu.innerHTML += `<button onclick="loadModule('${m.name}')" class="w-full text-left p-2 text-sm hover:bg-gray-800 rounded transition">${m.name}</button>`;
-                
-                const html = `<div class="bg-gray-900 p-4 border border-gray-800 rounded hover:border-blue-500 cursor-pointer transition" onclick="loadModule('${m.name}')">
-                    <h3 class="font-bold text-sm text-gray-200">${m.name}</h3>
-                    <p class="text-[9px] text-green-500 uppercase mt-1">Operational</p>
-                </div>`;
-                
-                if(m.type === 'op') {
-                    opContainer.innerHTML += html;
-                } else if(role === 'Master Admin' || role === 'Accountant') {
-                    adminContainer.innerHTML += html;
-                    adminTitle.classList.remove('hidden');
-                }
             });
         }
         initApp();
