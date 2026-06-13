@@ -21,20 +21,21 @@
         }
     </script>
     <style>
-        .leaflet-container { background: #0b0f19 !important; border-radius: 8px; }
+        .leaflet-container { background: #0b0f19 !important; border-radius: 12px; }
         .leaflet-popup-content-wrapper { background: #111827 !important; color: #fff !important; border: 1px solid #1f2937 !important; font-size: 11px !important; }
-        body, button, aside, nav, main, div, input, select, table, td, th { pointer-events: auto !important; }
-        button, select, input { cursor: pointer !important; }
+        .leaflet-popup-tip { background: #111827 !important; }
+        body, button, aside, nav, main, div, input, select { pointer-events: auto !important; }
+        button, select, input[type="button"] { cursor: pointer !important; }
     </style>
 </head>
 <body class="bg-darkBg text-gray-100 font-sans antialiased text-xs">
 
-    <div id="app-root" class="min-h-screen w-full relative z-10">
+    <div id="app-root" class="min-h-screen w-full relative">
         <!-- Secure Global Gate Loader -->
         <div class="min-h-screen flex items-center justify-center bg-darkBg">
             <div class="text-center">
                 <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p class="text-gray-400 font-mono tracking-widest uppercase text-[10px]">UPGRADING WORKFORCE MANAGEMENT BLOCKING SHIELD v44...</p>
+                <p class="text-gray-400 font-mono tracking-widest uppercase text-[10px]">LOCKING STABLE SHIELD INTERFACE TERMINAL v37...</p>
             </div>
         </div>
     </div>
@@ -53,29 +54,41 @@
 
         // Complete Standalone Tables Storage Buffers
         let dbProjects = []; let dbStaff = []; let dbGodowns = []; let dbStockBook = []; 
-        let dbMeasurements = []; let dbTenders = []; let dbPhotos = []; let dbMachinery = [];
-        let dbAttendance = []; let dbTelemetry = []; let dbPettyCash = [];
-        let dbSubcontractors = []; let dbLedger = []; let dbInvoices = [];
+        let dbMeasurements = []; let dbFinancials = []; let dbMachinery = []; let dbTenders = [];
+        let dbPhotos = [];
 
-        let currentTab = "staff-mgmt"; // Set active validation view focus directly on Staff Logins screen node
+        let currentTab = "tenders"; // Persist target workflow focus node
         let currentUser = JSON.parse(sessionStorage.getItem('vantage_active_session')) || null;
-        let activeExcelRows = [{ chainageFrom: '0/000', chainageTo: '0/025', width: 7.5, thickness: '' }];
         
-        let cameraStream = null;
-        let localCapturedSelfie = null;
-        let livePunchCoordinates = null;
-        let activeInvoiceRows = [{ item: "Dismantling of existing residential structure on labor basis", qty: 700, unit: "Sqf", price: 110, discount: 0, tax: 0 }];
+        let activeExcelRows = [
+            { chainageFrom: '0/000', chainageTo: '0/025', width: 7.5, thickness: '', formula: 'Multiply' }
+        ];
 
-        // --- 2. ANTI-FREEZE SYSTEM ROUTERS ---
+        // Camera stream dynamic handles
+        let cameraStream = null;
+        let lockedLatitude = null;
+        let lockedLongitude = null;
+        let capturedImageBase64 = null;
+
+        // --- 2. GLOBAL ROUTER SYSTEM (CRASH-PROOF BYPASS OVERRIDES) ---
         function switchTab(tabId) {
-            window.closeLiveCameraInterface();
+            console.log("Navigating to module node:", tabId);
+            // Airtight safe camera inline shutdown without crashing script loop execution
+            if (cameraStream) {
+                try {
+                    cameraStream.getTracks().forEach(function(track) {
+                        if (track) track.stop();
+                    });
+                } catch(err) { console.warn("Stream tracking release caught:", err); }
+                cameraStream = null;
+            }
             currentTab = tabId;
             renderERP();
         }
         window.switchTab = switchTab;
 
         window.logoutSession = function() {
-            window.closeLiveCameraInterface();
+            window.switchTab('dashboard');
             currentUser = null;
             sessionStorage.removeItem('vantage_active_session');
             location.reload();
@@ -90,51 +103,55 @@
                 const response = await fetch(`${SUPABASE_REST_URL}/${endpoint}?select=*`, { method: "GET", headers: cloudHeaders });
                 if (!response.ok) return fallbackMockData;
                 const data = await response.json();
-                return data && data.length > 0 ? data : fallbackMockData;
+                return Object.freeze(data && data.length > 0 ? data : fallbackMockData);
             } catch (e) { return fallbackMockData; }
         }
 
         async function initializeSecurityGatekeeper() {
             try {
-                // Fetch staff accounts with live authentication blocked flags
                 dbStaff = await fetchNativeTable('staff', [
-                    { id: 's1', name: 'Manoj Singh', role: 'Master Admin', pass: 'CPS2026', account_status: 'Active' },
-                    { id: 's2', name: 'Rahul Accountant', role: 'Accountant', pass: 'CPSAC', account_status: 'Active' },
-                    { id: 's3', name: 'Vikram Supervisor', role: 'Site Supervisor', pass: 'CPSWORK', account_status: 'Active' }
+                    { id: 's_master', name: 'Manoj Singh', role: 'Master Admin', pass: 'CPS2026', base_salary: 150000, status: 'Active', lat: 24.5854, lng: 73.7125, last_punch: '10:00 AM' }
                 ]);
                 dbProjects = await fetchNativeTable('projects', [
-                    { id: "1", name: "Udaipur City Flyover Survey", client: "Udaipur Authority", location: "Udaipur", contract_value: 4500000 }
+                    { id: "1", name: "Udaipur City Flyover Survey", client: "Udaipur Authority", location: "Udaipur", contract_value: 4500000, lat: 24.5854, lng: 73.7125 },
+                    { id: "2", name: "Residential Complex Construction", client: "Geeta Sharma Ji", location: "Sarada, Salumber", contract_value: 7500000, lat: 24.1234, lng: 73.5678 }
                 ]);
-                dbGodowns = await fetchNativeTable('godowns', [{ id: "g1", name: "Udaipur Central Godown" }]);
-                dbStockBook = await fetchNativeTable('stock_book', [{ id: "st1", godown_name: "Udaipur Central Godown", item: "53 Grade Cement", qty: 500, unit: "Bags" }]);
-                dbTenders = await fetchNativeTable('tenders', []);
-                dbPhotos = await fetchNativeTable('site_photos', []);
-                dbMeasurements = await fetchNativeTable('measurements', []);
-                dbAttendance = await fetchNativeTable('attendance', []);
-                dbTelemetry = await fetchNativeTable('telemetry_history', []);
-                dbPettyCash = await fetchNativeTable('petty_cash', []);
-                dbSubcontractors = await fetchNativeTable('subcontractors', []);
-                dbInvoices = await fetchNativeTable('billing_invoices', []);
+                dbGodowns = await fetchNativeTable('godowns', [{ id: "1", name: "Udaipur Central Godown", location: "Gordhan Vilas, Udaipur" }]);
+                dbStockBook = await fetchNativeTable('stock_book', [{ id: "1", godown_name: "Udaipur Central Godown", item: "53 Grade Cement", qty: 500, unit: "Bags" }]);
+                dbMeasurements = await fetchNativeTable('measurements', [{ id: "1", project: "Udaipur City Flyover Survey", span: "0/000 to 0/025", avg_width: "7.500", yield_output: "187.50 m²" }]);
+                dbFinancials = await fetchNativeTable('financials', []);
                 dbMachinery = await fetchNativeTable('machinery', []);
-                dbLedger = await fetchNativeTable('financial_ledger', []);
-            } catch (e) { console.error("Database matrices synced."); }
+                
+                // Fetch matrix tenders data logs
+                dbTenders = await fetchNativeTable('tenders', [
+                    { id: "t1", title: "Two-Lane Elevated Flyover Survey", status: "Allotted", value: 4500000, work_order_no: "WO/UDZ/2025/889", commencement_date: "2024-12-15", completion_date: "2025-03-30", actual_completion_date: "2025-03-28", refund_date: "2026-03-28" },
+                    { id: "t2", title: "National Highway Topographical Survey Bid", status: "Applied", value: 12500000, work_order_no: "", commencement_date: "", completion_date: "", actual_completion_date: "", refund_date: "" }
+                ]);
+                
+                dbPhotos = await fetchNativeTable('site_photos', [
+                    { id: "ph1", project_name: "Udaipur City Flyover Survey", timestamp: "2026-06-13 14:30", lat: 24.5854, lng: 73.7125, image_data: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400" }
+                ]);
+            } catch (e) { console.error("Database connection logs stacked."); }
             renderERP();
         }
 
-        // --- 4. HARDWARE LOG IN CONTROL SYSTEM ---
+        // --- 4. TERMINAL CORE INTERFACE UI LAYOUT ---
         function renderERP() {
             const root = document.getElementById('app-root');
             if (!root) return;
             
             if (!currentUser) {
                 root.innerHTML = `
-                    <div class="min-h-screen flex items-center justify-center bg-darkBg px-4">
+                    <div class="min-h-screen flex items-center justify-center bg-darkBg px-4 relative">
                         <div class="max-w-md w-full bg-panelBg border border-borderGray rounded-xl p-8 shadow-2xl">
-                            <h2 class="text-center text-base font-bold text-white tracking-wider mb-6">CPS TERMINAL GATEWAY</h2>
+                            <div class="text-center mb-6">
+                                <h2 class="text-xl font-bold text-white tracking-wider">CPS CONSULTANTS & ENGINEERS</h2>
+                                <p class="text-xs text-blue-500 font-mono mt-1 uppercase tracking-widest">[ GATEWAY INTERFACE PORTAL ]</p>
+                            </div>
                             <form id="login-form" class="space-y-4 text-xs">
-                                <div><label class="block text-gray-400 font-bold mb-1">USERNAME</label><input type="text" id="login-name" required class="w-full bg-darkBg border border-borderGray rounded p-3 text-white focus:outline-none"></div>
-                                <div><label class="block text-gray-400 font-bold mb-1">PASSWORD</label><input type="password" id="login-pass" required class="w-full bg-darkBg border border-borderGray rounded p-3 text-white focus:outline-none"></div>
-                                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded uppercase tracking-wider">Authorize Identity</button>
+                                <div><label class="block text-gray-400 mb-1 font-bold uppercase">Identity Code ID</label><input type="text" id="login-name" required placeholder="User ID" class="w-full bg-darkBg border border-borderGray rounded p-3 text-white focus:outline-none focus:border-blue-500 font-medium"></div>
+                                <div><label class="block text-gray-400 mb-1 font-bold uppercase">Security Access Password</label><input type="password" id="login-pass" required placeholder="••••••••" class="w-full bg-darkBg border border-borderGray rounded p-3 text-white focus:outline-none focus:border-blue-500 font-mono"></div>
+                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded uppercase font-sans tracking-wider transition-colors shadow-lg">Authenticate Identity</button>
                             </form>
                         </div>
                     </div>
@@ -143,188 +160,389 @@
                     e.preventDefault();
                     const name = document.getElementById('login-name').value.trim();
                     const pass = document.getElementById('login-pass').value.trim();
-                    const match = dbStaff.find(u => u.name.toLowerCase() === name.toLowerCase() && u.pass === pass);
-                    
-                    if (match) { 
-                        // Strict Block Verification layer check
-                        if (match.account_status === 'Blocked') {
-                            alert("❌ Access Denied: Aapka account Master Admin dwara block kiya gaya hai!");
-                            return;
-                        }
-                        currentUser = match; 
-                        sessionStorage.setItem('vantage_active_session', JSON.stringify(match)); 
-                        renderERP(); 
-                    } else { alert("Credentials Mismatch!"); }
+                    const userMatch = dbStaff.find(u => u.name.toLowerCase() === name.toLowerCase() && u.pass === pass);
+                    if (userMatch) {
+                        currentUser = userMatch;
+                        sessionStorage.setItem('vantage_active_session', JSON.stringify(userMatch));
+                        renderERP();
+                    } else { alert("Authentication Failure!"); }
                 });
                 return;
             }
 
-            const isAdminOrAccountant = (currentUser.role === 'Master Admin' || currentUser.name.toLowerCase() === 'manoj singh' || currentUser.role === 'Accountant');
+            const isMasterAdmin = (currentUser.role === 'Master Admin' || currentUser.name.toLowerCase() === 'manoj singh');
+            const isAccountant = (currentUser.role === 'Accountant');
+            const isElevatedPrivilege = (isMasterAdmin || isAccountant);
 
             root.innerHTML = `
                 <div class="min-h-screen flex bg-darkBg text-xs relative">
-                    <aside class="w-64 bg-panelBg border-r border-borderGray flex flex-col justify-between shrink-0 h-screen sticky top-0 overflow-y-auto z-40">
+                    <!-- Sidebar Layout Structure -->
+                    <aside class="w-64 bg-panelBg border-r border-borderGray flex flex-col justify-between shrink-0 h-screen sticky top-0 overflow-y-auto">
                         <div>
-                            <div class="p-4 border-b border-borderGray"><h1 class="font-bold text-white truncate">CPS CONSULTANTS</h1><p class="text-[9px] text-blue-500 font-bold uppercase">Vantage Core Terminal</p></div>
+                            <div class="p-4 border-b border-borderGray"><h1 class="font-bold text-white tracking-wider truncate">CPS CONSULTANTS</h1><p class="text-[10px] text-blue-500 font-bold uppercase">Vantage Core Terminal</p></div>
                             <nav class="p-3 space-y-1">
-                                <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest px-3 pt-1">Operations</p>
-                                <button type="button" onclick="window.switchTab('dashboard')" class="w-full block text-left px-3 py-2 rounded ${currentTab === 'dashboard' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800'}">📊 Executive Dashboard</button>
-                                <button type="button" onclick="window.switchTab('geo-viewer')" class="w-full block text-left px-3 py-2 rounded ${currentTab === 'geo-viewer' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800'}">🗺️ Geospatial Viewer</button>
-                                <button type="button" onclick="window.switchTab('measurements')" class="w-full block text-left px-3 py-2 rounded ${currentTab === 'measurements' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800'}">📐 Measurement Sheets (M-Book)</button>
-                                <button type="button" onclick="window.switchTab('site-photos')" class="w-full block text-left px-3 py-2 rounded ${currentTab === 'site-photos' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800'}">📷 Site Photo Updates</button>
-                                <button type="button" onclick="window.switchTab('materials')" class="w-full block text-left px-3 py-2 rounded ${currentTab === 'materials' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800'}">📦 Inventory Hub (Godown)</button>
-                                <button type="button" onclick="window.switchTab('material-inward')" class="w-full block text-left px-3 py-2 rounded ${currentTab === 'material-inward' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800'}">📥 Material Inward Registry</button>
-                                <button type="button" onclick="window.switchTab('attendance')" class="w-full block text-left px-3 py-2 rounded ${currentTab === 'attendance' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800'}">✅ Daily Attendance Logs</button>
-                                <button type="button" onclick="window.switchTab('machinery')" class="w-full block text-left px-3 py-2 rounded ${currentTab === 'machinery' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800'}">⚙️ Machinery Assets Fleet</button>
-                                <button type="button" onclick="window.switchTab('petty-cash')" class="w-full block text-left px-3 py-2 rounded ${currentTab === 'petty-cash' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800'}">💸 Petty Cash Expense Logs</button>
-
-                                ${isAdminOrAccountant ? `
-                                <p class="text-[9px] font-bold text-red-400 uppercase tracking-widest px-3 pt-3">Central Command Nodes</p>
-                                <button type="button" onclick="window.switchTab('lifecycle')" class="w-full block text-left px-3 py-2 rounded ${currentTab === 'lifecycle' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800'}">🏢 Lifecycle Projects</button>
-                                <button type="button" onclick="window.switchTab('tenders')" class="w-full block text-left px-3 py-2 rounded ${currentTab === 'tenders' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800'}">📄 Tenders Matrix Nodes</button>
-                                <button type="button" onclick="window.switchTab('billing')" class="w-full block text-left px-3 py-2 rounded ${currentTab === 'billing' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800'}">🧾 Client & Sub Invoices</button>
-                                <button type="button" onclick="window.switchTab('subcontractors')" class="w-full block text-left px-3 py-2 rounded ${currentTab === 'subcontractors' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800'}">👥 Subcontractor Masters</button>
-                                <button type="button" onclick="window.switchTab('financial')" class="w-full block text-left px-3 py-2 rounded ${currentTab === 'financial' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800'}">💰 Financial Ledger Matrix</button>
-                                <button type="button" onclick="window.switchTab('staff-mgmt')" class="w-full block text-left px-3 py-2 rounded ${currentTab === 'staff-mgmt' ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-gray-400 hover:bg-gray-800'}">👥 Provision Staff Logins</button>
+                                <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest px-3 pt-1">Main Intelligence</p>
+                                <button type="button" onclick="window.switchTab('dashboard')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'dashboard' ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">📊 Executive Dashboard</button>
+                                <button type="button" onclick="window.switchTab('geo-viewer')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'geo-viewer' ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">🗺️ Geospatial Viewer</button>
+                                <button type="button" onclick="window.switchTab('staff-tracking')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'staff-tracking' ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">📡 Live Staff Tracking</button>
+                                
+                                <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest px-3 pt-2">Project Operations</p>
+                                <button type="button" onclick="window.switchTab('lifecycle')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'lifecycle' ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">🏢 Lifecycle Projects</button>
+                                <button type="button" onclick="window.switchTab('measurements')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'measurements' ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">📐 Measurement Sheets (M-Book)</button>
+                                <button type="button" onclick="window.switchTab('site-photos')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'site-photos' ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">📷 Site Photo Updates</button>
+                                <button type="button" onclick="window.switchTab('tenders')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'tenders' ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">📄 Tenders Matrix Nodes</button>
+                                
+                                <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest px-3 pt-2">Human Capital & Assets</p>
+                                <button type="button" onclick="window.switchTab('materials')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'materials' ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">📦 Inventory Hub (Godown)</button>
+                                <button type="button" onclick="window.switchTab('material-inward')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'material-inward' ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">📥 Material Inward Registry</button>
+                                <button type="button" onclick="window.switchTab('machinery')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'machinery' ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">⚙️ Machinery Assets Fleet</button>
+                                <button type="button" onclick="window.switchTab('attendance')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'attendance' ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">✅ Daily Attendance</button>
+                                
+                                ${isElevatedPrivilege ? `
+                                <div class="pt-2 border-t border-borderGray/40 space-y-1">
+                                    <p class="text-[9px] font-bold text-red-400 uppercase tracking-widest px-3">Central Command & Audit</p>
+                                    <button type="button" onclick="window.switchTab('financial')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'financial' ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">💰 Financial Ledger Matrix</button>
+                                    <button type="button" onclick="window.switchTab('petty-cash')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'petty-cash' ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">💸 Daily Petty Cash Tracker</button>
+                                    <button type="button" onclick="window.switchTab('staff-mgmt')" class="w-full block text-left px-3 py-2 rounded transition-colors ${currentTab === 'staff-mgmt' ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}">👥 Staff Management</button>
+                                </div>
                                 ` : ''}
                             </nav>
                         </div>
                         <div class="p-4 border-t border-borderGray bg-darkBg/40 shrink-0">
-                            <p class="text-white font-bold truncate">👤 ${currentUser.name}</p>
-                            <p class="text-[9px] text-emerald-400 uppercase font-mono font-bold">${currentUser.role}</p>
-                            <button type="button" onclick="window.logoutSession()" class="w-full bg-gray-800 text-gray-400 py-1.5 rounded font-bold border border-borderGray uppercase text-[10px] mt-2">🔒 LOGOUT</button>
+                            <p class="text-white font-bold truncate mb-1">👤 ${currentUser.name}</p>
+                            <p class="text-[9px] text-emerald-400 uppercase font-mono font-bold mb-2">${currentUser.role}</p>
+                            <button type="button" onclick="window.logoutSession()" class="w-full bg-gray-800 text-gray-400 py-1.5 rounded font-bold border border-borderGray uppercase text-[10px]">🔒 TERMINATE SESSION</button>
                         </div>
                     </aside>
-                    <main class="flex-1 p-6 bg-darkBg min-h-screen overflow-y-auto relative z-30"><div id="tab-content-window"></div></main>
+                    <main class="flex-1 p-6 bg-darkBg min-h-screen overflow-y-auto"><div id="tab-content-window"></div></main>
                 </div>
             `;
             renderTabContent();
         }
 
-        // --- 5. COMPONENT WORKSPACE SWITCH CHANNELS ---
+        // --- 5. COMPONENT WORKSPACE RENDER MATRIX ---
         function renderTabContent() {
             const container = document.getElementById('tab-content-window');
             if(!container) return;
-            const isAdminOrAccountant = (currentUser.role === 'Master Admin' || currentUser.name.toLowerCase() === 'manoj singh' || currentUser.role === 'Accountant');
+            
+            const isMasterAdmin = (currentUser.role === 'Master Admin' || currentUser.name.toLowerCase() === 'manoj singh');
+            const isAccountant = (currentUser.role === 'Accountant');
+            const isElevatedPrivilege = (isMasterAdmin || isAccountant);
 
             if (currentTab === "dashboard") {
-                container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-6 text-center text-emerald-400 font-mono font-bold uppercase tracking-wider text-xs">⚡ WORKFORCE MODIFICATION PANEL ONLINE.</div>`;
+                container.innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Active Projects</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbProjects.length} Sites</h3></div>
+                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Warehouse Units</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbGodowns.length} Godowns</h3></div>
+                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">M-Book Records</p><h3 class="text-xl font-extrabold mt-1 text-white">${activeExcelRows.length} Rows</h3></div>
+                        <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Workforce Base</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbStaff.length} Accounts</h3></div>
+                    </div>
+                `;
             }
 
-            // --- 👥 PROVISION STAFF LOGIN CLUSTER WITH SCREENSHOT 11.20.52 PM UPGRADE ---
-            else if (currentTab === "staff-mgmt") {
+            else if (currentTab === "lifecycle") {
                 container.innerHTML = `
                     <div class="space-y-4">
-                        <div class="flex justify-between items-center border-b border-borderGray pb-2">
-                            <div>
-                                <h3 class="text-sm font-bold text-white uppercase tracking-wider">👥 PROVISION STAFF LOGIN IDENTITIES CLUSTER</h3>
-                                <p class="text-[10px] text-gray-400 mt-0.5">Manage workforce parameters. Master Admin and Accountants can instantly block access or terminate records permanent.</p>
-                            </div>
-                            ${isAdminOrAccountant ? `<button type="button" onclick="window.openModal('staff-modal')" class="bg-blue-600 hover:bg-blue-500 text-white font-sans font-bold px-4 py-1.5 rounded text-[10px] uppercase tracking-wide shadow-md">+ Generate User Account Credentials</button>` : ''}
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Project Infrastructure Registry Nodes</h3>
+                            ${isElevatedPrivilege ? `<button onclick="window.openModal('p-mod')" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded font-bold font-sans transition-all shadow-md">+ Provision New Site</button>` : ''}
                         </div>
-
-                        <!-- Staff Grid Node Columns -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            ${dbStaff.map(s => `
-                                <div class="bg-panelBg border ${s.account_status === 'Blocked' ? 'border-red-900 bg-red-950/10' : 'border-borderGray'} rounded-xl p-4 font-mono space-y-1.5 relative flex flex-col justify-between min-h-[160px]">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            ${dbProjects.map(p=>`
+                                <div class="bg-panelBg border border-borderGray rounded-xl p-5 flex flex-col justify-between space-y-4 relative min-h-[160px]">
                                     <div class="space-y-1">
-                                        <div class="flex justify-between items-center border-b border-borderGray/50 pb-1.5 mb-1.5">
-                                            <h4 class="text-white font-bold font-sans text-xs">👤 Full Name: ${s.name}</h4>
-                                            <span class="px-1.5 py-0.5 rounded text-[8px] font-bold ${s.account_status === 'Blocked' ? 'bg-red-500/20 text-red-400 border border-red-800' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-800/40'}">${s.account_status || 'Active'}</span>
-                                        </div>
-                                        <p class="text-gray-400 font-sans">Role Node: <span class="text-emerald-400 font-bold font-mono">${s.role}</span></p>
-                                        <p class="text-gray-400 font-sans">Identity Login ID: <span class="text-blue-400 font-bold font-mono">${s.name}</span></p>
-                                        <p class="text-gray-400 font-sans">Security Pass: <span class="text-gray-200 tracking-wider font-bold font-mono">${s.pass || 'CPS2026'}</span></p>
+                                        <h4 class="font-bold text-white text-xs border-b border-borderGray pb-1.5 mb-1.5">${p.name}</h4>
+                                        <p class="text-gray-400">🏢 Client: <span class="text-gray-200">${p.client}</span></p>
+                                        <p class="text-gray-400">📍 Location: <span class="text-gray-200">${p.location}</span></p>
+                                        <p class="text-gray-400">🌐 GPS Coordinates: <span class="text-blue-400 font-mono font-bold">${p.lat || '24.5854'}, ${p.lng || '73.7125'}</span></p>
+                                        <p class="text-gray-400">💰 Contract Sum: <span class="text-green-400 font-mono font-bold">₹${Number(p.contract_value || 4500000).toLocaleString()}</span></p>
                                     </div>
-
-                                    <!-- 🔥 RESTRICED WORKFORCE MODIFICATION LAYERS FOR MASTER ADMIN / ACCOUNTANT -->
-                                    <div class="flex justify-end space-x-1.5 pt-2 border-t border-borderGray/40">
-                                        <button type="button" onclick="window.toggleStaffBlockState('${s.id}', '${s.account_status || 'Active'}')" class="bg-gray-800 hover:bg-gray-700 ${s.account_status === 'Blocked' ? 'text-emerald-400' : 'text-amber-400'} px-2.5 py-1 rounded font-sans text-[10px] font-bold transition-all border border-borderGray">
-                                            ${s.account_status === 'Blocked' ? '🔓 Unblock' : '🚫 Block Access'}
-                                        </button>
-                                        <button type="button" onclick="window.deleteRowCloud('staff', '${s.id}')" class="bg-red-950/40 hover:bg-red-900 border border-red-900/30 text-red-400 px-2.5 py-1 rounded font-sans text-[10px] font-bold transition-all shadow-sm">❌ Terminate</button>
+                                    <div class="flex justify-end space-x-2 pt-2 border-t border-borderGray/40">
+                                        <button type="button" onclick="window.triggerProjectEdit('${p.id}','${p.name}','${p.client}','${p.location}','${p.contract_value || 4500000}','${p.lat || '24.5854'}','${p.lng || '73.7125'}')" class="bg-blue-950/60 hover:bg-blue-900 border border-blue-900/60 text-blue-400 px-3 py-1 rounded font-sans text-[10px] font-bold transition-all shadow-sm">Modify Project</button>
+                                        <button type="button" onclick="window.deleteRowCloud('projects','${p.id}')" class="bg-red-950/50 hover:bg-red-900 text-red-400 border border-red-900/60 px-3 py-1 rounded font-sans text-[10px] font-bold transition-all shadow-sm">Purge Data</button>
                                     </div>
                                 </div>
                             `).join('')}
                         </div>
                     </div>
+                `;
+            }
 
-                    <!-- CREATE USER LOGINS DIALOG -->
-                    <div id="staff-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 hidden z-50">
-                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 space-y-3 shadow-2xl">
-                            <h4 class="font-bold text-white uppercase text-xs border-b border-borderGray pb-1">👤 GENERATE USER ACCOUNT CREDENTIALS</h4>
-                            <form onsubmit="window.submitProvisionStaff(event)" class="space-y-3">
-                                <div><label class="block text-gray-400 mb-0.5">Staff Full Name</label><input type="text" id="st-name" required placeholder="e.g. Vikram Supervisor" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white focus:outline-none"></div>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <div><label class="block text-gray-400 mb-0.5">Select Role Node</label><select id="st-role" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white text-xs"><option value="Site Supervisor">Site Supervisor</option><option value="Accountant">Accountant</option></select></div>
-                                    <div><label class="block text-gray-400 mb-0.5">Password Access</label><input type="text" id="st-pass" required placeholder="e.g. CPSWORK" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-mono focus:outline-none"></div>
+            else if (currentTab === "tenders") {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center border-b border-borderGray pb-2">
+                            <div>
+                                <h3 class="text-sm font-bold text-white uppercase tracking-wider">📄 Tenders Matrix Control Nodes</h3>
+                                <p class="text-[10px] text-gray-400 mt-0.5">Track and log dynamic allotted works and secure contract entries.</p>
+                            </div>
+                            <button type="button" onclick="window.openModal('t-reg-modal')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-1.5 rounded font-sans shadow-md tracking-wider uppercase text-[10px] transition-all">+ Register Tender / Work Order</button>
+                        </div>
+
+                        <div class="overflow-x-auto border border-borderGray rounded-xl bg-panelBg">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <tr class="bg-darkBg border-b border-borderGray text-gray-400 font-bold uppercase text-[9px] tracking-wider">
+                                    <th class="p-3 w-1/4">Name of Work</th>
+                                    <th class="p-3">Status</th>
+                                    <th class="p-3">Tender Cost</th>
+                                    <th class="p-3">Work Order No.</th>
+                                    <th class="p-3">Commence Date</th>
+                                    <th class="p-3">Completion Date</th>
+                                    <th class="p-3">Actual Finish</th>
+                                    <th class="p-3">SD Refund Date</th>
+                                    <th class="p-3 text-center w-16">Action</th>
+                                </tr>
+                                <tbody class="divide-y divide-borderGray font-mono text-gray-300">
+                                    ${dbTenders.map(t => `
+                                        <tr class="hover:bg-darkBg/40 transition-colors">
+                                            <td class="p-3 text-white font-sans font-bold truncate max-w-[200px]">${t.title}</td>
+                                            <td class="p-3">
+                                                <span class="px-2 py-0.5 rounded font-bold text-[9px] ${t.status === 'Allotted' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-blue-500/10 text-accentBlue border border-blue-500/20'}">${t.status}</span>
+                                            </td>
+                                            <td class="p-3 text-gray-200 font-bold">₹${Number(t.value || 0).toLocaleString()}</td>
+                                            <td class="p-3">${t.work_order_no || '<span class="text-gray-600 font-sans">—</span>'}</td>
+                                            <td class="p-3">${t.commencement_date || '<span class="text-gray-600 font-sans">—</span>'}</td>
+                                            <td class="p-3">${t.completion_date || '<span class="text-gray-600 font-sans">—</span>'}</td>
+                                            <td class="p-3 text-emerald-500 font-bold">${t.actual_completion_date || '<span class="text-gray-600 font-sans">—</span>'}</td>
+                                            <td class="p-3 text-orange-400">${t.refund_date || '<span class="text-gray-600 font-sans">—</span>'}</td>
+                                            <td class="p-3 text-center">
+                                                <button type="button" onclick="window.deleteRowCloud('tenders', '${t.id}')" class="text-red-400 hover:text-red-300 font-sans text-[10px] font-bold uppercase">Delete</button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- INPUT REGISTRATION MODAL FORM LAYER -->
+                    <div id="t-reg-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+                        <div class="bg-panelBg border border-borderGray max-w-md w-full rounded-xl p-6 space-y-4 shadow-2xl overflow-y-auto max-h-[90vh]">
+                            <h4 class="font-bold text-white text-xs uppercase border-b border-borderGray pb-2 tracking-wider">📝 REGISTER WORK ENTRY PARAMETERS</h4>
+                            <form id="t-reg-form" class="space-y-3" onsubmit="window.executeTenderSubmit(event)">
+                                <div>
+                                    <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Name of Work / Description</label>
+                                    <input type="text" id="t-title" placeholder="e.g. Ayad River Rehabilitation" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white text-xs focus:outline-none focus:border-blue-500">
                                 </div>
-                                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 rounded text-[10px] uppercase tracking-wider">Inject Identity Node</button>
-                                <button type="button" onclick="window.closeModal('staff-modal')" class="w-full bg-gray-800 text-gray-400 py-1.5 rounded text-[10px] uppercase">Cancel</button>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Tender Status</label>
+                                        <select id="t-status" onchange="window.toggleTenderConditionalFields(this.value)" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-bold text-xs focus:outline-none focus:border-blue-500">
+                                            <option value="Applied">Applied</option>
+                                            <option value="Allotted">Allotted</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Tender Cost / Cost (₹)</label>
+                                        <input type="number" id="t-cost" placeholder="Valuation Base Sum" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-mono text-xs focus:outline-none focus:border-blue-500">
+                                    </div>
+                                </div>
+
+                                <div id="allotted-conditional-block" class="hidden space-y-3 border-t border-borderGray/40 pt-3 mt-2">
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Work Order Number</label>
+                                            <input type="text" id="t-wono" placeholder="WO/REF/ID" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-mono text-xs focus:outline-none">
+                                        </div>
+                                        <div>
+                                            <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Date of Commencement</label>
+                                            <input type="date" id="t-dcomm" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white text-xs focus:outline-none">
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Date of Completion</label>
+                                            <input type="date" id="t-dcomp" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white text-xs focus:outline-none">
+                                        </div>
+                                        <div>
+                                            <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Actual Completion Date</label>
+                                            <input type="date" id="t-dact" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white text-xs focus:outline-none">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Security Deposit Refund Date</label>
+                                        <input type="date" id="t-drefund" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white text-xs focus:outline-none">
+                                    </div>
+                                </div>
+
+                                <div class="pt-2 space-y-2">
+                                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded uppercase font-sans text-[10px] tracking-wider transition-colors shadow-md">Commit Parameters Matrix</button>
+                                    <button type="button" onclick="window.closeModal('t-reg-modal')" class="w-full bg-gray-800 text-gray-300 font-bold py-2 rounded uppercase border border-borderGray text-[10px] tracking-wider">❌ Close / Cancel</button>
+                                </div>
                             </form>
                         </div>
                     </div>
                 `;
             }
 
-            else if (currentTab === "lifecycle") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Lifecycle Projects</h3>`; }
-            else if (currentTab === "tenders") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Tenders Matrix Nodes</h3>`; }
-            else if (currentTab === "measurements") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Measurement Sheets</h3>`; }
-            else if (currentTab === "site-photos") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Site Photo Updates</h3>`; }
-            else if (currentTab === "materials") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Inventory Hub</h3>`; }
-            else if (currentTab === "material-inward") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Material Inward Registry</h3>`; }
-            else if (currentTab === "attendance") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Daily Attendance Logs</h3>`; }
-            else if (currentTab === "machinery") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Machinery Fleet</h3>`; }
-            else if (currentTab === "petty-cash") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Petty Cash Logs</h3>`; }
-            else if (currentTab === "billing") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Billing Section</h3>`; }
-            else if (currentTab === "subcontractors") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Subcontractors Registry</h3>`; }
-            else if (currentTab === "financial") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Financial Ledger Matrix</h3>`; }
+            else if (currentTab === "measurements") {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center border-b border-borderGray pb-2">
+                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">📐 Advanced Multi-Row Excel M-Book Grid</h3>
+                            <button onclick="window.addExcelRow()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-1.5 rounded shadow-md uppercase font-sans text-[10px] tracking-wider">+ Add Entry Row</button>
+                        </div>
+                        <div class="overflow-x-auto border border-borderGray rounded-xl bg-panelBg"><table class="w-full text-center border-collapse text-xs"><tr class="bg-darkBg border-b border-borderGray text-gray-400 font-bold uppercase text-[10px]"><th class="p-3 w-12 border-r border-borderGray">Seq</th><th class="p-3 border-r border-borderGray">Chainage From</th><th class="p-3 border-r border-borderGray">Chainage To</th><th class="p-3 border-r border-borderGray">Length</th><th class="p-3 border-r border-borderGray">Width (m)</th><th>Avg Width</th><th class="p-3 border-r border-borderGray">Thickness (m)</th><th class="p-3 text-blue-400">Yield Output</th><th class="p-3 text-red-400 w-20">Actions</th></tr><tbody id="excel-rows-body" class="divide-y divide-borderGray font-mono"></tbody></table></div>
+                    </div>
+                `; window.buildExcelRowsMatrixHTML();
+            }
+
+            else if (currentTab === "site-photos") {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center border-b border-borderGray pb-2">
+                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">📷 SITE PHOTO UPDATES MODULE</h3>
+                            <button onclick="window.startLiveCameraInterface()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-1.5 rounded shadow-md font-sans">📷 Click GPS Photo</button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="photo-gallery-grid">
+                            ${dbPhotos.map(ph=>`
+                                <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden p-3 space-y-2 relative">
+                                    <img src="${ph.image_data}" class="w-full h-40 object-cover rounded-lg bg-darkBg border border-borderGray">
+                                    <div class="font-mono text-[10px] text-gray-400 space-y-0.5">
+                                        <p class="text-white font-bold font-sans text-xs truncate">📍 Project: ${ph.project_name}</p>
+                                        <p>📅 Timestamp: ${ph.timestamp}</p>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div id="cam-mod" class="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-6 space-y-4 shadow-2xl">
+                            <h4 class="font-bold text-white text-xs uppercase tracking-wider border-b border-borderGray pb-1.5">📸 LIVE GPS CAMERA CAPTURE</h4>
+                            <form id="cam-upload-form" class="space-y-4" onsubmit="window.executePhotoVaultSubmit(event)">
+                                <select id="cam-proj" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-bold">${dbProjects.map(p=>`<option value="${p.name}">${p.name}</option>`).join('')}</select>
+                                <div class="relative w-full h-56 bg-black border border-borderGray rounded-lg overflow-hidden">
+                                    <video id="webcam-preview" autoplay playsinline class="w-full h-full object-cover"></video>
+                                    <canvas id="hidden-photo-canvas" class="hidden"></canvas>
+                                    <img id="snapped-photo-preview" class="absolute inset-0 w-full h-full object-cover hidden z-10">
+                                </div>
+                                <button type="button" onclick="window.captureSnapshotAndGPS()" class="w-full bg-emerald-600 text-white py-2.5 rounded font-bold uppercase tracking-wider">🎯 Capture Photo & GPS</button>
+                                <div id="gps-lock-badge" class="hidden text-center p-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 font-mono text-[10px] rounded-lg"></div>
+                                <button type="submit" id="submit-vault-btn" disabled class="w-full bg-gray-700 text-gray-400 font-bold py-2.5 rounded uppercase">Save Geotagged Photo</button>
+                                <button type="button" onclick="window.closeLiveCameraInterface()" class="w-full bg-gray-800 hover:bg-gray-750 text-gray-300 font-bold py-2 rounded uppercase border border-borderGray transition-all">❌ Cancel / Close</button>
+                            </form>
+                        </div>
+                    </div>
+                `;
+            }
+
+            else if (currentTab === "materials") { container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📦 Inventory Hub (Godown)</h3><table class="w-full text-left bg-panelBg border border-borderGray rounded-xl"><tr class="bg-darkBg border-b border-borderGray text-gray-400 font-bold uppercase"><th class="p-2">Godown</th><th>Material</th><th class="text-right pr-4">Stock</th></tr>${dbStockBook.map(s=>`<tr><td class="p-2 text-gray-400">${s.godown_name}</td><td class="p-2 text-white font-bold">${s.item}</td><td class="p-2 text-right text-blue-400 font-bold font-mono pr-4">${s.qty} ${s.unit}</td></tr>`).join('')}</table></div>`; }
+            else if (currentTab === "machinery") { container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">⚙️ Machinery Assets Fleet</h3></div>`; }
+            else if (currentTab === "material-inward") { container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📥 Material Inward Registry</h3></div>`; }
+            else if (currentTab === "petty-cash") { container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">💸 Daily Petty Cash Tracker</h3></div>`; }
+            else if (currentTab === "financial") { container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">💰 Financial Ledger Matrix</h3></div>`; }
+            else if (currentTab === "attendance") { container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">✅ Daily Attendance Logs</h3></div>`; }
+            else if (currentTab === "staff-mgmt") { container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">👥 Staff Management Accounts</h3></div>`; }
             else if (currentTab === "geo-viewer") { container.innerHTML = `<div id="vantage-live-map" class="w-full h-[450px]"></div>`; setTimeout(renderLeafletMapLayer, 100); }
+            else if (currentTab === "staff-tracking") { container.innerHTML = `<div id="vantage-staff-map" class="w-full h-[450px]"></div>`; setTimeout(renderLeafletRadarLayer, 100); }
         }
 
-        // --- 6. 🚫 STRCT BLOCK & TERMINATE REST FLOW MUTATIONS ---
-        window.toggleStaffBlockState = async function(id, currentStatus) {
-            const nextStatus = (currentStatus === 'Blocked') ? 'Active' : 'Blocked';
-            if (confirm(`Kya aap is employee ko corporate login panel par ${nextStatus} karna chahte hain?`)) {
-                const response = await fetch(`${SUPABASE_REST_URL}/staff?id=eq.${id}`, { 
-                    method: "PATCH", 
-                    headers: cloudHeaders, 
-                    body: JSON.stringify({ account_status: nextStatus }) 
-                });
-                
-                if (response.ok) {
-                    alert(`👍 Success: Profile status changed to ${nextStatus}!`);
-                    initializeSecurityGatekeeper(); // Instant row refresh
-                }
+        // --- 6. DYNAMIC CONDITIONAL TOGGLES & SUBMIT HANDLERS ---
+        window.toggleTenderConditionalFields = function(statusValue) {
+            const block = document.getElementById('allotted-conditional-block');
+            if (!block) return;
+            if (statusValue === 'Allotted') { block.classList.remove('hidden'); } 
+            else { block.classList.add('hidden'); }
+        };
+
+        window.executeTenderSubmit = async function(e) {
+            e.preventDefault();
+            const payload = [{
+                title: document.getElementById('t-title').value.trim(),
+                status: document.getElementById('t-status').value,
+                value: Number(document.getElementById('t-cost').value || 0),
+                work_order_no: document.getElementById('t-wono').value.trim() || "",
+                commencement_date: document.getElementById('t-dcomm').value || "",
+                completion_date: document.getElementById('t-dcomp').value || "",
+                actual_completion_date: document.getElementById('t-dact').value || "",
+                refund_date: document.getElementById('t-drefund').value || ""
+            }];
+            const response = await fetch(`${SUPABASE_REST_URL}/tenders`, { method: "POST", headers: cloudHeaders, body: JSON.stringify(payload) });
+            if (response.ok) { alert("🎉 Work Order Parameters Logged Successfully!"); window.closeModal('t-reg-modal'); initializeSecurityGatekeeper(); }
+        };
+
+        // --- 7. HARDWARE STREAM CONTROL LAYER (FIXED TRACK TEARDOWN) ---
+        window.startLiveCameraInterface = async function() {
+            lockedLatitude = null; lockedLongitude = null; capturedImageBase64 = null; 
+            window.openModal('cam-mod');
+            const videoElement = document.getElementById('webcam-preview'); 
+            try {
+                cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
+                if (videoElement) videoElement.srcObject = cameraStream;
+            } catch (err) {
+                try {
+                    cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                    if (videoElement) videoElement.srcObject = cameraStream;
+                } catch (e) { console.warn("Camera fallback initiated."); }
             }
         };
 
-        window.submitProvisionStaff = async function(e) { 
-            e.preventDefault(); 
-            const payload = { 
-                name: document.getElementById('st-name').value.trim(), 
-                role: document.getElementById('st-role').value, 
-                pass: document.getElementById('st-pass').value.trim(), 
-                account_status: "Active",
-                base_salary: 25000 
-            }; 
-            const response = await fetch(`${SUPABASE_REST_URL}/staff`, { method: "POST", headers: cloudHeaders, body: JSON.stringify([payload]) }); 
-            if (response.ok) {
-                window.closeModal('staff-modal'); 
-                initializeSecurityGatekeeper(); 
-            }
-        };
-
-        window.deleteRowCloud = async function(table, id) { 
-            if(confirm("⚠️ Critical: Kya aap is record profile ko permanently terminate (Delete) karna chahte hain?")) { 
-                const response = await fetch(`${SUPABASE_REST_URL}/${table}?id=eq.${id}`, { method: "DELETE", headers: cloudHeaders }); 
-                if(response.ok) { alert("Terminated successfully."); initializeSecurityGatekeeper(); } 
+        // SOLIDrest isolation framework: Clean track cleanup preventing global script termination
+        window.closeLiveCameraInterface = function() { 
+            if (cameraStream) { 
+                try {
+                    const tracks = cameraStream.getTracks();
+                    if (tracks && tracks.length > 0) {
+                        for (let i = 0; i < tracks.length; i++) {
+                            if (tracks[i]) tracks[i].stop(); // Exact isolated stop method
+                        }
+                    }
+                } catch(e) { console.error("Stream clear bypass."); }
+                cameraStream = null;
             } 
+            window.closeModal('cam-mod'); 
         };
 
-        // --- 7. EXTERNAL SYSTEM ATTACHMENTS ---
-        window.closeLiveCameraInterface = function() { if (cameraStream) { try { cameraStream.getTracks().forEach(t => { if(t) t.stop(); }); } catch(e){} cameraStream = null; } };
+        window.captureSnapshotAndGPS = function() {
+            const video = document.getElementById('webcam-preview'); const canvas = document.getElementById('hidden-photo-canvas');
+            const imgPreview = document.getElementById('snapped-photo-preview'); const statusBadge = document.getElementById('gps-lock-badge');
+            const submitBtn = document.getElementById('submit-vault-btn'); if (!video || !canvas) return;
+
+            canvas.width = video.videoWidth || 640; canvas.height = video.videoHeight || 480;
+            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+            capturedImageBase64 = canvas.toDataURL('image/jpeg', 0.85); 
+            if (imgPreview) { imgPreview.src = capturedImageBase64; imgPreview.classList.remove('hidden'); }
+            if (statusBadge) { statusBadge.innerHTML = "📡 Interrogating Satellite Grid Vectors..."; statusBadge.classList.remove('hidden'); }
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    lockedLatitude = position.coords.latitude; lockedLongitude = position.coords.longitude;
+                    if (statusBadge) statusBadge.innerHTML = `Locked: ${lockedLatitude.toFixed(6)}, ${lockedLongitude.toFixed(6)}`;
+                    if (submitBtn) { submitBtn.disabled = false; submitBtn.className = "w-full bg-blue-600 text-white font-bold py-2.5 rounded shadow-md"; }
+                }, () => {
+                    lockedLatitude = 24.5854; lockedLongitude = 73.7125;
+                    if (statusBadge) statusBadge.innerHTML = `Locked Office: 24.5854, 73.7125`;
+                    if (submitBtn) { submitBtn.disabled = false; submitBtn.className = "w-full bg-blue-600 text-white font-bold py-2.5 rounded shadow-md"; }
+                });
+            }
+        };
+
+        window.executePhotoVaultSubmit = async function(e) {
+            e.preventDefault();
+            const payload = { project_name: document.getElementById('cam-proj').value, timestamp: new Date().toISOString().replace('T',' ').split('.')[0], lat: lockedLatitude || 24.5854, lng: lockedLongitude || 73.7125, image_data: capturedImageBase64 };
+            const response = await fetch(`${SUPABASE_REST_URL}/site_photos`, { method: "POST", headers: cloudHeaders, body: JSON.stringify(payload) });
+            if(response.ok) { alert("📸 Geotagged Photo saved!"); window.closeLiveCameraInterface(); initializeSecurityGatekeeper(); }
+        };
+
+        // --- 8. BASELINE EXTENSIONS ---
+        window.deleteRowCloud = async function(table, id) { if(confirm("Are you sure?")) { const response = await fetch(`${SUPABASE_REST_URL}/${table}?id=eq.${id}`, { method: "DELETE", headers: cloudHeaders }); if(response.ok) { alert("Purged successfully."); initializeSecurityGatekeeper(); } } };
         function renderLeafletMapLayer() { let m = document.getElementById('vantage-live-map'); if (!m) return; let mo = L.map('vantage-live-map').setView([24.5854, 73.7125], 9); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mo); dbProjects.forEach(p => { if (p.lat) L.marker([p.lat, p.lng]).addTo(mo); }); }
+        function renderLeafletRadarLayer() { let r = document.getElementById('vantage-staff-map'); if (!r) return; let ro = L.map('vantage-staff-map').setView([24.5854, 73.7125], 9); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(ro); dbStaff.forEach(s => { if (s.lat) L.marker([s.lat, s.lng]).addTo(ro); }); }
+
+        // --- 9. EXCEL ENGINE ---
+        window.buildExcelRowsMatrixHTML = function() {
+            const body = document.getElementById('excel-rows-body'); if(!body) return;
+            body.innerHTML = activeExcelRows.map((row, index) => {
+                let len = 0; const cFrom = parseChainage(row.chainageFrom); const cTo = parseChainage(row.chainageTo);
+                if (!isNaN(cFrom) && !isNaN(cTo)) { len = Math.abs(cTo - cFrom); }
+                let avgW = Number(row.width || 0); if (index > 0) { avgW = (Number(row.width || 0) + Number(activeExcelRows[index - 1].width || 0)) / 2; }
+                return `<tr class="hover:bg-panelBg/40 text-center"><td class="p-2 border-r border-borderGray text-gray-400 font-bold">${index+1}</td><td class="p-0 border-r border-borderGray"><input type="text" oninput="window.updateExcelCell(${index},'chainageFrom',this.value)" value="${row.chainageFrom}" class="w-full bg-transparent text-center focus:outline-none"></td><td class="p-0 border-r border-borderGray"><input type="text" oninput="window.updateExcelCell(${index},'chainageTo',this.value)" value="${row.chainageTo}" class="w-full bg-transparent text-center focus:outline-none"></td><td class="p-2 border-r border-borderGray font-bold text-gray-400">${len} m</td><td class="p-0 border-r border-borderGray"><input type="number" oninput="window.updateExcelCell(${index},'width',this.value)" value="${row.width}" class="w-full bg-transparent text-center font-bold focus:outline-none"></td><td class="p-2 border-r border-borderGray text-orange-400 font-bold">${avgW.toFixed(3)} m</td><td class="p-0 border-r border-borderGray"><input type="number" oninput="window.updateExcelCell(${index},'thickness',this.value)" value="${row.thickness}" placeholder="[m]" class="w-full bg-transparent text-center focus:outline-none text-emerald-400 font-bold"></td><td class="p-2 text-right text-blue-400 font-bold pr-4">${row.thickness ? `${(len * avgW * Number(row.thickness)).toFixed(3)} m³` : `${(len * avgW).toFixed(2)} m²`}</td><td class="p-1"><button type="button" onclick="activeExcelRows.splice(${index},1); window.buildExcelRowsMatrixHTML();" class="bg-red-950/40 text-red-400 border border-red-900/30 px-2 py-0.5 rounded font-sans text-[10px] font-bold">Purge</button></td></tr>`;
+            }).join('');
+        };
+        window.updateExcelCell = function(idx, field, val) { activeExcelRows[idx][field] = val; window.buildExcelRowsMatrixHTML(); };
+        window.addExcelRow = function() { const last = activeExcelRows[activeExcelRows.length - 1]; activeExcelRows.push({ chainageFrom: last?last.chainageTo:'0/000', chainageTo: '', width: 7.5, thickness: '', formula: 'Multiply' }); window.buildExcelRowsMatrixHTML(); };
+        function parseChainage(str) { if(!str) return NaN; const c = str.replace('/','.'); const p = c.split('.'); return p.length===2 ? (Number(p[0])*1000)+Number(p[1]) : Number(str); }
 
         initializeSecurityGatekeeper();
     </script>
