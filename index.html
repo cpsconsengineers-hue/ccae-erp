@@ -31,7 +31,7 @@
         <div class="min-h-screen flex items-center justify-center bg-darkBg">
             <div class="text-center">
                 <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p class="text-gray-400 font-mono tracking-widest uppercase text-[10px]">ENFORCING CRYPTOGRAPHIC PRODUCTION MAPPING...</p>
+                <p class="text-gray-400 font-mono tracking-widest uppercase text-[10px]">UNFREEZING ALL PLATFORM NAVIGATION ROUTERS...</p>
             </div>
         </div>
     </div>
@@ -53,18 +53,27 @@
         let dbMeasurements = []; let dbFinancials = []; let dbMachinery = []; let dbTenders = [];
         let dbPhotos = [];
 
-        let currentTab = "lifecycle"; // Default view mapped to current user selection node snapshot
+        let currentTab = "lifecycle"; // Persist default view node on load
         let currentUser = JSON.parse(sessionStorage.getItem('vantage_active_session')) || null;
         let activeExcelRows = [{ chainageFrom: '0/000', chainageTo: '0/025', width: 7.5, thickness: '', formula: 'Multiply', yieldResult: 187.5 }];
         let activeMapObj = null;
 
-        // Temporary storage variables for coordinate locking mechanisms
+        // Camera stream and lock variables
         let cameraStream = null;
         let lockedLatitude = null;
         let lockedLongitude = null;
         let capturedImageBase64 = null;
 
-        // --- 2. REST NETWORK HARVESTER CONSOLE ---
+        // --- 2. GLOBAL EVENT ROUTERS (FIXED STACK PLACEMENT) ---
+        function switchTab(t) { 
+            currentTab = t; 
+            renderERP(); 
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        // --- 3. REST NETWORK HARVESTER CONSOLE ---
         async function fetchNativeTable(endpoint, fallbackMockData) {
             try {
                 const response = await fetch(`${SUPABASE_REST_URL}/${endpoint}?select=*`, { method: "GET", headers: cloudHeaders });
@@ -93,11 +102,11 @@
                 dbPhotos = await fetchNativeTable('site_photos', [
                     { id: "ph1", project_name: "Udaipur City Flyover Survey", timestamp: "2026-06-13 14:30", lat: 24.5854, lng: 73.7125, image_data: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400" }
                 ]);
-            } catch (e) { console.error("Sync loop bypass initiated."); }
+            } catch (e) { console.error("Sync stack exception bypassed."); }
             renderERP();
         }
 
-        // --- 3. HARDWARE CONTROL CORE INTERFACE ROUTER ---
+        // --- 4. HARDWARE SIDEBAR & MASTER MENU GRID ---
         function renderERP() {
             const root = document.getElementById('app-root');
             
@@ -180,7 +189,9 @@
             renderTabContent();
         }
 
-        // --- 4. UNFROZEN CONTROL CENTERS CORES VIEWER ---
+        function logoutSession() { currentUser = null; sessionStorage.removeItem('vantage_active_session'); location.reload(); }
+
+        // --- 5. UNFROZEN COMPONENT CONTROLLERS SYSTEM ---
         function renderTabContent() {
             const container = document.getElementById('tab-content-window');
             if(!container) return;
@@ -197,10 +208,11 @@
                         <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">M-Book Records</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbMeasurements.length} Rows</h3></div>
                         <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Workforce Base</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbStaff.length} Accounts</h3></div>
                     </div>
+                    <div class="bg-panelBg border border-borderGray rounded-xl p-8 text-center text-emerald-400 font-mono font-bold uppercase tracking-wider">⚡ CPS MASTER CORE UNFROZEN. NAVIGATION LINKS RESTORED CHANNELS.</div>
                 `;
             }
 
-            // 🔥 SCREENSHOT ONE RESTORED: DUAL MODIFY & PURGE ACTIONS ENABLED SIMULTANEOUSLY
+            // PROJECTS REGISTRY VIEW (UNFROZEN WORKFLOW WITH BOTH BUTTONS MOUNTED)
             else if (currentTab === "lifecycle") {
                 container.innerHTML = `
                     <div class="space-y-4">
@@ -228,14 +240,14 @@
                     </div>
                     <div id="p-mod" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
                         <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-6 space-y-4 shadow-2xl">
-                            <h4 class="font-bold text-white text-xs uppercase border-b border-borderGray pb-2">PROVISION NEW SITE NODE</h4>
+                            <h4 class="font-bold text-white text-xs uppercase tracking-widest border-b border-borderGray pb-2">PROVISION NEW SITE NODE</h4>
                             <form id="p-form" class="space-y-3" onsubmit="executeProjectSubmit(event)">
                                 <input type="text" id="p-name" placeholder="Project Site Name" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white focus:outline-none">
                                 <input type="text" id="p-client" placeholder="Client Label" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white focus:outline-none">
                                 <input type="text" id="p-loc" placeholder="Physical Address" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white focus:outline-none">
                                 <div class="grid grid-cols-2 gap-2">
-                                    <input type="number" step="any" id="p-lat" placeholder="Latitude (GPS)" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white font-mono">
-                                    <input type="number" step="any" id="p-lng" placeholder="Longitude (GPS)" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white font-mono">
+                                    <input type="number" step="any" id="p-lat" placeholder="Latitude (GPS)" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white font-mono focus:outline-none">
+                                    <input type="number" step="any" id="p-lng" placeholder="Longitude (GPS)" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white font-mono focus:outline-none">
                                 </div>
                                 <input type="number" id="p-val" placeholder="Contract Amount Sum (₹)" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white font-mono">
                                 <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2.5 rounded uppercase">Save Parameters</button>
@@ -245,7 +257,7 @@
                     </div>
                     <div id="p-edit-mod" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
                         <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-6 space-y-4 shadow-2xl">
-                            <h4 class="font-bold text-blue-400 text-xs uppercase border-b border-borderGray pb-2">MODIFY SITE PARAMETERS</h4>
+                            <h4 class="font-bold text-blue-400 text-xs uppercase tracking-widest border-b border-borderGray pb-2">MODIFY SITE PARAMETERS</h4>
                             <form id="p-edit-form" class="space-y-3" onsubmit="executeProjectModifySubmit(event)">
                                 <input type="hidden" id="edit-p-id">
                                 <input type="text" id="edit-p-name" placeholder="Project Site Name" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white">
@@ -264,12 +276,12 @@
                 `;
             }
 
-            // WEBCAM LIVE NATIVE HUD (NO FILE CHOOSE BUTTON BYPASS ACTIVE)
+            // WEBCAM STREAM CONTROLLER DASHBOARD NODE
             else if (currentTab === "site-photos") {
                 container.innerHTML = `
                     <div class="space-y-4">
                         <div class="flex justify-between items-center border-b border-borderGray pb-2">
-                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">📷 SITE PHOTO UPDATES VAULT</h3>
+                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">📷 SITE PHOTO UPDATES MODULE</h3>
                             <button onclick="startLiveCameraInterface()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-1.5 rounded transition-colors shadow-md">📷 Click GPS Photo</button>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="photo-gallery-grid">
@@ -333,7 +345,7 @@
                 container.innerHTML = `
                     <div class="space-y-4">
                         <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">⚙️ Machinery Assets Fleet</h3></div>
-                        <table class="w-full text-left bg-panelBg border border-borderGray rounded-xl"><tr class="bg-darkBg text-gray-400 border-b border-borderGray font-bold uppercase"><th class="p-2">Machine</th><th>Location</th><th>Status</th></tr>${dbMachinery.map(m=>`<tr><td class="p-2 text-white font-bold">${m.name}</td><td class="p-2 text-gray-400">${m.location}</td><td class="p-2 text-emerald-400 font-bold">${m.status}</td></tr>`).join('')}</table>
+                        <table class="w-full text-left bg-panelBg border border-borderGray rounded-xl"><tr class="bg-darkBg text-gray-400 border-b border-borderGray font-bold uppercase"><th class="p-2">Machine</th><th>Location</th><th>Status</th></tr>${dbMachinery.map(m=>`<tr><td class="p-2 text-white font-bold">${m.name || 'JCB 3DX'}</td><td class="p-2 text-gray-400">${m.location || 'Site Base'}</td><td class="p-2 text-emerald-400 font-bold">${m.status || 'Active'}</td></tr>`).join('')}</table>
                     </div>
                 `;
             }
@@ -341,7 +353,7 @@
             else if (currentTab === "tenders") {
                 container.innerHTML = `
                     <div class="space-y-4">
-                        <h3 class="text-sm font-bold text-white uppercase tracking-wider">💼 Tenders Matrix Nodes</h3>
+                        <h3 class="text-sm font-bold text-white uppercase tracking-wider">📄 Tenders Matrix Nodes</h3>
                         <div class="bg-panelBg border border-borderGray rounded-xl p-4">
                             <table class="w-full text-left"><tr class="text-gray-400 border-b border-borderGray pb-2"><th>Tender Title</th><th>Status</th><th>Value</th></tr>
                                 ${dbTenders.map(t=>`<tr><td class="py-2 text-white font-bold">${t.title}</td><td class="text-amber-400">${t.status}</td><td class="font-mono text-blue-400">₹${t.value.toLocaleString()}</td></tr>`).join('')}
@@ -352,10 +364,10 @@
             }
 
             else if (currentTab === "material-inward") {
-                container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📝 Material Inward Challan Registry</h3><div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 font-mono">Challan tracking pipeline active.</p></div></div>`;
+                container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📥 Material Inward Challan Registry</h3><div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 font-mono">Challan tracking loop active on cluster.</p></div></div>`;
             }
             else if (currentTab === "petty-cash") {
-                container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">💸 Daily Petty Cash Tracker</h3><div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 font-mono">Minor cash inflow / expense heads ledger mapped.</p></div></div>`;
+                container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">💸 Daily Petty Cash Tracker Ledger</h3><div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 font-mono">Petty expense streams synchronize inside central hub.</p></div></div>`;
             }
             else if (currentTab === "geo-viewer") {
                 container.innerHTML = `<div id="vantage-live-map" class="w-full h-[450px] bg-darkBg border border-borderGray rounded-xl z-10"></div>`;
@@ -365,12 +377,9 @@
                 container.innerHTML = `<div id="vantage-staff-map" class="w-full h-[450px] bg-darkBg border border-borderGray rounded-xl z-10"></div>`;
                 setTimeout(renderLeafletRadarLayer, 100);
             }
-            else {
-                container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-6 text-center text-gray-500 font-mono uppercase">[ MODULE SECURELY LINKED: ${currentTab.toUpperCase()} ]</div>`;
-            }
         }
 
-        // --- 5. NATIVE WEBCAM RUNTIME DRIVERS ---
+        // --- 6. NATIVE WEBCAM RUNTIME DRIVERS ---
         async function startLiveCameraInterface() {
             lockedLatitude = null; lockedLongitude = null; capturedImageBase64 = null; openModal('cam-mod');
             const videoElement = document.getElementById('webcam-preview'); const snappedPreview = document.getElementById('snapped-photo-preview');
@@ -420,17 +429,15 @@
             if(response.ok) { alert("📸 Success: Live photo with GPS saved!"); closeLiveCameraInterface(); initializeSecurityGatekeeper(); }
         }
 
-        // --- 6. LEAFLET PACK IMPLEMENTATIONS ---
+        // --- 7. STRUCTURAL GEOSPATIAL MAP DRIVERS ---
         function renderLeafletMapLayer() { let m = document.getElementById('vantage-live-map'); if (!m) return; let mo = L.map('vantage-live-map').setView([24.5854, 73.7125], 9); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mo); dbProjects.forEach(p => { if (p.lat) L.marker([p.lat, p.lng]).addTo(mo); }); }
         function renderLeafletRadarLayer() { let r = document.getElementById('vantage-staff-map'); if (!r) return; let ro = L.map('vantage-staff-map').setView([24.5854, 73.7125], 9); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(ro); dbStaff.forEach(s => { if (s.lat) L.marker([s.lat, s.lng]).addTo(ro); }); }
         async function executeProjectSubmit(e) { e.preventDefault(); const payload = [{ name: document.getElementById('p-name').value, client: document.getElementById('p-client').value, location: document.getElementById('p-loc').value, lat: Number(document.getElementById('p-lat').value), lng: Number(document.getElementById('p-lng').value), contract_value: Number(document.getElementById('p-val').value) }]; await fetch(`${SUPABASE_REST_URL}/projects`, { method: "POST", headers: cloudHeaders, body: JSON.stringify(payload) }); closeModal('p-mod'); initializeSecurityGatekeeper(); }
         function triggerProjectEdit(id, name, client, loc, val, lat, lng) { document.getElementById('edit-p-id').value = id; document.getElementById('edit-p-name').value = name; document.getElementById('edit-p-client').value = client; document.getElementById('edit-p-loc').value = loc; document.getElementById('edit-p-val').value = val; document.getElementById('edit-p-lat').value = lat; document.getElementById('edit-p-lng').value = lng; openModal('p-edit-mod'); }
-        async function executeProjectModifySubmit(e) { e.preventDefault(); const id = document.getElementById('edit-p-id').value; const payload = { name: document.getElementById('edit-p-name').value, client: document.getElementById('edit-p-client').value, location: document.getElementById('edit-p-loc').value, lat: Number(document.getElementById('edit-p-lat').value), lng: Number(document.getElementById('edit-p-lng').value), contract_value: Number(document.getElementById('edit-p-val').value) }; await fetch(`${SUPABASE_REST_URL}/projects?id=eq.${id}`, { method: "PATCH", headers: cloudHeaders, body: JSON.stringify(payload) }); closeModal('p-edit-mod'); alert("Project updated successfully!"); initializeSecurityGatekeeper(); }
+        async function executeProjectModifySubmit(e) { e.preventDefault(); const id = document.getElementById('edit-p-id').value; const payload = { name: document.getElementById('edit-p-name').value, client: document.getElementById('edit-p-client').value, location: document.getElementById('edit-p-loc').value, lat: Number(document.getElementById('edit-p-lat').value), lng: Number(document.getElementById('edit-p-lng').value), contract_value: Number(document.getElementById('edit-p-val').value) }; await fetch(`${SUPABASE_REST_URL}/projects?id=eq.${id}`, { method: "PATCH", headers: cloudHeaders, body: JSON.stringify(payload) }); closeModal('p-edit-mod'); alert("Project fields updated successfully!"); initializeSecurityGatekeeper(); }
         async function deleteRowCloud(table, id) { if(confirm("Are you sure you want to delete?")) { const response = await fetch(`${SUPABASE_REST_URL}/${table}?id=eq.${id}`, { method: "DELETE", headers: cloudHeaders }); if(response.ok) { alert("Data lines purged."); initializeSecurityGatekeeper(); } } }
-        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-        // --- 7. EXCEL MULTI-ROW MATRIX SHEET ENGINE ---
+        // --- 8. EXCEL MULTI-ROW MATRIX SHEET ENGINE ---
         function buildExcelRowsMatrixHTML() {
             const body = document.getElementById('excel-rows-body'); if(!body) return;
             body.innerHTML = activeExcelRows.map((row, index) => {
