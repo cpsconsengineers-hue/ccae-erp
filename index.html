@@ -5,19 +5,22 @@
     <title>CPS ERP | OPERATIONAL CENTER</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-950 text-gray-200 flex h-screen">
+<body class="bg-gray-950 text-gray-200 flex h-screen font-sans">
 
-    <aside class="w-64 bg-gray-900 border-r border-gray-800 p-4">
-        <h1 class="text-blue-500 font-bold mb-6">CPS COMMAND CENTER</h1>
-        <div id="nav-menu" class="space-y-4"></div>
+    <aside class="w-64 bg-gray-900 border-r border-gray-800 p-4 flex flex-col">
+        <h1 class="text-blue-500 font-bold mb-6 text-lg">CPS COMMAND CENTER</h1>
+        <div id="nav-menu" class="space-y-2 flex-grow overflow-y-auto"></div>
+        <div class="mt-4 pt-4 border-t border-gray-800 text-[10px] text-gray-500">
+            SYSTEM STATUS: <span class="text-green-500 font-bold">HEALTHY</span>
+        </div>
     </aside>
 
     <main class="flex-1 p-8 overflow-y-auto">
-        <h2 class="text-xl font-bold mb-6 text-emerald-400">OPERATIONAL MODULES (Access: All)</h2>
-        <div id="op-widgets" class="grid grid-cols-3 gap-4 mb-10"></div>
+        <h2 class="text-sm uppercase text-emerald-500 mb-4 tracking-widest">Operational Modules</h2>
+        <div id="op-widgets" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10"></div>
         
-        <h2 id="admin-title" class="text-xl font-bold mb-6 text-red-400">RESTRICTED MODULES (Access: Admin/Accountant Only)</h2>
-        <div id="admin-widgets" class="grid grid-cols-3 gap-4"></div>
+        <h2 id="admin-title" class="text-sm uppercase text-red-500 mb-4 tracking-widest">Restricted Modules (Admin Only)</h2>
+        <div id="admin-widgets" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
     </main>
 
     <script>
@@ -33,15 +36,21 @@
         ];
 
         function initApp() {
-            const userRole = 'Admin'; // यहाँ से रोल हैंडल करें
+            const userRole = 'Admin'; // यहाँ से रोल कंट्रोल करें
             const opContainer = document.getElementById('op-widgets');
             const adminContainer = document.getElementById('admin-widgets');
-            const adminTitle = document.getElementById('admin-title');
+            const navMenu = document.getElementById('nav-menu');
 
             modules.forEach(m => {
-                const html = `<div class="bg-gray-900 p-6 rounded border border-gray-700 hover:border-blue-500 cursor-pointer" onclick="openModule('${m.name}')">
-                    <h3 class="font-bold">${m.name}</h3>
-                    <p class="text-[10px] text-gray-500">OPERATIONAL</p>
+                // 1. Sidebar Render
+                if(m.type === 'op' || userRole === 'Admin') {
+                    navMenu.innerHTML += `<button class="w-full text-left p-2 text-sm hover:bg-gray-800 rounded transition">${m.name}</button>`;
+                }
+
+                // 2. Dashboard Widgets Render
+                const html = `<div class="bg-gray-900 p-4 border border-gray-800 rounded hover:border-blue-500 transition shadow-md">
+                    <h3 class="font-bold text-sm">${m.name}</h3>
+                    <p class="text-[9px] text-green-500 font-bold uppercase mt-1">Operational</p>
                 </div>`;
                 
                 if(m.type === 'op') {
@@ -51,17 +60,11 @@
                 }
             });
 
-            // Staff ke liye Restricted section hide karein
             if(userRole !== 'Admin') {
-                adminContainer.style.display = 'none';
-                adminTitle.style.display = 'none';
+                document.getElementById('admin-widgets').classList.add('hidden');
+                document.getElementById('admin-title').classList.add('hidden');
             }
         }
-
-        function openModule(name) {
-            alert(name + " module is now operational. Redirecting to workspace...");
-        }
-
         initApp();
     </script>
 </body>
