@@ -2,60 +2,94 @@
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
-    <title>CPS Vantage - Final Core</title>
+    <title>CPS VANTAGE - COMMAND CENTER</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .nav-active { background: #2563eb !important; color: white !important; }
+        .nav-btn { width: 100%; text-align: left; padding: 12px; border-radius: 8px; color: #9ca3af; transition: all 0.3s; }
+        .nav-btn:hover { background: #1f2937; color: white; }
+        .nav-active { background: #2563eb !important; color: white !important; font-weight: bold; }
+        .module-card { background: #111827; border: 1px solid #1f2937; padding: 20px; border-radius: 12px; }
     </style>
 </head>
 <body class="bg-[#0b0f19] text-gray-200 text-xs">
-    <div id="app-root" class="flex">
-        <aside class="w-64 bg-[#111827] h-screen border-r border-[#1f2937] p-4 fixed">
-            <h1 class="font-bold text-white mb-6">CPS CONSULTANTS</h1>
+    <div id="app" class="flex min-h-screen">
+        <aside class="w-64 bg-[#111827] border-r border-[#1f2937] p-4 fixed h-screen overflow-y-auto">
+            <h1 class="text-white font-bold mb-6 text-sm">CPS CONSULTANTS VANTAGE</h1>
             <nav id="nav-container" class="space-y-1"></nav>
         </aside>
-        <main class="ml-64 p-8 w-full" id="content-area">
-            <h2 id="view-title" class="text-xl font-bold mb-4">DASHBOARD</h2>
-            <div id="view-content">Select a module...</div>
-        </main>
+        <main class="ml-64 p-8 w-full" id="content-area"></main>
     </div>
 
     <script>
-        const modules = [
-            { id: 'inventory', label: '📦 Inventory Hub' },
-            { id: 'inward', label: '📥 Material Inward' },
-            { id: 'machinery', label: '⚙️ Machinery Fleet' },
-            { id: 'attendance', label: '✅ Daily Attendance' },
-            { id: 'ledger', label: '💰 Financial Ledger' },
-            { id: 'petty-cash', label: '💸 Petty Cash' },
-            { id: 'staff', label: '👥 Staff Management' }
-        ];
-
-        // Global Router (Freeze-Proof)
-        window.loadModule = (id) => {
-            document.getElementById('view-title').innerText = id.toUpperCase();
-            const content = document.getElementById('view-content');
-            
-            // Buttons ko wapas active karne ke liye listeners
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('nav-active'));
-            event.target.classList.add('nav-active');
-
-            // Module Switcher
-            switch(id) {
-                case 'inventory': content.innerHTML = `<div class="p-4 bg-gray-900 rounded">Inventory Entry Logic Here...</div>`; break;
-                case 'machinery': content.innerHTML = `<div class="p-4 bg-gray-900 rounded">Machinery Fleet Logic Here...</div>`; break;
-                case 'attendance': content.innerHTML = `<div class="p-4 bg-gray-900 rounded">Attendance Geo-Lock Logic Here...</div>`; break;
-                case 'ledger': content.innerHTML = `<div class="p-4 bg-gray-900 rounded">Financial Ledger Logic Here...</div>`; break;
-                case 'staff': content.innerHTML = `<div class="p-4 bg-gray-900 rounded">Staff Management Logic Here...</div>`; break;
-                default: content.innerHTML = "Module Active";
-            }
+        const state = {
+            currentTab: 'dashboard',
+            user: JSON.parse(sessionStorage.getItem('vantage_user')) || { name: 'Staff', role: 'Staff' }
         };
 
-        // Render Sidebar
-        const nav = document.getElementById('nav-container');
-        nav.innerHTML = modules.map(m => 
-            `<button onclick="loadModule('${m.id}')" class="nav-btn w-full text-left p-2 rounded hover:bg-gray-800">${m.label}</button>`
-        ).join('');
+        const tabs = [
+            { id: 'dashboard', label: '📊 Dashboard' },
+            { id: 'attendance', label: '✅ Attendance (GPS/Selfie)' },
+            { id: 'machinery', label: '⚙️ Machinery & Fuel' },
+            { id: 'petty-cash', label: '💸 Petty Cash Tracker' },
+            { id: 'lifecycle', label: '🏢 Lifecycle Projects', adminOnly: true },
+            { id: 'billing', label: '🧾 Billing & Invoices', adminOnly: true },
+            { id: 'staff-mgmt', label: '👥 Staff Management', adminOnly: true },
+            { id: 'financial', label: '💰 Financial Ledger', adminOnly: true }
+        ];
+
+        function renderNav() {
+            const nav = document.getElementById('nav-container');
+            nav.innerHTML = tabs.map(t => {
+                if (t.adminOnly && state.user.role !== 'Master Admin') return '';
+                return `<button onclick="window.loadModule('${t.id}')" class="nav-btn ${state.currentTab === t.id ? 'nav-active' : ''}">${t.label}</button>`;
+            }).join('');
+        }
+
+        window.loadModule = (id) => {
+            state.currentTab = id;
+            const content = document.getElementById('content-area');
+            content.innerHTML = `<h2 class="text-2xl font-bold mb-6 text-white">${id.replace(/-/g, ' ').toUpperCase()}</h2><div id="view"></div>`;
+            renderNav();
+            
+            // Module Logic Router
+            if(id === 'attendance') renderAttendance();
+            if(id === 'machinery') renderMachinery();
+            if(id === 'petty-cash') renderPettyCash();
+        };
+
+        function renderAttendance() {
+            document.getElementById('view').innerHTML = `
+                <div class="module-card">
+                    <p class="mb-4">Punch In: GPS Radius Validation (500m)</p>
+                    <button onclick="alert('GPS Locked: 24.5854, 73.7125')" class="bg-blue-600 px-4 py-2 rounded">Take Selfie & Punch In</button>
+                    <p class="mt-4 text-[10px] text-gray-500">Note: Agar radius ke bahar huye toh system 'Site Location Un-identified' show karega.</p>
+                </div>
+            `;
+        }
+
+        function renderMachinery() {
+            document.getElementById('view').innerHTML = `
+                <div class="module-card space-y-4">
+                    <input class="w-full bg-black p-2 rounded" placeholder="Machinery Name">
+                    <input class="w-full bg-black p-2 rounded" placeholder="Hours/Trips">
+                    <input class="w-full bg-black p-2 rounded" placeholder="Fuel Bill Upload">
+                    <button class="bg-green-700 px-4 py-2 rounded">Calculate Net Payable</button>
+                </div>
+            `;
+        }
+
+        function renderPettyCash() {
+            document.getElementById('view').innerHTML = `
+                <div class="module-card">
+                    <p>Site Supervisor Expenses Entry</p>
+                    <input class="w-full bg-black p-2 my-2" placeholder="Amount">
+                    <button class="bg-yellow-700 px-4 py-2 rounded">Submit for Admin Verify</button>
+                </div>
+            `;
+        }
+
+        renderNav();
+        window.loadModule('dashboard');
     </script>
 </body>
 </html>
