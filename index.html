@@ -6,6 +6,7 @@
     <title>CPS Consultants & Engineers - Vantage Command Center</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- Leaflet.js Interactive Mapping Layer Assets -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -29,10 +30,11 @@
 <body class="bg-darkBg text-gray-100 font-sans antialiased text-xs">
 
     <div id="app-root" class="min-h-screen w-full relative z-10">
+        <!-- Secure Global Gate Loader -->
         <div class="min-h-screen flex items-center justify-center bg-darkBg">
             <div class="text-center">
                 <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p class="text-gray-400 font-mono tracking-widest uppercase text-[10px]">UPGRADING DOUBLE ENTRY BOOKKEEPING MATRIX v43...</p>
+                <p class="text-gray-400 font-mono tracking-widest uppercase text-[10px]">UPGRADING WORKFORCE MANAGEMENT BLOCKING SHIELD v44...</p>
             </div>
         </div>
     </div>
@@ -55,7 +57,7 @@
         let dbAttendance = []; let dbTelemetry = []; let dbPettyCash = [];
         let dbSubcontractors = []; let dbLedger = []; let dbInvoices = [];
 
-        let currentTab = "financial"; // Set temporary interface validation focus node directly onto Ledger Tab
+        let currentTab = "staff-mgmt"; // Set active validation view focus directly on Staff Logins screen node
         let currentUser = JSON.parse(sessionStorage.getItem('vantage_active_session')) || null;
         let activeExcelRows = [{ chainageFrom: '0/000', chainageTo: '0/025', width: 7.5, thickness: '' }];
         
@@ -94,13 +96,14 @@
 
         async function initializeSecurityGatekeeper() {
             try {
+                // Fetch staff accounts with live authentication blocked flags
                 dbStaff = await fetchNativeTable('staff', [
-                    { id: 's1', name: 'Manoj Singh', role: 'Master Admin', pass: 'CPS2026' },
-                    { id: 's2', name: 'Rahul Accountant', role: 'Accountant', pass: 'CPSAC' }
+                    { id: 's1', name: 'Manoj Singh', role: 'Master Admin', pass: 'CPS2026', account_status: 'Active' },
+                    { id: 's2', name: 'Rahul Accountant', role: 'Accountant', pass: 'CPSAC', account_status: 'Active' },
+                    { id: 's3', name: 'Vikram Supervisor', role: 'Site Supervisor', pass: 'CPSWORK', account_status: 'Active' }
                 ]);
                 dbProjects = await fetchNativeTable('projects', [
-                    { id: "1", name: "Udaipur City Flyover Survey", client: "Udaipur Authority", location: "Udaipur", contract_value: 4500000 },
-                    { id: "2", name: "Residential Complex Construction", client: "Geeta Sharma Ji", location: "Sarada, Salumber", contract_value: 7500000 }
+                    { id: "1", name: "Udaipur City Flyover Survey", client: "Udaipur Authority", location: "Udaipur", contract_value: 4500000 }
                 ]);
                 dbGodowns = await fetchNativeTable('godowns', [{ id: "g1", name: "Udaipur Central Godown" }]);
                 dbStockBook = await fetchNativeTable('stock_book', [{ id: "st1", godown_name: "Udaipur Central Godown", item: "53 Grade Cement", qty: 500, unit: "Bags" }]);
@@ -113,16 +116,12 @@
                 dbSubcontractors = await fetchNativeTable('subcontractors', []);
                 dbInvoices = await fetchNativeTable('billing_invoices', []);
                 dbMachinery = await fetchNativeTable('machinery', []);
-                
-                // Fetch financial ledger logs with project mapping contexts
-                dbLedger = await fetchNativeTable('financial_ledger', [
-                    { id: "l1", type: "Inward_Income", party_or_staff: "Udaipur Authority", amount: 1500000, payment_mode: "Bank RTGS / NEFT Transfer", date: "2026-06-01", project_context: "Udaipur City Flyover Survey" }
-                ]);
-            } catch (e) { console.error("Database stack setup loaded."); }
+                dbLedger = await fetchNativeTable('financial_ledger', []);
+            } catch (e) { console.error("Database matrices synced."); }
             renderERP();
         }
 
-        // --- 4. SYSTEM INTERFACE LAYOUTS ---
+        // --- 4. HARDWARE LOG IN CONTROL SYSTEM ---
         function renderERP() {
             const root = document.getElementById('app-root');
             if (!root) return;
@@ -145,8 +144,17 @@
                     const name = document.getElementById('login-name').value.trim();
                     const pass = document.getElementById('login-pass').value.trim();
                     const match = dbStaff.find(u => u.name.toLowerCase() === name.toLowerCase() && u.pass === pass);
-                    if (match) { currentUser = match; sessionStorage.setItem('vantage_active_session', JSON.stringify(match)); renderERP(); } 
-                    else { alert("Credentials Mismatch!"); }
+                    
+                    if (match) { 
+                        // Strict Block Verification layer check
+                        if (match.account_status === 'Blocked') {
+                            alert("❌ Access Denied: Aapka account Master Admin dwara block kiya gaya hai!");
+                            return;
+                        }
+                        currentUser = match; 
+                        sessionStorage.setItem('vantage_active_session', JSON.stringify(match)); 
+                        renderERP(); 
+                    } else { alert("Credentials Mismatch!"); }
                 });
                 return;
             }
@@ -177,7 +185,7 @@
                                 <button type="button" onclick="window.switchTab('billing')" class="w-full block text-left px-3 py-2 rounded ${currentTab === 'billing' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800'}">🧾 Client & Sub Invoices</button>
                                 <button type="button" onclick="window.switchTab('subcontractors')" class="w-full block text-left px-3 py-2 rounded ${currentTab === 'subcontractors' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800'}">👥 Subcontractor Masters</button>
                                 <button type="button" onclick="window.switchTab('financial')" class="w-full block text-left px-3 py-2 rounded ${currentTab === 'financial' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800'}">💰 Financial Ledger Matrix</button>
-                                <button type="button" onclick="window.switchTab('staff-mgmt')" class="w-full block text-left px-3 py-2 rounded ${currentTab === 'staff-mgmt' ? 'bg-blue-600 text-white font-bold' : 'text-gray-400 hover:bg-gray-800'}">👥 Staff Management</button>
+                                <button type="button" onclick="window.switchTab('staff-mgmt')" class="w-full block text-left px-3 py-2 rounded ${currentTab === 'staff-mgmt' ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-gray-400 hover:bg-gray-800'}">👥 Provision Staff Logins</button>
                                 ` : ''}
                             </nav>
                         </div>
@@ -193,166 +201,130 @@
             renderTabContent();
         }
 
-        // --- 5. DATA RENDERING SWITCH SYSTEM ---
+        // --- 5. COMPONENT WORKSPACE SWITCH CHANNELS ---
         function renderTabContent() {
             const container = document.getElementById('tab-content-window');
             if(!container) return;
+            const isAdminOrAccountant = (currentUser.role === 'Master Admin' || currentUser.name.toLowerCase() === 'manoj singh' || currentUser.role === 'Accountant');
 
             if (currentTab === "dashboard") {
-                container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-6 text-center text-emerald-400 font-mono font-bold uppercase tracking-wider text-xs">⚡ COMMAND CENTER ACTIVE. INTEGRATION SHIELD LOCK.</div>`;
+                container.innerHTML = `<div class="bg-panelBg border border-borderGray rounded-xl p-6 text-center text-emerald-400 font-mono font-bold uppercase tracking-wider text-xs">⚡ WORKFORCE MODIFICATION PANEL ONLINE.</div>`;
             }
 
-            else if (currentTab === "lifecycle") {
-                container.innerHTML = `<div class="space-y-4"><h3 class="text-sm font-bold text-white uppercase tracking-wider">Project Infrastructure Registry</h3><div class="grid grid-cols-2 gap-4">${dbProjects.map(p=>`<div class="bg-panelBg border border-borderGray p-4 rounded-xl"><h4 class="font-bold text-white mb-2">${p.name}</h4><p class="text-gray-400">Client: ${p.client}</p></div>`).join('')}</div></div>`;
-            }
-
-            // --- 💰 UPGRADED FINANCIAL LEDGER WITH LIFECYCLE PROJECTS DROPDOWN MATRIX ---
-            else if (currentTab === "financial") {
+            // --- 👥 PROVISION STAFF LOGIN CLUSTER WITH SCREENSHOT 11.20.52 PM UPGRADE ---
+            else if (currentTab === "staff-mgmt") {
                 container.innerHTML = `
                     <div class="space-y-4">
                         <div class="flex justify-between items-center border-b border-borderGray pb-2">
                             <div>
-                                <h3 class="text-sm font-bold text-white uppercase tracking-wider">💰 Financial Ledger Double Entry Book Matrix</h3>
-                                <p class="text-[10px] text-gray-400 mt-0.5">Post and monitor site-wise asset flows against specific project nodes.</p>
+                                <h3 class="text-sm font-bold text-white uppercase tracking-wider">👥 PROVISION STAFF LOGIN IDENTITIES CLUSTER</h3>
+                                <p class="text-[10px] text-gray-400 mt-0.5">Manage workforce parameters. Master Admin and Accountants can instantly block access or terminate records permanent.</p>
                             </div>
-                            <button type="button" onclick="window.openModal('ledger-modal-v43')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-1.5 rounded font-sans uppercase text-[10px] shadow-md tracking-wider">+ Post Ledger Entry</button>
+                            ${isAdminOrAccountant ? `<button type="button" onclick="window.openModal('staff-modal')" class="bg-blue-600 hover:bg-blue-500 text-white font-sans font-bold px-4 py-1.5 rounded text-[10px] uppercase tracking-wide shadow-md">+ Generate User Account Credentials</button>` : ''}
                         </div>
 
-                        <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden">
-                            <table class="w-full text-left border-collapse text-xs">
-                                <thead>
-                                    <tr class="bg-darkBg border-b border-borderGray text-gray-400 font-bold uppercase text-[9px] tracking-wider">
-                                        <th class="p-3">Type Segment</th>
-                                        <th class="p-3">Project Site Context</th>
-                                        <th class="p-3">Party Name / Resource</th>
-                                        <th class="p-3">Book Valuation Amount</th>
-                                        <th class="p-3">Mode of Transfer</th>
-                                        <th class="p-3">Date Registered</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-borderGray font-mono text-gray-300">
-                                    ${dbLedger.map(l => `
-                                        <tr class="hover:bg-darkBg/30 transition-colors">
-                                            <td class="p-3"><span class="px-2 py-0.5 rounded text-[9px] font-bold ${l.type === 'Inward_Income' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}">${l.type}</span></td>
-                                            <td class="p-3 font-sans text-blue-400 font-bold">${l.project_context || 'General Head Hub'}</td>
-                                            <td class="p-3 font-sans text-white font-medium">${l.party_or_staff}</td>
-                                            <td class="p-3 text-white font-bold">₹${Number(l.amount).toLocaleString()}</td>
-                                            <td class="p-3 text-gray-400">${l.payment_mode}</td>
-                                            <td class="p-3 text-gray-500">${l.date}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
+                        <!-- Staff Grid Node Columns -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            ${dbStaff.map(s => `
+                                <div class="bg-panelBg border ${s.account_status === 'Blocked' ? 'border-red-900 bg-red-950/10' : 'border-borderGray'} rounded-xl p-4 font-mono space-y-1.5 relative flex flex-col justify-between min-h-[160px]">
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between items-center border-b border-borderGray/50 pb-1.5 mb-1.5">
+                                            <h4 class="text-white font-bold font-sans text-xs">👤 Full Name: ${s.name}</h4>
+                                            <span class="px-1.5 py-0.5 rounded text-[8px] font-bold ${s.account_status === 'Blocked' ? 'bg-red-500/20 text-red-400 border border-red-800' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-800/40'}">${s.account_status || 'Active'}</span>
+                                        </div>
+                                        <p class="text-gray-400 font-sans">Role Node: <span class="text-emerald-400 font-bold font-mono">${s.role}</span></p>
+                                        <p class="text-gray-400 font-sans">Identity Login ID: <span class="text-blue-400 font-bold font-mono">${s.name}</span></p>
+                                        <p class="text-gray-400 font-sans">Security Pass: <span class="text-gray-200 tracking-wider font-bold font-mono">${s.pass || 'CPS2026'}</span></p>
+                                    </div>
+
+                                    <!-- 🔥 RESTRICED WORKFORCE MODIFICATION LAYERS FOR MASTER ADMIN / ACCOUNTANT -->
+                                    <div class="flex justify-end space-x-1.5 pt-2 border-t border-borderGray/40">
+                                        <button type="button" onclick="window.toggleStaffBlockState('${s.id}', '${s.account_status || 'Active'}')" class="bg-gray-800 hover:bg-gray-700 ${s.account_status === 'Blocked' ? 'text-emerald-400' : 'text-amber-400'} px-2.5 py-1 rounded font-sans text-[10px] font-bold transition-all border border-borderGray">
+                                            ${s.account_status === 'Blocked' ? '🔓 Unblock' : '🚫 Block Access'}
+                                        </button>
+                                        <button type="button" onclick="window.deleteRowCloud('staff', '${s.id}')" class="bg-red-950/40 hover:bg-red-900 border border-red-900/30 text-red-400 px-2.5 py-1 rounded font-sans text-[10px] font-bold transition-all shadow-sm">❌ Terminate</button>
+                                    </div>
+                                </div>
+                            `).join('')}
                         </div>
                     </div>
 
-                    <div id="ledger-modal-v43" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
-                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 space-y-4 shadow-2xl">
-                            <div class="border-b border-borderGray pb-2 flex items-center space-x-1.5">
-                                <span class="text-sm">💰</span>
-                                <h4 class="font-bold text-white uppercase tracking-wider text-xs">POST DOUBLE ENTRY RECORD</h4>
-                            </div>
-                            
-                            <form onsubmit="window.submitLedgerEntryRow(event)" class="space-y-3">
-                                <div>
-                                    <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Transaction Category</label>
-                                    <select id="l-type" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white text-xs font-bold focus:border-blue-500 focus:outline-none">
-                                        <option value="Inward_Income">Inward Income Received from Client</option>
-                                        <option value="Outward_Expense">Outward Expense Disbursed to Party/Staff</option>
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Select Project Context (Work Scope Mapping) *</label>
-                                    <select id="l-project-context" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-bold text-xs focus:border-blue-500 focus:outline-none">
-                                        <option value="General Corporate Office">General Office / Non-Project Context</option>
-                                        ${dbProjects.map(p => `<option value="${p.name}">${p.name}</option>`).join('')}
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Party / Staff Target Account Name</label>
-                                    <input type="text" id="l-party" required placeholder="Enter contractor or account label..." class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-sans text-xs focus:border-blue-500 focus:outline-none">
-                                </div>
-
+                    <!-- CREATE USER LOGINS DIALOG -->
+                    <div id="staff-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 hidden z-50">
+                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-5 space-y-3 shadow-2xl">
+                            <h4 class="font-bold text-white uppercase text-xs border-b border-borderGray pb-1">👤 GENERATE USER ACCOUNT CREDENTIALS</h4>
+                            <form onsubmit="window.submitProvisionStaff(event)" class="space-y-3">
+                                <div><label class="block text-gray-400 mb-0.5">Staff Full Name</label><input type="text" id="st-name" required placeholder="e.g. Vikram Supervisor" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white focus:outline-none"></div>
                                 <div class="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Amount Valuation (₹)</label>
-                                        <input type="number" id="l-amt" required placeholder="₹ Valuation" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-mono text-xs focus:border-blue-500 focus:outline-none">
-                                    </div>
-                                    <div>
-                                        <label class="block text-gray-400 uppercase text-[9px] font-bold mb-1">Mode of Payment</label>
-                                        <select id="l-mode" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white text-xs font-medium focus:border-blue-500 focus:outline-none">
-                                            <option value="Bank RTGS / NEFT Transfer">Bank RTGS / NEFT</option>
-                                            <option value="Petty Account Liquid Cash">Petty Account Cash</option>
-                                            <option value="UPI Node Account Transfer">UPI Transfer</option>
-                                        </select>
-                                    </div>
+                                    <div><label class="block text-gray-400 mb-0.5">Select Role Node</label><select id="st-role" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white text-xs"><option value="Site Supervisor">Site Supervisor</option><option value="Accountant">Accountant</option></select></div>
+                                    <div><label class="block text-gray-400 mb-0.5">Password Access</label><input type="text" id="st-pass" required placeholder="e.g. CPSWORK" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-mono focus:outline-none"></div>
                                 </div>
-
-                                <div class="pt-2 space-y-2">
-                                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded uppercase tracking-widest text-[10px] transition-colors shadow-md">COMMIT LEDGER POSTING</button>
-                                    <button type="button" onclick="window.closeModal('ledger-modal-v43')" class="w-full bg-gray-800 text-gray-300 py-2 rounded text-[10px] uppercase font-bold border border-borderGray transition-all">Cancel</button>
-                                </div>
+                                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 rounded text-[10px] uppercase tracking-wider">Inject Identity Node</button>
+                                <button type="button" onclick="window.closeModal('staff-modal')" class="w-full bg-gray-800 text-gray-400 py-1.5 rounded text-[10px] uppercase">Cancel</button>
                             </form>
                         </div>
                     </div>
                 `;
             }
-            
-            else if (currentTab === "tenders") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">📄 Tenders Matrix Nodes</h3>`; }
-            else if (currentTab === "measurements") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">📐 Measurement Sheets</h3>`; }
-            else if (currentTab === "site-photos") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">📷 Site Photo Updates</h3>`; }
-            else if (currentTab === "materials") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">📦 Inventory Hub</h3>`; }
-            else if (currentTab === "material-inward") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">📥 Material Inward Registry</h3>`; }
-            else if (currentTab === "attendance") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">✅ Daily Attendance Logs</h3>`; }
+
+            else if (currentTab === "lifecycle") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Lifecycle Projects</h3>`; }
+            else if (currentTab === "tenders") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Tenders Matrix Nodes</h3>`; }
+            else if (currentTab === "measurements") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Measurement Sheets</h3>`; }
+            else if (currentTab === "site-photos") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Site Photo Updates</h3>`; }
+            else if (currentTab === "materials") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Inventory Hub</h3>`; }
+            else if (currentTab === "material-inward") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Material Inward Registry</h3>`; }
+            else if (currentTab === "attendance") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Daily Attendance Logs</h3>`; }
             else if (currentTab === "machinery") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Machinery Fleet</h3>`; }
             else if (currentTab === "petty-cash") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Petty Cash Logs</h3>`; }
             else if (currentTab === "billing") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Billing Section</h3>`; }
             else if (currentTab === "subcontractors") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Subcontractors Registry</h3>`; }
-            else if (currentTab === "staff-mgmt") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Staff Management</h3>`; }
+            else if (currentTab === "financial") { container.innerHTML = `<h3 class="text-sm font-bold text-white uppercase tracking-wider">Financial Ledger Matrix</h3>`; }
+            else if (currentTab === "geo-viewer") { container.innerHTML = `<div id="vantage-live-map" class="w-full h-[450px]"></div>`; setTimeout(renderLeafletMapLayer, 100); }
         }
 
-        // --- 6. FORM TRANSACTION MATRIX PROCESSORS ---
-        window.submitLedgerEntryRow = async function(e) {
-            e.preventDefault();
-            
-            const payload = [{
-                type: document.getElementById('l-type').value,
-                project_context: document.getElementById('l-project-context').value,
-                party_or_staff: document.getElementById('l-party').value.trim(),
-                amount: Number(document.getElementById('l-amt').value || 0),
-                payment_mode: document.getElementById('l-mode').value,
-                date: new Date().toISOString().split('T')[0]
-            }];
-
-            const response = await fetch(`${SUPABASE_REST_URL}/financial_ledger`, { 
-                method: "POST", 
-                headers: cloudHeaders, 
-                body: JSON.stringify(payload) 
-            });
-
-            if (response.ok) {
-                alert("🎉 Success: Entry committed inside Ledger database with Project tag assignment!");
-                window.closeModal('ledger-modal-v43');
-                initializeSecurityGatekeeper(); // Refresh row views
-            } else {
-                alert("Database transmission line sync failure.");
+        // --- 6. 🚫 STRCT BLOCK & TERMINATE REST FLOW MUTATIONS ---
+        window.toggleStaffBlockState = async function(id, currentStatus) {
+            const nextStatus = (currentStatus === 'Blocked') ? 'Active' : 'Blocked';
+            if (confirm(`Kya aap is employee ko corporate login panel par ${nextStatus} karna chahte hain?`)) {
+                const response = await fetch(`${SUPABASE_REST_URL}/staff?id=eq.${id}`, { 
+                    method: "PATCH", 
+                    headers: cloudHeaders, 
+                    body: JSON.stringify({ account_status: nextStatus }) 
+                });
+                
+                if (response.ok) {
+                    alert(`👍 Success: Profile status changed to ${nextStatus}!`);
+                    initializeSecurityGatekeeper(); // Instant row refresh
+                }
             }
         };
 
-        // --- 7. CLEAN HARDWARE STREAMS CLEAR CLOSURES ---
-        window.closeLiveCameraInterface = function() { 
-            if (cameraStream) { 
-                try {
-                    cameraStream.getTracks().forEach(t => { if(t) t.stop(); });
-                } catch(e) {}
-                cameraStream = null;
+        window.submitProvisionStaff = async function(e) { 
+            e.preventDefault(); 
+            const payload = { 
+                name: document.getElementById('st-name').value.trim(), 
+                role: document.getElementById('st-role').value, 
+                pass: document.getElementById('st-pass').value.trim(), 
+                account_status: "Active",
+                base_salary: 25000 
+            }; 
+            const response = await fetch(`${SUPABASE_REST_URL}/staff`, { method: "POST", headers: cloudHeaders, body: JSON.stringify([payload]) }); 
+            if (response.ok) {
+                window.closeModal('staff-modal'); 
+                initializeSecurityGatekeeper(); 
+            }
+        };
+
+        window.deleteRowCloud = async function(table, id) { 
+            if(confirm("⚠️ Critical: Kya aap is record profile ko permanently terminate (Delete) karna chahte hain?")) { 
+                const response = await fetch(`${SUPABASE_REST_URL}/${table}?id=eq.${id}`, { method: "DELETE", headers: cloudHeaders }); 
+                if(response.ok) { alert("Terminated successfully."); initializeSecurityGatekeeper(); } 
             } 
         };
 
+        // --- 7. EXTERNAL SYSTEM ATTACHMENTS ---
+        window.closeLiveCameraInterface = function() { if (cameraStream) { try { cameraStream.getTracks().forEach(t => { if(t) t.stop(); }); } catch(e){} cameraStream = null; } };
         function renderLeafletMapLayer() { let m = document.getElementById('vantage-live-map'); if (!m) return; let mo = L.map('vantage-live-map').setView([24.5854, 73.7125], 9); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mo); dbProjects.forEach(p => { if (p.lat) L.marker([p.lat, p.lng]).addTo(mo); }); }
-        function renderLeafletRadarLayer() { let r = document.getElementById('vantage-staff-map'); if (!r) return; let ro = L.map('vantage-staff-map').setView([24.5854, 73.7125], 9); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(ro); dbStaff.forEach(s => { if (s.lat) L.marker([s.lat, s.lng]).addTo(ro); }); }
 
         initializeSecurityGatekeeper();
     </script>
