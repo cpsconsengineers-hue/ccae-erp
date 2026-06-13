@@ -2,70 +2,61 @@
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CPS ERP | COMMAND CENTER</title>
+    <title>CPS COMMAND CENTER | FULLY INTEGRATED</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>tailwind.config = { darkMode: 'class' };</script>
 </head>
-<body class="bg-gray-950 text-gray-200 font-sans">
+<body class="bg-gray-950 text-gray-200 flex h-screen">
 
-    <div id="login-screen" class="fixed inset-0 bg-black flex items-center justify-center z-50">
-        <div class="bg-gray-900 p-8 rounded border border-gray-800 w-96">
-            <h2 class="text-blue-500 font-bold mb-4">CPS ERP | AUTHENTICATION</h2>
-            <input type="text" id="username" placeholder="Username" class="w-full bg-black p-2 mb-2 rounded">
-            <input type="password" id="password" placeholder="Password" class="w-full bg-black p-2 mb-4 rounded">
-            <button onclick="authenticate()" class="w-full bg-blue-600 p-2 rounded text-white font-bold">ACCESS SYSTEM</button>
-        </div>
-    </div>
+    <!-- Sidebar Navigation -->
+    <aside class="w-64 bg-gray-900 border-r border-gray-800 p-4">
+        <h1 class="text-blue-500 font-bold mb-6 text-xl">CPS COMMAND CENTER</h1>
+        <div id="nav-menu" class="space-y-2"></div>
+    </aside>
 
-    <div id="app-root" class="hidden min-h-screen flex">
-        <aside class="w-64 bg-gray-900 p-4 border-r border-gray-800">
-            <h1 class="text-blue-500 font-bold mb-6">CPS COMMAND CENTER</h1>
-            <nav id="nav-menu" class="space-y-2"></nav>
-        </aside>
-        <main class="flex-1 p-8" id="workspace">
-            <div id="dashboard-view" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
-        </main>
-    </div>
+    <!-- Main Workspace -->
+    <main class="flex-1 p-8 overflow-y-auto">
+        <div id="dashboard-view" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </main>
 
     <script>
-        // AUTHENTICATION LOGIC
-        function authenticate() {
-            const user = document.getElementById('username').value;
-            const pass = document.getElementById('password').value;
-            
-            // Yahan Supabase/Database se validation hoga
-            if(user && pass) {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('app-root').classList.remove('hidden');
-                renderDashboard();
-            } else {
-                alert("Invalid Credentials!");
-            }
-        }
+        const allModules = [
+            { name: 'Live Projects', admin: true, staff: true },
+            { name: 'Financial Ledger', admin: true, staff: false },
+            { name: 'Site Photos', admin: true, staff: true },
+            { name: 'Inventory Hub', admin: true, staff: true },
+            { name: 'Live Tracking', admin: true, staff: false },
+            { name: 'Attendance', admin: true, staff: true },
+            { name: 'Measurement', admin: true, staff: true },
+            { name: 'Billing Section', admin: true, staff: false },
+            { name: 'Petty Cash', admin: true, staff: false },
+            { name: 'Machinery Fleet', admin: true, staff: true },
+            { name: 'Tenders Matrix', admin: true, staff: false },
+            { name: 'Subcontractors', admin: true, staff: true },
+            { name: 'Telemetry', admin: true, staff: false },
+            { name: 'Staff Identity', admin: true, staff: false },
+            { name: 'Executive Dashboard', admin: true, staff: true }
+        ];
 
-        // ROLE-BASED DASHBOARD RENDER
-        function renderDashboard() {
-            const role = 'Admin'; // Mock role - Backend se dynamic aayega
+        function initApp() {
+            const role = 'Admin'; // यहाँ से रोल कंट्रोल करें
             const dash = document.getElementById('dashboard-view');
-            
-            const widgets = [
-                { name: 'Live Projects', admin: true, staff: true },
-                { name: 'Financial Ledger', admin: true, staff: false },
-                { name: 'Site Photos', admin: true, staff: true },
-                { name: 'Inventory', admin: true, staff: true },
-                { name: 'Live Tracking', admin: true, staff: false }
-            ];
+            const nav = document.getElementById('nav-menu');
 
-            widgets.forEach(w => {
-                if((role === 'Admin' && w.admin) || (role === 'Staff' && w.staff)) {
-                    dash.innerHTML += `<div class="bg-gray-900 p-6 border border-gray-800 rounded">
-                        <h3 class="text-blue-400 font-bold">${w.name}</h3>
-                        <p class="text-2xl mt-2">Active</p>
-                    </div>`;
+            allModules.forEach(m => {
+                if((role === 'Admin' && m.admin) || (role === 'Staff' && m.staff)) {
+                    // Render Sidebar
+                    nav.innerHTML += `<button class="w-full text-left p-3 rounded hover:bg-blue-900 transition">${m.name}</button>`;
+                    
+                    // Render Dashboard Widgets
+                    dash.innerHTML += `
+                        <div class="bg-gray-900 p-6 rounded border border-gray-800 shadow-lg hover:border-blue-500 transition">
+                            <h3 class="text-blue-400 font-bold mb-2">${m.name}</h3>
+                            <p class="text-sm text-gray-500">Status: <span class="text-green-500">Active</span></p>
+                        </div>`;
                 }
             });
         }
+        initApp();
     </script>
 </body>
 </html>
