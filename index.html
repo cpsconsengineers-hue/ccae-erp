@@ -23,7 +23,7 @@
         <div class="min-h-screen flex items-center justify-center bg-darkBg">
             <div class="text-center">
                 <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p class="text-gray-400 font-mono tracking-widest uppercase text-[10px]">ENFORCING LEVEL 18 SECURE BACK MATRIX...</p>
+                <p class="text-gray-400 font-mono tracking-widest uppercase text-[10px]">ENFORCING OPERATIONAL MUTATION CORE Matrix...</p>
             </div>
         </div>
     </div>
@@ -40,7 +40,7 @@
             "Prefer": "return=representation"
         };
 
-        // Standalone Buffers
+        // Complete Standalone Tables Buffer Memory
         let dbProjects = []; let dbStaff = []; let dbGodowns = []; let dbStockBook = []; 
         let dbMeasurements = []; let dbFinancials = []; let dbMachinery = []; let dbTenders = [];
 
@@ -117,7 +117,7 @@
                         sessionStorage.setItem('vantage_active_session', JSON.stringify(userMatch));
                         renderERP();
                     } else {
-                        alert("Authentication Failure: Incorrect Parameters!");
+                        alert("Authentication Failure!");
                     }
                 });
                 return;
@@ -146,17 +146,12 @@
                                 <button onclick="switchTab('subcontractor')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'subcontractor' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">🤝 Subcontractor Hub</button>
                                 
                                 <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest px-3 pt-2">Human Capital & Assets</p>
-                                <button onclick="switchTab('attendance')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'attendance' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">✅ Daily Attendance</button>
                                 <button onclick="switchTab('materials')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'materials' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">📦 Inventory Hub (Godown)</button>
                                 <button onclick="switchTab('machinery')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'machinery' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">⚙️ Machinery Assets</button>
                                 
                                 <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest px-3 pt-2">Enterprise Strategy</p>
                                 <button onclick="switchTab('tenders')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'tenders' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">📄 Tender Pipeline</button>
                                 <button onclick="switchTab('ai-forecast')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'ai-forecast' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">🧠 AI Margin Forecaster</button>
-                                
-                                <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest px-3 pt-2">System Controls</p>
-                                <button onclick="switchTab('reports')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'reports' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">📈 Analytical Reports</button>
-                                <button onclick="switchTab('intelligence')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'intelligence' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">🔔 Intelligence Feed</button>
                                 
                                 ${isElevatedPrivilege ? `
                                 <div class="pt-2 border-t border-borderGray/40 space-y-0.5">
@@ -184,7 +179,7 @@
         function switchTab(t) { currentTab = t; renderERP(); }
         function logoutSession() { currentUser = null; sessionStorage.removeItem('vantage_active_session'); location.reload(); }
 
-        // --- 4. UNFROZEN COMPONENT CONTROLLERS WITH INTEGRATED CANCEL OVERRIDES ---
+        // --- 4. UNFROZEN COMPONENT CONTROLLERS ---
         function renderTabContent() {
             const container = document.getElementById('tab-content-window');
             const isMasterAdmin = (currentUser.role === 'Master Admin' || currentUser.name.toLowerCase() === 'manoj singh');
@@ -204,11 +199,11 @@
                         <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">M-Book Records</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbMeasurements.length} Rows</h3></div>
                         <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><p class="text-gray-400 text-[10px] font-bold uppercase">Workforce Base</p><h3 class="text-xl font-extrabold mt-1 text-white">${dbStaff.length} Accounts</h3></div>
                     </div>
-                    <div class="bg-panelBg border border-borderGray rounded-xl p-8 text-center text-emerald-400 font-mono font-bold uppercase tracking-wider">⚡ VANTAGE PLATFORM LIVE: BACK/CANCEL PROTOCOLS FULLY DEPLOYED ON ALL MODALS.</div>
+                    <div class="bg-panelBg border border-borderGray rounded-xl p-8 text-center text-emerald-400 font-mono font-bold uppercase tracking-wider">⚡ VANTAGE MATRIX v18 ARMED. INTEGRATED FORM MUTATION CORE RUNNING SECURELY.</div>
                 `;
             }
 
-            // SCREENSHOT 1 LOGIC: PROVISIONS STAGE WITH CANCEL BUTTON ADDED
+            // SCREENSHOT 1: LIFECYCLE PROJECTS WITH FULL EDIT/MODIFY OPTIONS
             else if (currentTab === "lifecycle") {
                 container.innerHTML = `
                     <div class="space-y-4">
@@ -223,12 +218,17 @@
                                     <p class="text-gray-400">🏢 Client: <span class="text-gray-200">${p.client}</span></p>
                                     <p class="text-gray-400">📍 Location: <span class="text-gray-200">${p.location}</span></p>
                                     <p class="text-gray-400">💰 Contract: <span class="text-green-400 font-mono font-bold">₹${Number(p.contract_value || 0).toLocaleString()}</span></p>
-                                    ${hasProjectRights ? `<button onclick="deleteRowCloud('projects','${p.id}')" class="absolute bottom-4 right-4 bg-red-950/40 text-red-400 border border-red-900/60 px-2 py-0.5 rounded font-mono text-[9px]">Purge Data</button>` : ''}
+                                    
+                                    ${hasProjectRights ? `
+                                    <div class="absolute bottom-4 right-4 flex space-x-2">
+                                        <button onclick="triggerProjectEdit('${p.id}','${p.name}','${p.client}','${p.location}','${p.contract_value}')" class="bg-blue-950/60 text-blue-400 border border-blue-900/60 px-2 py-0.5 rounded font-mono text-[9px]">Modify Project</button>
+                                        <button onclick="deleteRowCloud('projects','${p.id}')" class="bg-red-950/40 text-red-400 border border-red-900/60 px-2 py-0.5 rounded font-mono text-[9px]">Purge Data</button>
+                                    </div>` : ''}
                                 </div>
                             `).join('')}
                         </div>
                     </div>
-                    <!-- PROVISION NEW SITE NODE DIALOG (FIXED WITH BACK/CANCEL ACTION) -->
+                    <!-- ADD MODAL -->
                     <div id="p-mod" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
                         <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-6 space-y-4 shadow-2xl">
                             <h4 class="font-bold text-white text-xs uppercase tracking-widest border-b border-borderGray pb-2">PROVISION NEW SITE NODE</h4>
@@ -237,8 +237,23 @@
                                 <input type="text" id="p-client" placeholder="Client Label" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white focus:outline-none focus:border-blue-500">
                                 <input type="text" id="p-loc" placeholder="Physical Address" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white focus:outline-none focus:border-blue-500">
                                 <input type="number" id="p-val" placeholder="Contract Amount sum (₹)" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white font-mono focus:outline-none focus:border-blue-500">
-                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded uppercase tracking-wider transition-colors shadow-md">Save Parameters Matrix</button>
-                                <button type="button" onclick="closeModal('p-mod')" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold py-2 rounded uppercase tracking-wider transition-colors border border-borderGray">❌ Close / Back</button>
+                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded uppercase tracking-wider transition-colors">Save Parameters</button>
+                                <button type="button" onclick="closeModal('p-mod')" class="w-full bg-gray-800 text-gray-300 font-bold py-2 rounded uppercase border border-borderGray">❌ Close / Back</button>
+                            </form>
+                        </div>
+                    </div>
+                    <!-- EDIT MODAL WITH FREEZE MATRIX OVERLAY -->
+                    <div id="p-edit-mod" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-6 space-y-4 shadow-2xl">
+                            <h4 class="font-bold text-blue-400 text-xs uppercase tracking-widest border-b border-borderGray pb-2">MODIFY SITE PARAMETERS</h4>
+                            <form id="p-edit-form" class="space-y-3" onsubmit="executeProjectModifySubmit(event)">
+                                <input type="hidden" id="edit-p-id">
+                                <input type="text" id="edit-p-name" placeholder="Project Site Name" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white focus:outline-none">
+                                <input type="text" id="edit-p-client" placeholder="Client Label" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white focus:outline-none">
+                                <input type="text" id="edit-p-loc" placeholder="Physical Address" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white focus:outline-none">
+                                <input type="number" id="edit-p-val" placeholder="Contract Amount sum (₹)" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white font-mono focus:outline-none">
+                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded uppercase tracking-wider transition-colors">Apply Changes & Freeze State</button>
+                                <button type="button" onclick="closeModal('p-edit-mod')" class="w-full bg-gray-800 text-gray-300 font-bold py-2 rounded uppercase border border-borderGray">❌ Close / Back</button>
                             </form>
                         </div>
                     </div>
@@ -278,7 +293,7 @@
                 buildExcelRowsMatrixHTML();
             }
 
-            // SCREENSHOT 3 LOGIC: INVENTORY STORAGE HUD WITH CANCEL ACTIONS
+            // SCREENSHOT 3 LOGIC: INVENTORY STORAGE HUD
             else if (currentTab === "materials") {
                 container.innerHTML = `
                     <div class="space-y-4">
@@ -320,15 +335,14 @@
                         </div>
                     </div>
                     
-                    <!-- ADMIN MODALS STRUCTS WITH ADDED CLOSE PROTOCOLS -->
                     <div id="g-mod" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
                         <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-6 space-y-3 shadow-2xl">
                             <h4 class="font-bold text-white text-xs uppercase tracking-wider">🏢 Create Godown Profile Node</h4>
                             <form id="g-form" class="space-y-2" onsubmit="executeGodownSubmit(event)">
-                                <input type="text" id="g-name" placeholder="Godown Name" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white shadow-inner">
-                                <input type="text" id="g-loc" placeholder="Address Location" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white shadow-inner">
+                                <input type="text" id="g-name" placeholder="Godown Name" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white">
+                                <input type="text" id="g-loc" placeholder="Address Location" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white">
                                 <button type="submit" class="w-full bg-blue-600 py-2 rounded text-white font-bold uppercase">Deploy Godown</button>
-                                <button type="button" onclick="closeModal('g-mod')" class="w-full bg-gray-850 py-1.5 rounded text-gray-400 border border-borderGray font-bold uppercase text-[10px]">❌ Cancel / Back</button>
+                                <button type="button" onclick="closeModal('g-mod')" class="w-full bg-gray-850 py-1.5 rounded text-gray-400 border border-borderGray uppercase text-[10px]">❌ Cancel / Back</button>
                             </form>
                         </div>
                     </div>
@@ -336,11 +350,11 @@
                         <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-6 space-y-3 shadow-2xl">
                             <h4 class="font-bold text-white text-xs uppercase tracking-wider">📥 Inward Stock Material</h4>
                             <form id="s-form" class="space-y-2" onsubmit="executeInwardSubmit(event)">
-                                <select id="st-godown" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-bold shadow-inner">${dbGodowns.map(g=>`<option value="${g.name}">${g.name}</option>`).join('')}</select>
-                                <input type="text" id="st-item" placeholder="Material Description" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white shadow-inner">
-                                <div class="grid grid-cols-2 gap-2"><input type="number" id="st-qty" placeholder="Qty" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white shadow-inner"><input type="text" id="st-unit" placeholder="Bags/Tons" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white shadow-inner"></div>
+                                <select id="st-godown" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-bold">${dbGodowns.map(g=>`<option value="${g.name}">${g.name}</option>`).join('')}</select>
+                                <input type="text" id="st-item" placeholder="Material Description" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white">
+                                <div class="grid grid-cols-2 gap-2"><input type="number" id="st-qty" placeholder="Qty" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white"><input type="text" id="st-unit" placeholder="Bags/Tons" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white"></div>
                                 <button type="submit" class="w-full bg-emerald-600 py-2 rounded text-white font-bold uppercase">Commit Stock</button>
-                                <button type="button" onclick="closeModal('s-mod')" class="w-full bg-gray-850 py-1.5 rounded text-gray-400 border border-borderGray font-bold uppercase text-[10px]">❌ Cancel / Back</button>
+                                <button type="button" onclick="closeModal('s-mod')" class="w-full bg-gray-850 py-1.5 rounded text-gray-400 border border-borderGray uppercase text-[10px]">❌ Cancel / Back</button>
                             </form>
                         </div>
                     </div>
@@ -348,19 +362,19 @@
                         <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-6 space-y-3 shadow-2xl">
                             <h4 class="font-bold text-white text-xs uppercase tracking-wider">🔄 Material Transfer Pipeline</h4>
                             <form id="d-form" class="space-y-2" onsubmit="executeTransferSubmit(event)">
-                                <select id="tr-source" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-semibold shadow-inner">${dbGodowns.map(g=>`<option value="${g.name}">${g.name}</option>`).join('')}</select>
-                                <select id="tr-dest" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-semibold shadow-inner">${dbProjects.map(p=>`<option value="${p.name}">${p.name}</option>`).join('')}</select>
-                                <input type="text" id="tr-item" placeholder="Material Item" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white shadow-inner">
-                                <input type="number" id="tr-qty" placeholder="Quantity" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white shadow-inner">
+                                <select id="tr-source" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-semibold">${dbGodowns.map(g=>`<option value="${g.name}">${g.name}</option>`).join('')}</select>
+                                <select id="tr-dest" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-semibold">${dbProjects.map(p=>`<option value="${p.name}">${p.name}</option>`).join('')}</select>
+                                <input type="text" id="tr-item" placeholder="Material Item" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white">
+                                <input type="number" id="tr-qty" placeholder="Quantity" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white">
                                 <button type="submit" class="w-full bg-blue-600 py-2 rounded text-white font-bold uppercase">Execute Dispatch</button>
-                                <button type="button" onclick="closeModal('d-mod')" class="w-full bg-gray-850 py-1.5 rounded text-gray-400 border border-borderGray font-bold uppercase text-[10px]">❌ Cancel / Back</button>
+                                <button type="button" onclick="closeModal('d-mod')" class="w-full bg-gray-850 py-1.5 rounded text-gray-400 border border-borderGray uppercase text-[10px]">❌ Cancel / Back</button>
                             </form>
                         </div>
                     </div>
                 `;
             }
 
-            // SCREENSHOT 4: MACHINERY FORM WITH BACK OVERRIDE
+            // SCREENSHOT 4 LOGIC: MACHINERY
             else if (currentTab === "machinery") {
                 container.innerHTML = `
                     <div class="space-y-4">
@@ -376,19 +390,19 @@
                         <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-6 space-y-3 shadow-2xl">
                             <h4 class="font-bold text-white text-xs uppercase tracking-widest">Machinery Asset Shift Log Form</h4>
                             <form id="m-form" class="space-y-2" onsubmit="executeMachinerySubmit(event)">
-                                <input type="text" id="m-name" placeholder="Asset Name (e.g. Mahindra Bolero Neo N11)" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white focus:outline-none">
-                                <select id="m-type" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-bold shadow-inner"><option value="Per Hour">Per Hour Calculation Basis</option><option value="Per Trip">Per Trip Logistics Basis</option></select>
-                                <input type="number" id="m-qty" placeholder="Units Worked (Hours / Trips)" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-mono focus:outline-none">
-                                <input type="number" id="m-rate" placeholder="Base Matrix Rate Value per Unit (₹)" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-mono focus:outline-none">
+                                <input type="text" id="m-name" placeholder="Asset Name" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white">
+                                <select id="m-type" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-bold"><option value="Per Hour">Per Hour Calculation Basis</option><option value="Per Trip">Per Trip Logistics Basis</option></select>
+                                <input type="number" id="m-qty" placeholder="Units Worked (Hours / Trips)" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-mono">
+                                <input type="number" id="m-rate" placeholder="Base Matrix Rate (₹)" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-mono">
                                 <button type="submit" class="w-full bg-blue-600 py-2.5 rounded text-white font-bold uppercase">Commit Shift Log</button>
-                                <button type="button" onclick="closeModal('m-mod')" class="w-full bg-gray-850 py-1.5 rounded text-gray-400 border border-borderGray font-bold uppercase text-[10px]">❌ Cancel / Back</button>
+                                <button type="button" onclick="closeModal('m-mod')" class="w-full bg-gray-850 py-1.5 rounded text-gray-400 border border-borderGray uppercase text-[10px]">❌ Cancel / Back</button>
                             </form>
                         </div>
                     </div>
                 `;
             }
 
-            // SCREENSHOT 5: TENDER WITH BACK OVERRIDE
+            // SCREENSHOT 5 LOGIC: TENDERS
             else if (currentTab === "tenders") {
                 container.innerHTML = `
                     <div class="space-y-4">
@@ -414,7 +428,7 @@
                         <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-6 text-xs space-y-3 shadow-2xl">
                             <h4 class="font-bold text-white text-xs uppercase border-b border-borderGray pb-1">Register Tender Parameters</h4>
                             <form id="t-form" class="space-y-2" onsubmit="executeTenderSubmit(event)">
-                                <input type="text" id="t-name" placeholder="Tender Description Name Assignment" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white focus:outline-none">
+                                <input type="text" id="t-name" placeholder="Tender Description Name Assignment" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white">
                                 <select id="t-status" onchange="toggleTenderWorkOrderFields(this.value)" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-bold"><option value="In Process">In Process</option><option value="Filled">Filled</option><option value="Allotted">Allotted Node Target</option></select>
                                 
                                 <div id="tender-work-order-subform" class="hidden space-y-2 border-t border-borderGray pt-2 mt-2">
@@ -426,7 +440,7 @@
                                     <input type="date" id="t-woact" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white">
                                 </div>
                                 <button type="submit" class="w-full bg-blue-600 py-2 rounded text-white font-bold uppercase">Commit Pipeline Vector</button>
-                                <button type="button" onclick="closeModal('t-mod')" class="w-full bg-gray-850 py-1.5 rounded text-gray-400 border border-borderGray font-bold uppercase text-[10px]">❌ Cancel / Back</button>
+                                <button type="button" onclick="closeModal('t-mod')" class="w-full bg-gray-850 py-1.5 rounded text-gray-400 border border-borderGray uppercase text-[10px]">❌ Cancel / Back</button>
                             </form>
                         </div>
                     </div>
@@ -442,20 +456,7 @@
                         ${dbStaff.map(s=>`<tr><td class="p-3 text-white font-bold">${s.name}</td><td class="p-3 text-gray-400">${s.role}</td><td class="p-3 font-mono text-gray-500">${s.pass}</td><td class="p-3 text-right font-mono text-blue-400 pr-4">₹${s.base_salary}</td></tr>`).join('')}</table></div>
                     </div>
                     <div id="s-mod" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
-                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-6 text-xs space-y-4 shadow-2xl"><h4 class="font-bold text-white text-sm border-b border-borderGray pb-1">Create Staff Profile Node</h4><form id="s-form" class="space-y-3" onsubmit="executeStaffSubmit(event)"><input type="text" id="s-name" placeholder="Full Employee Name ID" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-medium shadow-inner"><select id="s-role" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white shadow-inner"><option value="Engineer">Civil Site Engineer</option><option value="Accountant">Accountant</option><option value="Supervisor">Site Supervisor</option></select><input type="text" id="s-pass" placeholder="Assign Password Key" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white shadow-inner"><input type="number" id="s-salary" placeholder="Salary Rate Metric Value" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-mono shadow-inner"><button type="submit" class="w-full bg-blue-600 p-2 rounded text-white font-bold font-sans">Deploy New Staff</button><button type="button" onclick="closeModal('s-mod')" class="w-full bg-gray-850 py-1.5 rounded text-gray-400 border border-borderGray font-bold uppercase text-[10px]">❌ Cancel / Back</button></form></div>
-                    </div>
-                `;
-            }
-            
-            else {
-                container.innerHTML = `
-                    <div class="bg-panelBg border border-borderGray rounded-xl p-6 space-y-4">
-                        <div class="border-b border-borderGray pb-2 flex justify-between items-center">
-                            <h3 class="font-bold text-white uppercase tracking-wider text-xs">✨ Active Management Component Module: [${currentTab.toUpperCase()}]</h3>
-                            <button onclick="triggerDynamicEntryForm()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-1.5 rounded shadow-md transition-colors font-sans">+ Add New Data Log Entry</button>
-                        </div>
-                        <p class="text-gray-400 font-mono text-[11px]">Realtime Cloud Listener Stream connected to Supabase rest server API instance endpoint /rest/v1/${currentTab}. Form arrays are unfrozen and functional.</p>
-                        <div class="p-8 bg-darkBg border border-borderGray border-dashed rounded-xl text-center text-gray-500 font-bold uppercase tracking-widest">Awaiting Parameters.</div>
+                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-6 text-xs space-y-4 shadow-2xl"><h4 class="font-bold text-white text-sm border-b border-borderGray pb-1">Create Staff Profile Node</h4><form id="s-form" class="space-y-3" onsubmit="executeStaffSubmit(event)"><input type="text" id="s-name" placeholder="Full Employee Name ID" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-medium"><select id="s-role" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"><option value="Engineer">Civil Site Engineer</option><option value="Accountant">Accountant</option><option value="Supervisor">Site Supervisor</option></select><input type="text" id="s-pass" placeholder="Assign Password Key" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"><input type="number" id="s-salary" placeholder="Salary Rate Metric Value" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-mono"><button type="submit" class="w-full bg-blue-600 p-2 rounded text-white font-bold font-sans">Deploy New Staff</button><button type="button" onclick="closeModal('s-mod')" class="w-full bg-gray-850 py-1.5 rounded text-gray-400 border border-borderGray uppercase text-[10px]">❌ Cancel / Back</button></form></div>
                     </div>
                 `;
             }
@@ -467,6 +468,30 @@
             const payload = [{ name: document.getElementById('p-name').value, client: document.getElementById('p-client').value, location: document.getElementById('p-loc').value, contract_value: Number(document.getElementById('p-val').value) }];
             await fetch(`${SUPABASE_REST_URL}/projects`, { method: "POST", headers: cloudHeaders, body: JSON.stringify(payload) });
             closeModal('p-mod'); initializeSecurityGatekeeper();
+        }
+
+        // TRIGGER MODIFY DIALOG FORM WITH AUTOFILLED VALUES
+        function triggerProjectEdit(id, name, client, loc, val) {
+            document.getElementById('edit-p-id').value = id;
+            document.getElementById('edit-p-name').value = name;
+            document.getElementById('edit-p-client').value = client;
+            document.getElementById('edit-p-loc').value = loc;
+            document.getElementById('edit-p-val').value = val;
+            openModal('p-edit-mod');
+        }
+
+        async function executeProjectModifySubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('edit-p-id').value;
+            const payload = {
+                name: document.getElementById('edit-p-name').value,
+                client: document.getElementById('edit-p-client').value,
+                location: document.getElementById('edit-p-loc').value,
+                contract_value: Number(document.getElementById('edit-p-val').value)
+            };
+            // PATCH request to execute frozen column update state parameters
+            await fetch(`${SUPABASE_REST_URL}/projects?id=eq.${id}`, { method: "PATCH", headers: cloudHeaders, body: JSON.stringify(payload) });
+            closeModal('p-edit-mod'); alert("Project state modified and frozen successfully!"); initializeSecurityGatekeeper();
         }
 
         async function executeGodownSubmit(e) {
@@ -529,11 +554,6 @@
         function toggleTenderWorkOrderFields(val) {
             const block = document.getElementById('tender-work-order-subform'); if(!block) return;
             if(val === 'Allotted') block.classList.remove('hidden'); else block.classList.add('hidden');
-        }
-
-        function triggerDynamicEntryForm() {
-            const entryVal = prompt(`Enter data log parameter entry value for [${currentTab.toUpperCase()}]:`);
-            if(entryVal) { alert(`Data packet synced under REST layer v1/${currentTab}`); }
         }
 
         // --- 6. EXCEL SHEET COMPILER ENGINE SYSTEMS ---
