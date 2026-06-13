@@ -114,32 +114,4 @@
         initApp();
     </script>
 </body>
-</html>            } else {
-                area.innerHTML = `<div class="p-10 bg-gray-900 border border-gray-800 rounded text-center text-gray-400">Workspace for ${name} initialized...</div>`;
-            }
-        }
-
-        // Logic Functions
-        function addStock() { alert("Stock Entry recorded!"); }
-        function transferMaterial(mode) { 
-            navigator.geolocation.getCurrentPosition((pos) => {
-                alert(mode.toUpperCase() + " verified at " + pos.coords.latitude.toFixed(4));
-            }, () => alert("GPS Required!"));
-        }
-
-        function logout() { location.reload(); }
-
-        function initApp() {
-            const navMenu = document.getElementById('nav-menu');
-            modules.forEach(m => {
-                const btn = document.createElement('button');
-                btn.className = 'w-full text-left p-2 text-sm hover:bg-gray-800 rounded transition';
-                btn.innerText = m.name;
-                btn.onclick = () => loadModule(m.name);
-                navMenu.appendChild(btn);
-            });
-        }
-        initApp();
-    </script>
-</body>
 </html>
