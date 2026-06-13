@@ -2,60 +2,66 @@
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
-    <title>CPS COMMAND CENTER | FULLY INTEGRATED</title>
+    <title>CPS ERP | OPERATIONAL CENTER</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-950 text-gray-200 flex h-screen">
 
-    <!-- Sidebar Navigation -->
     <aside class="w-64 bg-gray-900 border-r border-gray-800 p-4">
-        <h1 class="text-blue-500 font-bold mb-6 text-xl">CPS COMMAND CENTER</h1>
-        <div id="nav-menu" class="space-y-2"></div>
+        <h1 class="text-blue-500 font-bold mb-6">CPS COMMAND CENTER</h1>
+        <div id="nav-menu" class="space-y-4"></div>
     </aside>
 
-    <!-- Main Workspace -->
     <main class="flex-1 p-8 overflow-y-auto">
-        <div id="dashboard-view" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        <h2 class="text-xl font-bold mb-6 text-emerald-400">OPERATIONAL MODULES (Access: All)</h2>
+        <div id="op-widgets" class="grid grid-cols-3 gap-4 mb-10"></div>
+        
+        <h2 id="admin-title" class="text-xl font-bold mb-6 text-red-400">RESTRICTED MODULES (Access: Admin/Accountant Only)</h2>
+        <div id="admin-widgets" class="grid grid-cols-3 gap-4"></div>
     </main>
 
     <script>
-        const allModules = [
-            { name: 'Live Projects', admin: true, staff: true },
-            { name: 'Financial Ledger', admin: true, staff: false },
-            { name: 'Site Photos', admin: true, staff: true },
-            { name: 'Inventory Hub', admin: true, staff: true },
-            { name: 'Live Tracking', admin: true, staff: false },
-            { name: 'Attendance', admin: true, staff: true },
-            { name: 'Measurement', admin: true, staff: true },
-            { name: 'Billing Section', admin: true, staff: false },
-            { name: 'Petty Cash', admin: true, staff: false },
-            { name: 'Machinery Fleet', admin: true, staff: true },
-            { name: 'Tenders Matrix', admin: true, staff: false },
-            { name: 'Subcontractors', admin: true, staff: true },
-            { name: 'Telemetry', admin: true, staff: false },
-            { name: 'Staff Identity', admin: true, staff: false },
-            { name: 'Executive Dashboard', admin: true, staff: true }
+        const modules = [
+            { name: 'Live Projects', type: 'op' }, { name: 'Site Photos', type: 'op' }, 
+            { name: 'Inventory Hub', type: 'op' }, { name: 'Attendance', type: 'op' },
+            { name: 'Measurement', type: 'op' }, { name: 'Machinery', type: 'op' },
+            { name: 'Subcontractors', type: 'op' }, { name: 'Executive Dashboard', type: 'op' },
+            { name: 'Financial Ledger', type: 'admin' }, { name: 'Live Tracking', type: 'admin' },
+            { name: 'Billing Section', type: 'admin' }, { name: 'Petty Cash', type: 'admin' },
+            { name: 'Tenders Matrix', type: 'admin' }, { name: 'Telemetry', type: 'admin' },
+            { name: 'Staff Identity', type: 'admin' }
         ];
 
         function initApp() {
-            const role = 'Admin'; // यहाँ से रोल कंट्रोल करें
-            const dash = document.getElementById('dashboard-view');
-            const nav = document.getElementById('nav-menu');
+            const userRole = 'Admin'; // यहाँ से रोल हैंडल करें
+            const opContainer = document.getElementById('op-widgets');
+            const adminContainer = document.getElementById('admin-widgets');
+            const adminTitle = document.getElementById('admin-title');
 
-            allModules.forEach(m => {
-                if((role === 'Admin' && m.admin) || (role === 'Staff' && m.staff)) {
-                    // Render Sidebar
-                    nav.innerHTML += `<button class="w-full text-left p-3 rounded hover:bg-blue-900 transition">${m.name}</button>`;
-                    
-                    // Render Dashboard Widgets
-                    dash.innerHTML += `
-                        <div class="bg-gray-900 p-6 rounded border border-gray-800 shadow-lg hover:border-blue-500 transition">
-                            <h3 class="text-blue-400 font-bold mb-2">${m.name}</h3>
-                            <p class="text-sm text-gray-500">Status: <span class="text-green-500">Active</span></p>
-                        </div>`;
+            modules.forEach(m => {
+                const html = `<div class="bg-gray-900 p-6 rounded border border-gray-700 hover:border-blue-500 cursor-pointer" onclick="openModule('${m.name}')">
+                    <h3 class="font-bold">${m.name}</h3>
+                    <p class="text-[10px] text-gray-500">OPERATIONAL</p>
+                </div>`;
+                
+                if(m.type === 'op') {
+                    opContainer.innerHTML += html;
+                } else if(userRole === 'Admin') {
+                    adminContainer.innerHTML += html;
                 }
             });
+
+            // Staff ke liye Restricted section hide karein
+            if(userRole !== 'Admin') {
+                adminContainer.style.display = 'none';
+                adminTitle.style.display = 'none';
+            }
         }
+
+        function openModule(name) {
+            alert(name + " module is now operational. Redirecting to workspace...");
+        }
+
         initApp();
     </script>
 </body>
