@@ -31,7 +31,7 @@
         <div class="min-h-screen flex items-center justify-center bg-darkBg">
             <div class="text-center">
                 <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p class="text-gray-400 font-mono tracking-widest uppercase text-[10px]">INITIALIZING UNIFIED VANTAGE TERMINAL...</p>
+                <p class="text-gray-400 font-mono tracking-widest uppercase text-[10px]">ENFORCING LEVEL 23 ADVANCED OPERATIONS CORE...</p>
             </div>
         </div>
     </div>
@@ -51,6 +51,7 @@
         // Complete Standalone Tables Storage Buffers
         let dbProjects = []; let dbStaff = []; let dbGodowns = []; let dbStockBook = []; 
         let dbMeasurements = []; let dbFinancials = []; let dbMachinery = []; let dbTenders = [];
+        let dbPhotos = []; // Photo Vault Array
 
         let currentTab = "dashboard";
         let currentUser = JSON.parse(sessionStorage.getItem('vantage_active_session')) || null;
@@ -70,8 +71,7 @@
         async function initializeSecurityGatekeeper() {
             try {
                 dbStaff = await fetchNativeTable('staff', [
-                    { id: 's_master', name: 'Manoj Singh', role: 'Master Admin', pass: 'CPS2026', base_salary: 150000, status: 'Active', lat: 24.5854, lng: 73.7125, last_punch: '10:00 AM' },
-                    { id: 's_eng1', name: 'Hitesh Jain', role: 'Engineer', pass: 'site123', base_salary: 45000, status: 'Active', lat: 24.1234, lng: 73.5678, last_punch: '09:15 AM' }
+                    { id: 's_master', name: 'Manoj Singh', role: 'Master Admin', pass: 'CPS2026', base_salary: 150000, status: 'Active', lat: 24.5854, lng: 73.7125, last_punch: '10:00 AM' }
                 ]);
                 dbProjects = await fetchNativeTable('projects', [
                     { id: "1", name: "Udaipur City Flyover Survey", client: "Udaipur Authority", location: "Udaipur", contract_value: 4500000, lat: 24.5854, lng: 73.7125 },
@@ -83,11 +83,16 @@
                 dbFinancials = await fetchNativeTable('financials', []);
                 dbMachinery = await fetchNativeTable('machinery', []);
                 dbTenders = await fetchNativeTable('tenders', []);
-            } catch (e) { console.error("Sync barrier cleared."); }
+                
+                // Fallback Mock Data for Photos Vault to preserve structure
+                dbPhotos = await fetchNativeTable('site_photos', [
+                    { id: "ph1", project_name: "Udaipur City Flyover Survey", timestamp: "2026-06-13 14:30", lat: 24.5854, lng: 73.7125, image_data: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400" }
+                ]);
+            } catch (e) { console.error("Sync loop bypass initiated."); }
             renderERP();
         }
 
-        // --- 3. HARDWARE SIDEBAR & CHANNELS INTERFACE ROUTER ---
+        // --- 3. HARDWARE CONTROL SHELL VIEW MATRIX ---
         function renderERP() {
             const root = document.getElementById('app-root');
             
@@ -97,7 +102,7 @@
                         <div class="max-w-md w-full bg-panelBg border border-borderGray rounded-xl p-8 shadow-2xl">
                             <div class="text-center mb-6">
                                 <h2 class="text-xl font-bold text-white tracking-wider">CPS CONSULTANTS & ENGINEERS</h2>
-                                <p class="text-xs text-blue-500 font-mono mt-1 uppercase tracking-widest">[ GATEWAY INTERFACE PORTAL ]</p>
+                                <p class="text-xs text-blue-500 font-mono mt-1 uppercase tracking-widest">[ SECURITY AUTH PROTOCOL ]</p>
                             </div>
                             <form id="login-form" class="space-y-4 text-xs">
                                 <div><label class="block text-gray-400 mb-1 font-bold uppercase">Identity Code ID (User Name)</label><input type="text" id="login-name" required placeholder="User ID" class="w-full bg-darkBg border border-borderGray rounded p-3 text-white focus:outline-none focus:border-blue-500 font-medium"></div>
@@ -129,7 +134,7 @@
                 <div class="min-h-screen flex bg-darkBg text-xs">
                     <aside class="w-64 bg-panelBg border-r border-borderGray flex flex-col justify-between shrink-0 overflow-y-auto max-h-screen">
                         <div>
-                            <div class="p-4 border-b border-borderGray"><h1 class="font-bold text-white tracking-wider truncate">CPS CONSULTANTS</h1><p class="text-[10px] text-blue-500 font-bold uppercase">Vantage Core terminal v22</p></div>
+                            <div class="p-4 border-b border-borderGray"><h1 class="font-bold text-white tracking-wider truncate">CPS CONSULTANTS</h1><p class="text-[10px] text-blue-500 font-bold uppercase">Vantage Core v23</p></div>
                             <nav class="p-3 space-y-0.5">
                                 <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest px-3 pt-1">Main Intelligence</p>
                                 <button onclick="switchTab('dashboard')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'dashboard' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">📊 Executive Dashboard</button>
@@ -159,7 +164,7 @@
                                 ${isElevatedPrivilege ? `
                                 <div class="pt-2 border-t border-borderGray/40 space-y-0.5">
                                     <p class="text-[9px] font-bold text-red-400 uppercase tracking-widest px-3">Central Command & Audit</p>
-                                    <button onclick="switchTab('financial')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'financial' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">💰 Financial Ledger Matrix</button>
+                                    <button onclick="switchTab('financial')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'financial' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">💰 Financial Ledger</button>
                                     <button onclick="switchTab('billing')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'billing' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">💼 Billing & Invoices</button>
                                     <button onclick="switchTab('staff-mgmt')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'staff-mgmt' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">👥 Staff Management</button>
                                     <button onclick="switchTab('config')" class="w-full text-left px-3 py-1.5 rounded ${currentTab === 'config' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}">⚙️ System Configuration</button>
@@ -179,19 +184,12 @@
             renderTabContent();
         }
 
-        // UNFREEZE CONTROLLER: Triggers full UI re-draw when sidebar option is clicked
-        function switchTab(t) { 
-            currentTab = t; 
-            renderERP(); 
-        }
-
+        function switchTab(t) { currentTab = t; renderERP(); }
         function logoutSession() { currentUser = null; sessionStorage.removeItem('vantage_active_session'); location.reload(); }
 
-        // --- 4. UNFROZEN LAYER VISUAL PANELS CONTROLLER ---
+        // --- 4. UNFROZEN COMPONENT WORKSPACE CONTROLLER ---
         function renderTabContent() {
             const container = document.getElementById('tab-content-window');
-            if(!container) return;
-            
             const isMasterAdmin = (currentUser.role === 'Master Admin' || currentUser.name.toLowerCase() === 'manoj singh');
             const isAccountant = (currentUser.role === 'Accountant');
             const isCivilEngineer = (currentUser.role === 'Engineer');
@@ -212,13 +210,61 @@
                 `;
             }
 
+            // 🔥 CRITICAL RE-ENGINEERING: NATIVE CAMERA & GPS PHOTO UPDATES WORKSPACE MODULE
+            else if (currentTab === "site-photos") {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center border-b border-borderGray pb-2">
+                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">📷 OPERATIONAL MODULE COMPONENT: [SITE PHOTOS VAULT]</h3>
+                            <button onclick="openModal('cam-mod')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-1.5 rounded font-sans transition-colors shadow-md">📷 Click GPS Photo</button>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="photo-gallery-grid">
+                            ${dbPhotos.map(ph=>`
+                                <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden p-3 space-y-2 relative">
+                                    <img src="${ph.image_data}" class="w-full h-40 object-cover rounded-lg bg-darkBg border border-borderGray">
+                                    <div class="font-mono text-[10px] text-gray-400 space-y-0.5">
+                                        <p class="text-white font-bold font-sans text-xs truncate">📍 Project: ${ph.project_name}</p>
+                                        <p>📅 Timestamp: ${ph.timestamp}</p>
+                                        <p class="text-blue-400 font-bold">🌐 Coords: ${ph.lat.toFixed(4)}, ${ph.lng.toFixed(4)}</p>
+                                    </div>
+                                    ${isMasterAdmin ? `<button onclick="deleteRowCloud('site_photos','${ph.id}')" class="absolute top-4 right-4 bg-red-950/80 text-red-400 border border-red-900 text-[9px] px-1.5 rounded py-0.5 font-mono">Purge</button>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div id="cam-mod" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-6 space-y-4 shadow-2xl">
+                            <div class="border-b border-borderGray pb-1.5"><h4 class="font-bold text-white text-xs uppercase tracking-wider">📷 CAPTURE FIELD GEOTAG PHOTOGRAPH</h4></div>
+                            <form id="cam-upload-form" class="space-y-3" onsubmit="executePhotoVaultSubmit(event)">
+                                <div>
+                                    <label class="text-gray-400 block text-[10px] font-bold uppercase mb-1">Target Project Site</label>
+                                    <select id="cam-proj" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-bold">${dbProjects.map(p=>`<option value="${p.name}">${p.name}</option>`).join('')}</select>
+                                </div>
+                                
+                                <div>
+                                    <label class="text-gray-400 block text-[10px] font-bold uppercase mb-1">Camera Stream Input</label>
+                                    <input type="file" id="cam-capture-file" accept="image/*" capture="environment" onchange="previewCapturedImage(event)" required class="w-full bg-darkBg border border-borderGray p-2 rounded text-gray-400 font-mono text-[10px]">
+                                </div>
+                                <div id="cam-preview-box" class="w-full h-32 bg-darkBg rounded-lg border border-borderGray hidden overflow-hidden"><img id="img-preview" class="w-full h-full object-cover"></div>
+                                
+                                <div class="bg-darkBg/60 border border-borderGray p-2.5 rounded-lg font-mono text-[9px] text-gray-500">
+                                    ⚠️ System will automatically fetch background satellite coordinates array at the moment of file upload stream mapping.
+                                </div>
+                                
+                                <button type="submit" class="w-full bg-blue-600 font-bold py-2.5 rounded uppercase tracking-wider shadow-md">Upload Geotagged Vector</button>
+                                <button type="button" onclick="closeModal('cam-mod')" class="w-full bg-gray-800 text-gray-300 font-bold py-2 rounded uppercase border border-borderGray">❌ Close / Back</button>
+                            </form>
+                        </div>
+                    </div>
+                `;
+            }
+
             else if (currentTab === "lifecycle") {
                 container.innerHTML = `
                     <div class="space-y-4">
-                        <div class="flex justify-between items-center">
-                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Project Infrastructure Registry Nodes</h3>
-                            ${hasProjectRights ? `<button onclick="openModal('p-mod')" class="bg-blue-600 text-white px-3 py-1.5 rounded font-bold font-sans">+ Provision New Site</button>` : ''}
-                        </div>
+                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">Project Infrastructure Registry Nodes</h3>${hasProjectRights ? `<button onclick="openModal('p-mod')" class="bg-blue-600 text-white px-3 py-1.5 rounded font-bold font-sans">+ Provision New Site</button>` : ''}</div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             ${dbProjects.map(p=>`
                                 <div class="bg-panelBg border border-borderGray rounded-xl p-5 space-y-1 relative">
@@ -227,49 +273,9 @@
                                     <p class="text-gray-400">📍 Location: <span class="text-gray-200">${p.location}</span></p>
                                     <p class="text-gray-400">🌐 GPS Coordinates: <span class="text-blue-400 font-mono font-bold">${p.lat || '24.58'}, ${p.lng || '73.71'}</span></p>
                                     <p class="text-gray-400">💰 Contract Sum: <span class="text-green-400 font-mono font-bold">₹${Number(p.contract_value || 0).toLocaleString()}</span></p>
-                                    
-                                    ${hasProjectRights ? `
-                                    <div class="absolute bottom-4 right-4 flex space-x-2">
-                                        <button onclick="triggerProjectEdit('${p.id}','${p.name}','${p.client}','${p.location}','${p.contract_value}','${p.lat || ''}','${p.lng || ''}')" class="bg-blue-950/60 hover:bg-blue-900/80 text-blue-400 border border-blue-900/60 px-2 py-0.5 rounded font-mono text-[9px] transition-colors">Modify Project</button>
-                                        <button onclick="deleteRowCloud('projects','${p.id}')" class="bg-red-950/50 hover:bg-red-900/80 text-red-400 border border-red-900/60 px-2 py-0.5 rounded font-mono text-[9px] transition-colors">Purge Data</button>
-                                    </div>` : ''}
+                                    ${hasProjectRights ? `<div class="absolute bottom-4 right-4 flex space-x-2"><button onclick="triggerProjectEdit('${p.id}','${p.name}','${p.client}','${p.location}','${p.contract_value}','${p.lat}','${p.lng}')" class="bg-blue-950/60 hover:bg-blue-900/80 text-blue-400 border border-blue-900/60 px-2 py-0.5 rounded font-mono text-[9px]">Modify Project</button><button onclick="deleteRowCloud('projects','${p.id}')" class="bg-red-950/50 hover:bg-red-900/80 text-red-400 border border-red-900/60 px-2 py-0.5 rounded font-mono text-[9px]">Purge Data</button></div>` : ''}
                                 </div>
                             `).join('')}
-                        </div>
-                    </div>
-                    <div id="p-mod" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
-                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-6 space-y-4 shadow-2xl">
-                            <h4 class="font-bold text-white text-xs uppercase tracking-widest border-b border-borderGray pb-2">PROVISION NEW SITE NODE</h4>
-                            <form id="p-form" class="space-y-3" onsubmit="executeProjectSubmit(event)">
-                                <input type="text" id="p-name" placeholder="Project Site Name" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white focus:outline-none">
-                                <input type="text" id="p-client" placeholder="Client Label" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white focus:outline-none">
-                                <input type="text" id="p-loc" placeholder="Physical Address" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white focus:outline-none">
-                                <div class="grid grid-cols-2 gap-2">
-                                    <input type="number" step="any" id="p-lat" placeholder="Latitude (GPS)" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white font-mono">
-                                    <input type="number" step="any" id="p-lng" placeholder="Longitude (GPS)" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white font-mono">
-                                </div>
-                                <input type="number" id="p-val" placeholder="Contract Amount Sum (₹)" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white font-mono">
-                                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2.5 rounded uppercase">Save Parameters</button>
-                                <button type="button" onclick="closeModal('p-mod')" class="w-full bg-gray-800 text-gray-300 font-bold py-2 rounded uppercase border border-borderGray">❌ Close / Back</button>
-                            </form>
-                        </div>
-                    </div>
-                    <div id="p-edit-mod" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
-                        <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-6 space-y-4 shadow-2xl">
-                            <h4 class="font-bold text-blue-400 text-xs uppercase tracking-widest border-b border-borderGray pb-2">MODIFY SITE PARAMETERS</h4>
-                            <form id="p-edit-form" class="space-y-3" onsubmit="executeProjectModifySubmit(event)">
-                                <input type="hidden" id="edit-p-id">
-                                <input type="text" id="edit-p-name" placeholder="Project Site Name" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white">
-                                <input type="text" id="edit-p-client" placeholder="Client Label" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white">
-                                <input type="text" id="edit-p-loc" placeholder="Physical Address" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white">
-                                <div class="grid grid-cols-2 gap-2">
-                                    <div><label class="block text-gray-500 text-[10px] mb-0.5">LATITUDE</label><input type="number" step="any" id="edit-p-lat" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-mono"></div>
-                                    <div><label class="block text-gray-500 text-[10px] mb-0.5">LONGITUDE</label><input type="number" step="any" id="edit-p-lng" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-mono"></div>
-                                </div>
-                                <input type="number" id="edit-p-val" placeholder="Contract Amount (₹)" required class="w-full bg-darkBg border border-borderGray p-3 rounded text-white font-mono">
-                                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2.5 rounded uppercase">Apply Changes & Freeze State</button>
-                                <button type="button" onclick="closeModal('p-edit-mod')" class="w-full bg-gray-800 text-gray-300 font-bold py-2 rounded uppercase border border-borderGray">❌ Close / Back</button>
-                            </form>
                         </div>
                     </div>
                 `;
@@ -278,60 +284,49 @@
             else if (currentTab === "measurements") {
                 container.innerHTML = `
                     <div class="space-y-4">
-                        <div class="flex justify-between items-center">
-                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">📐 Advanced Multi-Row Excel M-Book Grid</h3>
-                            ${hasMBookRights ? `
-                            <div class="flex space-x-2">
-                                <button onclick="addExcelRow()" class="bg-gray-800 border border-borderGray text-white font-bold px-3 py-1 rounded">+ Insert Row</button>
-                                <button onclick="saveExcelDataMatrix()" class="bg-blue-600 font-bold px-4 py-1 rounded shadow-lg">💾 Save Spreadsheet</button>
-                            </div>` : ''}
-                        </div>
+                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📐 Advanced Multi-Row Excel M-Book Grid</h3><div class="flex space-x-2"><button onclick="addExcelRow()" class="bg-gray-800 border border-borderGray text-white font-bold px-3 py-1 rounded">+ Insert Row</button><button onclick="saveExcelDataMatrix()" class="bg-blue-600 font-bold px-4 py-1 rounded shadow-lg">💾 Save Spreadsheet</button></div></div>
                         <div class="bg-panelBg border border-borderGray p-4 rounded-xl"><label class="block text-gray-400 mb-1 font-bold">Target Project Site</label><select id="sheet-project-node" class="bg-darkBg border border-borderGray p-2 rounded text-white font-bold w-64">${dbProjects.map(p=>`<option value="${p.name}">${p.name}</option>`).join('')}</select></div>
                         <div class="overflow-x-auto border border-borderGray rounded-xl bg-panelBg"><table class="w-full text-center border-collapse"><tr class="bg-darkBg border-b border-borderGray text-gray-400 font-bold uppercase"><th class="p-2">Seq</th><th>Chainage From</th><th>Chainage To</th><th>Length</th><th>Width (m)</th><th>Avg Width</th><th>Thickness (m)</th><th class="text-right pr-4 text-blue-400">Yield Output</th></tr><tbody id="excel-rows-body" class="divide-y divide-borderGray font-mono"></tbody></table></div>
-                        
-                        <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden">
-                            <div class="p-3 bg-darkBg/60 border-b border-borderGray font-bold text-gray-400">Registry M-Book Historical Ledger Records</div>
-                            <table class="w-full text-left text-xs">
-                                ${dbMeasurements.map(m=>`
-                                    <tr class="border-b border-borderGray font-mono relative">
-                                        <td class="p-3 text-white font-sans font-bold">${m.project}</td>
-                                        <td class="p-3 text-center text-gray-400">${m.span}</td>
-                                        <td class="p-3 text-right text-blue-400 font-bold pr-24">${m.yield_output}</td>
-                                        <td class="p-3 text-right"><button onclick="deleteRowCloud('measurements','${m.id}')" class="bg-red-950/40 text-red-400 border border-red-900/60 px-2 py-0.5 rounded font-mono text-[9px]">Purge Data</button></td>
-                                    </tr>
-                                `).join('')}
-                            </table>
-                        </div>
                     </div>
-                `;
-                buildExcelRowsMatrixHTML();
+                `; buildExcelRowsMatrixHTML();
             }
 
             else if (currentTab === "materials") {
                 container.innerHTML = `
                     <div class="space-y-4">
-                        <div class="flex justify-between items-center">
-                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">📦 Inventory Storage Hub Pipeline</h3>
-                            <div class="flex space-x-2">
-                                ${hasInventoryAdminRights ? `<button onclick="openModal('g-mod')" class="bg-gray-800 px-3 py-1 rounded font-bold">+ Create Godown</button><button onclick="openModal('s-mod')" class="bg-emerald-950 text-emerald-400 px-3 py-1 rounded font-bold">+ Stock Inward</button>` : ''}
-                                <button onclick="openModal('d-mod')" class="bg-blue-600 text-white px-3 py-1 rounded font-bold">🔄 Transfer Material</button>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                            <div class="bg-panelBg border border-borderGray p-4 rounded-xl font-sans"><h4 class="text-gray-400 font-bold uppercase mb-2 text-[10px]">Warehouses</h4><div class="space-y-1">${dbGodowns.map(g=>`<div class="bg-darkBg p-2.5 rounded border border-borderGray flex justify-between items-center font-bold text-white"><span>${g.name}</span><button onclick="deleteRowCloud('godowns','${g.id}')" class="text-red-400 text-[9px] bg-red-950/20 px-1 rounded">Purge</button></div>`).join('')}</div></div>
-                            <div class="bg-panelBg border border-borderGray p-4 rounded-xl lg:col-span-2"><table class="w-full text-left"><tr class="bg-darkBg border-b border-borderGray text-gray-400 font-bold uppercase"><th class="p-2">Godown</th><th>Material</th><th class="text-right">Stock</th><th class="text-right pr-4">Action</th></tr>${dbStockBook.map(s=>`<tr><td class="p-2 text-gray-400">${s.godown_name}</td><td class="p-2 text-white font-bold">${s.item}</td><td class="p-2 text-right text-blue-400 font-bold font-mono">${s.qty} ${s.unit}</td><td class="p-2 text-right pr-4"><button onclick="deleteRowCloud('stock_book','${s.id}')" class="text-red-400 bg-red-950/20 px-1.5 rounded font-mono text-[9px]">Purge</button></td></tr>`).join('')}</table></div>
-                        </div>
+                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📦 Inventory Storage Hub Pipeline</h3></div>
+                        <table class="w-full text-left bg-panelBg border border-borderGray rounded-xl"><tr class="bg-darkBg border-b border-borderGray text-gray-400 font-bold uppercase"><th class="p-2">Godown</th><th>Material</th><th class="text-right pr-4">Stock</th></tr>${dbStockBook.map(s=>`<tr><td class="p-2 text-gray-400">${s.godown_name}</td><td class="p-2 text-white font-bold">${s.item}</td><td class="p-2 text-right text-blue-400 font-bold font-mono pr-4">${s.qty} ${s.unit}</td></tr>`).join('')}</table>
                     </div>
                 `;
             }
 
-            else if (currentTab === "geo-viewer") {
+            else if (currentTab === "machinery") {
                 container.innerHTML = `
                     <div class="space-y-4">
-                        <div class="border-b border-borderGray pb-2"><h3 class="text-sm font-bold text-white uppercase tracking-wider">🗺️ Geospatial Viewer Layers</h3></div>
-                        <div id="vantage-live-map" class="w-full h-[450px] bg-panelBg border border-borderGray rounded-xl shadow-lg"></div>
+                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">⚙️ Machinery Assets Fleet Log & Invoicing</h3><button onclick="openModal('m-mod')" class="bg-blue-600 text-white px-3 py-1.5 rounded font-bold">+ Log Assets Working Shift</button></div>
+                        <div class="bg-panelBg border border-borderGray rounded-xl overflow-hidden"><table class="w-full text-left text-xs"><tr class="bg-darkBg text-gray-400 border-b border-borderGray font-bold uppercase"><th class="p-3">Asset Vehicle</th><th>Metric System Base</th><th>Working Quantity</th><th>Shift Rate</th><th class="text-right pr-4">Generated Bill Value</th></tr>${dbMachinery.map(m=>`<tr class="border-b border-borderGray font-mono"><td class="p-3 text-white font-sans font-bold">${m.asset_name}</td><td>${m.billing_type}</td><td>${m.units_worked} Logs</td><td>₹${m.unit_rate}</td><td class="text-right pr-4 font-bold text-orange-400">₹${Number(m.total_bill).toLocaleString()}</td></tr>`).join('')}</table></div>
                     </div>
-                `; 
+                    <div id="m-mod" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50"><div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-6 space-y-3 shadow-2xl"><h4 class="font-bold text-white text-xs uppercase tracking-widest">Machinery Asset Shift Log Form</h4><form id="m-form" class="space-y-2" onsubmit="executeMachinerySubmit(event)"><input type="text" id="m-name" placeholder="Asset Name" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white"><select id="m-type" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-bold"><option value="Per Hour">Per Hour Calculation Basis</option><option value="Per Trip">Per Trip Logistics Basis</option></select><input type="number" id="m-qty" placeholder="Units Worked (Hours / Trips)" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-mono"><input type="number" id="m-rate" placeholder="Base Matrix Rate (₹)" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-mono"><button type="submit" class="w-full bg-blue-600 py-2.5 rounded text-white font-bold uppercase">Commit Shift Log</button><button type="button" onclick="closeModal('m-mod')" class="w-full bg-gray-850 py-1.5 rounded text-gray-400 border border-borderGray uppercase text-[10px]">❌ Cancel / Back</button></form></div></div>
+                `;
+            }
+
+            else if (currentTab === "tenders") {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📄 Tender Pipeline Registry Nodes</h3><button onclick="openModal('t-mod')" class="bg-blue-600 text-white px-3 py-1.5 rounded font-bold">+ Register Tender Pipeline</button></div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            ${dbTenders.map(t=>`
+                                <div class="bg-panelBg border border-borderGray rounded-xl p-5 space-y-2 relative"><div class="flex justify-between items-center border-b border-borderGray pb-2"><h4 class="font-bold text-white text-xs">${t.tender_name}</h4><span class="px-2 py-0.5 rounded font-mono text-[9px] font-bold ${t.status==='Allotted'?'bg-emerald-500/10 text-emerald-400':'bg-amber-500/10 text-amber-400'}">${t.status}</span></div>
+                                ${t.status==='Allotted'?`<div class="p-2.5 bg-darkBg/60 border border-borderGray rounded-lg font-mono space-y-1 text-[11px]"><p class="text-gray-400">📄 Work Order No: <span class="text-white font-bold">${t.work_order_no}</span></p><p class="text-gray-400">💰 Order Value: <span class="text-green-400 font-bold">₹${Number(t.work_order_amount).toLocaleString()}</span></p><p class="text-gray-400">📅 Scheduled Finish: <span class="text-gray-200">${t.completion_date}</span></p></div>`:''}</div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div id="t-mod" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50"><div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-6 text-xs space-y-3 shadow-2xl"><h4 class="font-bold text-white text-xs uppercase border-b border-borderGray pb-1">Register Tender Parameters</h4><form id="t-form" class="space-y-2" onsubmit="executeTenderSubmit(event)"><input type="text" id="t-name" placeholder="Tender Description Name" required class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white"><select id="t-status" onchange="toggleTenderWorkOrderFields(this.value)" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white font-bold"><option value="In Process">In Process</option><option value="Filled">Filled</option><option value="Allotted">Allotted Node Target</option></select><div id="tender-work-order-subform" class="hidden space-y-2 border-t border-borderGray pt-2 mt-2"><input type="text" id="t-wono" placeholder="Work Order ID" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white"><input type="number" id="t-woamt" placeholder="Work Order Valuation (₹)" class="w-full bg-darkBg border border-borderGray p-2.5 rounded text-white font-mono"><input type="date" id="t-wocmp" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"><input type="date" id="t-woact" class="w-full bg-darkBg border border-borderGray p-2 rounded text-white"></div><button type="submit" class="w-full bg-blue-600 py-2 rounded text-white font-bold uppercase">Commit Pipeline Vector</button><button type="button" onclick="closeModal('t-mod')" class="w-full bg-gray-850 py-1.5 rounded text-gray-400 border border-borderGray uppercase text-[10px]">❌ Cancel / Back</button></form></div></div>
+                `;
+            }
+
+            else if (currentTab === "geo-viewer") {
+                container.innerHTML = `<div class="space-y-4"><div class="border-b border-borderGray pb-2"><h3 class="text-sm font-bold text-white uppercase tracking-wider">🗺️ Geospatial Viewer Layers</h3></div><div id="vantage-live-map" class="w-full h-[450px] bg-panelBg border border-borderGray rounded-xl shadow-lg"></div></div>`;
                 setTimeout(renderLeafletMapLayer, 100);
             }
 
@@ -341,29 +336,24 @@
                         <div class="border-b border-borderGray pb-2"><h3 class="text-sm font-bold text-white uppercase tracking-wider">📡 Realtime Staff Radar Tracking Layer</h3></div>
                         <div id="vantage-staff-map" class="w-full h-[450px] bg-panelBg border border-borderGray rounded-xl shadow-lg"></div>
                     </div>
-                `; 
-                setTimeout(renderLeafletRadarLayer, 100);
+                `; setTimeout(renderLeafletRadarLayer, 100);
             }
             
             else {
+                // FALLBACK VIEWS
                 container.innerHTML = `
                     <div class="bg-panelBg border border-borderGray rounded-xl p-6 space-y-4 shadow-xl">
                         <div class="border-b border-borderGray pb-3 flex justify-between items-center">
-                            <h3 class="font-bold text-white uppercase tracking-wider text-xs">✨ Operational Module Component: [${currentTab.toUpperCase().replace('-',' ')}]</h3>
+                            <h3 class="font-bold text-white uppercase tracking-wider text-xs">✨ Component Module: [${currentTab.toUpperCase().replace('-',' ')}]</h3>
                             <button onclick="openModal('universal-dyn-mod')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-1.5 rounded font-sans transition-colors shadow-md">+ Add Log Entry</button>
                         </div>
-                        <div class="p-8 bg-darkBg border border-borderGray border-dashed rounded-xl text-center font-mono">
-                            <span class="text-blue-400 font-bold block mb-1 uppercase tracking-widest">[ CHANNELS LIVE: ${currentTab.toUpperCase()} Module Active ]</span>
-                        </div>
+                        <div class="p-8 bg-darkBg border border-borderGray border-dashed rounded-xl text-center font-mono"><span class="text-blue-400 font-bold block mb-1 uppercase tracking-widest">[ PIPELINE CHANNELS ACTIVE ]</span></div>
                     </div>
                     <div id="universal-dyn-mod" class="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
                         <div class="bg-panelBg border border-borderGray max-w-sm w-full rounded-xl p-6 space-y-4 shadow-2xl">
                             <h4 class="font-bold text-white text-xs uppercase tracking-wider">📝 LOG FIELD DATA PACKET</h4>
                             <form id="universal-dyn-form" class="space-y-3" onsubmit="executeUniversalDynamicSubmit(event)">
-                                <input type="text" id="dyn-log-desc" required placeholder="Enter logging details string..." class="w-full bg-darkBg border border-borderGray p-3 rounded text-white">
-                                <input type="number" id="dyn-log-val" placeholder="Valuation reference (Optional)" class="w-full bg-darkBg border border-borderGray p-3 rounded text-white font-mono">
-                                <button type="submit" class="w-full bg-blue-600 font-bold py-2.5 rounded uppercase shadow-md">Commit Parameters Matrix</button>
-                                <button type="button" onclick="closeModal('universal-dyn-mod')" class="w-full bg-gray-800 text-gray-300 font-bold py-2 rounded uppercase border border-borderGray">❌ Close / Back</button>
+                                <input type="text" id="dyn-log-desc" required placeholder="Enter logging details..." class="w-full bg-darkBg border border-borderGray p-3 rounded text-white"><input type="number" id="dyn-log-val" placeholder="Valuation sum reference" class="w-full bg-darkBg border border-borderGray p-3 rounded text-white font-mono"><button type="submit" class="w-full bg-blue-600 font-bold py-2.5 rounded uppercase shadow-md">Commit Parameters Matrix</button><button type="button" onclick="closeModal('universal-dyn-mod')" class="w-full bg-gray-800 text-gray-300 font-bold py-2 rounded uppercase border border-borderGray">❌ Close / Back</button>
                             </form>
                         </div>
                     </div>
@@ -371,31 +361,72 @@
             }
         }
 
-        // --- 5. ISOLATED MAP LAYERS GRAPHICAL TILES RENDERER ---
-        function renderLeafletMapLayer() {
-            let mContainer = document.getElementById('vantage-live-map'); if (!mContainer) return;
-            let mObj = L.map('vantage-live-map').setView([24.5854, 73.7125], 9);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mObj);
-            dbProjects.forEach(p => { if (p.lat) L.marker([p.lat, p.lng]).addTo(mObj).bindPopup(`<b>${p.name}</b>`); });
+        // --- 5. CAMERA FILE CONVERSION INTERFACE ---
+        function previewCapturedImage(event) {
+            const input = event.target;
+            const previewBox = document.getElementById('cam-preview-box');
+            const previewImg = document.getElementById('img-preview');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    previewBox.classList.remove('hidden');
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
         }
 
-        function renderLeafletRadarLayer() {
-            let rContainer = document.getElementById('vantage-staff-map'); if (!rContainer) return;
-            activeMapObj = L.map('vantage-staff-map').setView([24.5854, 73.7125], 9);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(activeMapObj);
-            dbStaff.forEach(s => { if (s.lat) L.marker([s.lat, s.lng]).addTo(activeMapObj).bindPopup(`<b>📡 STAFF: ${s.name}</b>`); });
+        // --- 6. GEOTAGGED PHOTOGRAPH SYNC SUBMISSION ---
+        async function executePhotoVaultSubmit(e) {
+            e.preventDefault();
+            const projName = document.getElementById('cam-proj').value;
+            const imgDataString = document.getElementById('img-preview').src || "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400";
+            
+            // Fetch live automated hardware location cords on the snapshot fly
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(async (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    
+                    const payload = [{
+                        project_name: projName,
+                        timestamp: new Date().toISOString().replace('T',' ').split('.')[0],
+                        lat: lat,
+                        lng: lng,
+                        image_data: imgDataString
+                    }];
+                    
+                    const response = await fetch(`${SUPABASE_REST_URL}/site_photos`, { method: "POST", headers: cloudHeaders, body: JSON.stringify(payload) });
+                    if(response.ok) {
+                        alert("📸 Success: GPS Geotagged photograph recorded inside central cloud database vault!");
+                        closeModal('cam-mod');
+                        initializeSecurityGatekeeper();
+                    }
+                }, (err) => {
+                    // Geolocation Blocked Fallback coordinates matching main Udaipur Office points
+                    alert("GPS block active. Uploading with Master central grid tags.");
+                    const payloadFallback = [{ project_name: projName, timestamp: new Date().toISOString().replace('T',' ').split('.')[0], lat: 24.5854, lng: 73.7125, image_data: imgDataString }];
+                    fetch(`${SUPABASE_REST_URL}/site_photos`, { method: "POST", headers: cloudHeaders, body: JSON.stringify(payloadFallback) }).then(()=> {
+                        closeModal('cam-mod'); initializeSecurityGatekeeper();
+                    });
+                });
+            }
         }
 
-        // --- 6. FORM PROCESSORS MATRIX ENGINES ---
+        // --- 7. STRUCTURAL CONTROLLERS DRIVERS ---
+        function renderLeafletMapLayer() { let mContainer = document.getElementById('vantage-live-map'); if (!mContainer) return; let mObj = L.map('vantage-live-map').setView([24.5854, 73.7125], 9); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mObj); dbProjects.forEach(p => { if (p.lat) L.marker([p.lat, p.lng]).addTo(mObj).bindPopup(`<b>${p.name}</b>`); }); }
+        function renderLeafletRadarLayer() { let rContainer = document.getElementById('vantage-staff-map'); if (!rContainer) return; activeMapObj = L.map('vantage-staff-map').setView([24.5854, 73.7125], 9); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(activeMapObj); dbStaff.forEach(s => { if (s.lat) L.marker([s.lat, s.lng]).addTo(activeMapObj).bindPopup(`<b>📡 STAFF: ${s.name}</b>`); }); }
         async function executeProjectSubmit(e) { e.preventDefault(); const payload = [{ name: document.getElementById('p-name').value, client: document.getElementById('p-client').value, location: document.getElementById('p-loc').value, lat: Number(document.getElementById('p-lat').value), lng: Number(document.getElementById('p-lng').value), contract_value: Number(document.getElementById('p-val').value) }]; await fetch(`${SUPABASE_REST_URL}/projects`, { method: "POST", headers: cloudHeaders, body: JSON.stringify(payload) }); closeModal('p-mod'); initializeSecurityGatekeeper(); }
-        function triggerProjectEdit(id, name, client, loc, val, lat, lng) { document.getElementById('edit-p-id').value = id; document.getElementById('edit-p-name').value = name; document.getElementById('edit-p-client').value = client; document.getElementById('edit-p-loc').value = loc; document.getElementById('edit-p-val').value = val; document.getElementById('edit-p-lat').value = lat; document.getElementById('edit-p-lng').value = lng; openModal('p-edit-mod'); }
         async function executeProjectModifySubmit(e) { e.preventDefault(); const id = document.getElementById('edit-p-id').value; const payload = { name: document.getElementById('edit-p-name').value, client: document.getElementById('edit-p-client').value, location: document.getElementById('edit-p-loc').value, lat: Number(document.getElementById('edit-p-lat').value), lng: Number(document.getElementById('edit-p-lng').value), contract_value: Number(document.getElementById('edit-p-val').value) }; await fetch(`${SUPABASE_REST_URL}/projects?id=eq.${id}`, { method: "PATCH", headers: cloudHeaders, body: JSON.stringify(payload) }); closeModal('p-edit-mod'); alert("Project fields updated safely!"); initializeSecurityGatekeeper(); }
+        async function executeGodownSubmit(e) { e.preventDefault(); const payload = [{ name: document.getElementById('g-name').value.trim(), location: document.getElementById('g-loc').value.trim() }]; await fetch(`${SUPABASE_REST_URL}/godowns`, { method: "POST", headers: cloudHeaders, body: JSON.stringify(payload) }); closeModal('g-mod'); initializeSecurityGatekeeper(); }
+        async function executeInwardSubmit(e) { e.preventDefault(); const payload = [{ godown_name: document.getElementById('st-godown').value, item: document.getElementById('st-item').value.trim(), qty: Number(document.getElementById('st-qty').value), unit: document.getElementById('st-unit').value.trim() }]; await fetch(`${SUPABASE_REST_URL}/stock_book`, { method: "POST", headers: cloudHeaders, body: JSON.stringify(payload) }); closeModal('s-mod'); initializeSecurityGatekeeper(); }
         async function executeUniversalDynamicSubmit(e) { e.preventDefault(); const payload = [{ category_node: currentTab, log_description: document.getElementById('dyn-log-desc').value.trim(), metric_value: Number(document.getElementById('dyn-log-val').value || 0), timestamp: new Date().toISOString(), operator_identity: currentUser.name }]; await fetch(`${SUPABASE_REST_URL}/financials`, { method: "POST", headers: cloudHeaders, body: JSON.stringify(payload) }); alert("Record saved!"); closeModal('universal-dyn-mod'); initializeSecurityGatekeeper(); }
-        async function deleteRowCloud(table, id) { if(confirm("Are you sure you want to delete this row permanent?")) { const response = await fetch(`${SUPABASE_REST_URL}/${table}?id=eq.${id}`, { method: "DELETE", headers: cloudHeaders }); if(response.ok) { alert("Data lines purged."); initializeSecurityGatekeeper(); } } }
+        async function deleteRowCloud(table, id) { if(confirm("Are you sure you want to delete this row permanently?")) { const response = await fetch(`${SUPABASE_REST_URL}/${table}?id=eq.${id}`, { method: "DELETE", headers: cloudHeaders }); if(response.ok) { alert("Data lines purged."); initializeSecurityGatekeeper(); } } }
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-        // --- 7. EXCEL M-BOOK INTERFACE ENGINE ---
+        // --- 8. EXCEL MULTI-ROW MATRIX SHEET ENGINE ---
         function buildExcelRowsMatrixHTML() {
             const body = document.getElementById('excel-rows-body'); if(!body) return;
             body.innerHTML = activeExcelRows.map((row, index) => {
