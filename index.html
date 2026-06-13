@@ -37,62 +37,58 @@
             document.getElementById('workspace-title').innerText = name + " WORKSPACE";
             const area = document.getElementById('content-area');
             
-            if (name === 'Live Projects') {
+            if (name === 'Inventory Hub') {
                 area.innerHTML = `
-                <div id="project-workspace" class="bg-gray-900 p-6 rounded border border-gray-800">
-                    <div class="bg-black p-6 rounded border border-blue-900 mb-8">
-                        <h3 class="text-blue-400 font-bold mb-4">+ NEW PROJECT ENTRY (Admin Only)</h3>
-                        <div class="grid grid-cols-2 gap-4">
-                            <input type="text" id="p-name" placeholder="Name of Work" class="bg-gray-900 p-2 rounded">
-                            <input type="text" id="p-client" placeholder="Name of Client" class="bg-gray-900 p-2 rounded">
-                            <input type="date" id="p-commence" class="bg-gray-900 p-2 rounded">
-                            <input type="date" id="p-completion" class="bg-gray-900 p-2 rounded">
-                            <input type="number" id="p-cost" placeholder="Project Cost" class="bg-gray-900 p-2 rounded">
-                            <input type="number" id="p-dlp" placeholder="DLP Period (Years)" class="bg-gray-900 p-2 rounded">
-                            <input type="text" id="p-lat" placeholder="Latitude (Compulsory)" class="bg-gray-900 p-2 rounded border border-red-500">
-                            <input type="text" id="p-lng" placeholder="Longitude (Compulsory)" class="bg-gray-900 p-2 rounded border border-red-500">
-                            <button onclick="saveProject()" class="col-span-2 bg-blue-600 p-2 rounded font-bold hover:bg-blue-700">SUBMIT PROJECT</button>
+                <div id="inventory-workspace" class="bg-gray-900 p-6 rounded border border-gray-800">
+                    <div id="admin-stock-control" class="bg-black p-6 rounded border border-blue-900 mb-8">
+                        <h3 class="text-blue-400 font-bold mb-4">+ PURCHASE & STOCK ENTRY (Admin Only)</h3>
+                        <div class="grid grid-cols-4 gap-4">
+                            <input type="text" id="m-name" placeholder="Item Name" class="bg-gray-900 p-2 rounded text-sm">
+                            <input type="number" id="m-qty" placeholder="Quantity" class="bg-gray-900 p-2 rounded text-sm">
+                            <input type="text" id="m-unit" placeholder="Unit" class="bg-gray-900 p-2 rounded text-sm">
+                            <button onclick="addStock()" class="bg-blue-600 p-2 rounded font-bold text-sm">ADD TO STOCK</button>
                         </div>
                     </div>
+                    <div class="grid grid-cols-2 gap-6 mb-8">
+                        <button onclick="transferMaterial('send')" class="bg-emerald-600 p-4 rounded font-bold">📤 TRANSFER (Capture Photo)</button>
+                        <button onclick="transferMaterial('receive')" class="bg-purple-600 p-4 rounded font-bold">📥 RECEIVE (Capture Photo)</button>
+                    </div>
+                    <table class="w-full text-left text-sm border-collapse">
+                        <thead class="text-gray-500 uppercase border-b border-gray-800">
+                            <tr><th class="p-2">Sr.</th><th>Item</th><th>Qty</th><th>Site/Godown</th><th>Status</th></tr>
+                        </thead>
+                        <tbody id="inventory-list"></tbody>
+                    </table>
                 </div>`;
-            } else if (name === 'Site Photos') {
-                area.innerHTML = `<div class="bg-gray-900 p-8 rounded border border-gray-800 text-center">
-                    <button onclick="capturePhoto()" class="bg-blue-600 px-8 py-4 rounded font-bold hover:bg-blue-700">CAPTURE & UPLOAD WITH GPS</button>
-                    <p id="gps-status" class="text-gray-500 mt-4 text-sm">Waiting for GPS lock...</p></div>`;
-            } else if (name === 'Inventory Hub') {
+            } else if (name === 'Live Projects') {
                 area.innerHTML = `<div class="bg-gray-900 p-6 rounded border border-gray-800">
-                    <h3 class="text-blue-400 font-bold">📦 INVENTORY & TRANSFER HUB</h3>
-                    <input type="text" placeholder="Godown/Material Name" class="bg-gray-900 p-2 mt-2 w-full rounded">
-                    <button onclick="transferMaterial()" class="mt-4 bg-emerald-600 p-2 w-full rounded font-bold">TRANSFER MATERIAL (Capture Proof)</button>
-                </div>`;
-            } else if (name === 'Attendance') {
-                area.innerHTML = `<div class="bg-gray-900 p-8 rounded text-center border border-gray-700">
-                    <h3 class="text-emerald-400 font-bold mb-6">✅ DAILY ATTENDANCE (500m Geo-Fence)</h3>
-                    <button onclick="punchIn()" class="bg-emerald-600 px-8 py-4 rounded font-bold">PUNCH IN (Selfie + GPS Lock)</button>
+                    <div class="grid grid-cols-2 gap-4">
+                        <input type="text" id="p-name" placeholder="Name of Work" class="bg-gray-900 p-2 rounded">
+                        <input type="text" id="p-client" placeholder="Name of Client" class="bg-gray-900 p-2 rounded">
+                        <input type="text" id="p-lat" placeholder="Lat" class="bg-gray-900 p-2 rounded">
+                        <input type="text" id="p-lng" placeholder="Lng" class="bg-gray-900 p-2 rounded">
+                        <button onclick="saveProject()" class="col-span-2 bg-blue-600 p-2 rounded font-bold">SUBMIT PROJECT</button>
+                    </div>
                 </div>`;
             } else {
                 area.innerHTML = `<div class="p-10 bg-gray-900 border border-gray-800 rounded text-center text-gray-400">Workspace for ${name} initialized...</div>`;
             }
         }
 
-        // Logic Functions
-        function saveProject() {
-            if(!document.getElementById('p-lat').value) { alert("❌ GPS Coordinates required!"); return; }
-            alert("Project Entry Saved Successfully!");
-        }
-
-        function capturePhoto() {
+        // --- INVENTORY LOGIC ---
+        function addStock() { alert("Stock Entry recorded!"); }
+        function transferMaterial(mode) { 
             navigator.geolocation.getCurrentPosition((pos) => {
-                document.getElementById('gps-status').innerText = `✅ GPS Locked: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`;
-                alert("Photo captured with Geo-Tags!");
-            }, () => alert("GPS Access Required!"));
+                alert(mode.toUpperCase() + " verified at " + pos.coords.latitude.toFixed(4));
+            }, () => alert("GPS Required!"));
         }
 
-        function punchIn() {
-            alert("Verifying Geo-Fence... Opening Camera for Selfie...");
+        // --- PROJECT LOGIC ---
+        function saveProject() {
+            if(!document.getElementById('p-lat').value) { alert("❌ GPS Coordinates are mandatory!"); return; }
+            alert("Project Saved!");
         }
 
-        function transferMaterial() { alert("Capture Transfer Proof (Photo) to proceed..."); }
         function logout() { location.reload(); }
 
         function initApp() {
